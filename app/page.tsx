@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-import { Search, MapPin, Star, TrendingUp, ShieldCheck } from "lucide-react";
+import { Search, MapPin, Star, ShieldCheck } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
+import { BINALAR } from "./data/binalar";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,7 +14,6 @@ export default function Home() {
   const suggestions = ["BEŞİKTAŞ", "KADIKÖY", "ŞİŞLİ", "SARIYER", "BEYOĞLU", "ÜSKÜDAR"];
   const filtered = suggestions.filter(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // GERÇEK ARAMA FONKSİYONU (POP-UP YOK)
   const handleSearch = (city?: string) => {
     const query = city || searchTerm;
     if (query.trim()) {
@@ -24,7 +24,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-black font-sans">
       
-      {/* ANA BAŞLIK VE ARAMA */}
+      {/* HERO SECTION */}
       <section className="pt-24 pb-32 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-[56px] md:text-[80px] font-black leading-[0.9] tracking-tighter uppercase mb-6 text-black">
@@ -35,6 +35,7 @@ export default function Home() {
             "Kiralayacağın evin sadece duvarlarını değil, gelecekteki huzurunu da gör."
           </p>
 
+          {/* ARAMA MOTORU */}
           <div className="relative max-w-2xl mx-auto z-50">
             <div className="relative flex items-center">
               <div className="absolute left-6 text-slate-400"><Search size={24} /></div>
@@ -47,11 +48,11 @@ export default function Home() {
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="BİR İLÇE YAZIN (ÖRN: BEŞİKTAŞ)..."
-                className="w-full h-24 bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] pl-16 pr-32 text-[15px] font-black italic focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-2xl shadow-slate-200/50"
+                className="w-full h-24 bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] pl-16 pr-32 text-[15px] font-black italic focus:outline-none focus:border-blue-600 shadow-2xl shadow-slate-200/50"
               />
               <button 
                 onClick={() => handleSearch()}
-                className="absolute right-4 px-10 h-16 bg-black text-white rounded-[1.8rem] text-[15px] font-black uppercase italic tracking-widest hover:bg-blue-600 transition-all active:scale-95 z-20"
+                className="absolute right-4 px-10 h-16 bg-black text-white rounded-[1.8rem] text-[15px] font-black uppercase italic tracking-widest hover:bg-blue-600 transition-all z-20"
               >
                 ARA
               </button>
@@ -68,7 +69,7 @@ export default function Home() {
                       setShowSuggestions(false);
                       handleSearch(s);
                     }} 
-                    className="w-full px-8 py-5 text-left flex items-center gap-4 hover:bg-slate-50 border-b border-slate-50 last:border-0 font-black uppercase italic text-black"
+                    className="w-full px-8 py-5 text-left flex items-center gap-4 hover:bg-slate-50 border-b border-slate-50 last:border-0 font-black uppercase italic text-black text-[15px]"
                   >
                     <MapPin size={20} className="text-blue-600" /> {s}
                   </button>
@@ -92,7 +93,7 @@ export default function Home() {
             { s: "ŞİŞLİ, KURTULUŞ", p: "4.8", t: "Fatura Onaylı" }
           ].map((item, i) => (
             <Link key={i} href="/bina/1" className="group bg-slate-50 p-8 rounded-[3rem] border border-slate-100 hover:bg-white hover:border-blue-200 transition-all duration-500 shadow-sm">
-               <div className="flex justify-between items-start mb-6 text-left">
+               <div className="flex justify-between items-start mb-6">
                   <div>
                     <h3 className="text-[15px] font-black uppercase italic tracking-tighter group-hover:text-blue-600 transition-colors">{item.s}</h3>
                     <div className="flex items-center gap-2 mt-1">
@@ -104,7 +105,7 @@ export default function Home() {
                     <Star size={12} fill="currentColor" /> {item.p}
                   </div>
                </div>
-               <p className="text-[12px] font-medium text-slate-600 italic leading-relaxed text-left">
+               <p className="text-[12px] font-medium text-slate-600 italic leading-relaxed">
                  "Binanın durumu gayet iyi, sakin ve huzurlu bir ortam var. Komşuluk ilişkileri oldukça seviyeli."
                </p>
             </Link>
@@ -112,8 +113,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* FOOTER: BULEVİNİ */}
       <footer className="py-20 border-t border-slate-50 text-center">
-        <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em]">© 2026 EVYORUM — Şeffaf Bina Kültürü</p>
+        <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em]">© 2026 BULEVİNİ — Şeffaf Bina Kültürü</p>
       </footer>
     </div>
   );

@@ -38,11 +38,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-[100] bg-white border-b border-slate-100 shadow-sm">
           <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
             
-            {/* LOGO: Mavi rengi geri ekledik */}
+            {/* YENİ LOGO: BULEVİNİ */}
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-600 rounded-[1.25rem] flex items-center justify-center text-white font-black text-2xl rotate-3 shadow-xl shadow-blue-100">E</div>
+              <div className="w-12 h-12 bg-blue-600 rounded-[1.25rem] flex items-center justify-center text-white font-black text-2xl rotate-3 shadow-xl shadow-blue-100">b</div>
               <div className="flex flex-col text-left">
-                <span className="font-black text-xl tracking-tighter uppercase italic text-black leading-none">EVYORUM</span>
+                <span className="font-black text-xl tracking-tighter uppercase italic text-black leading-none">BULEVİNİ</span>
                 <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 italic">Gerçekleri Öğren</span>
               </div>
             </Link>
@@ -57,7 +57,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <button onClick={handleLogout} className="p-3 bg-slate-100 rounded-2xl text-slate-400 hover:text-red-600 transition-all border border-slate-200"><LogOut size={20} /></button>
                 </>
               ) : (
-                /* GİRİŞ YAP BUTONU: Silikliği giderildi, belirginleştirildi */
                 <Link href="/giris" className="flex items-center gap-2 bg-slate-100 px-6 py-3 rounded-2xl font-black uppercase italic text-[12px] text-black border border-slate-200 hover:bg-slate-200 transition-all">
                   <LogIn size={18} className="text-blue-600" /> GİRİŞ YAP
                 </Link>
