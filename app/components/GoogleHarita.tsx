@@ -19,7 +19,7 @@ export default function GoogleHarita({ koordinat, items, isInteractive = false, 
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "AIzaSyDRejr9Dmhfx2sy0KobX7RbKvdREPFxQ30",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
   });
 
   const ilcePuanlari = useMemo(() => {
@@ -36,7 +36,6 @@ export default function GoogleHarita({ koordinat, items, isInteractive = false, 
   }, [items]);
 
   const setMapStyle = useCallback((mapInstance: google.maps.Map) => {
-    // Sadece interaktif modda (arama sayfası) GeoJSON stilini uygula
     if (!isInteractive) {
       mapInstance.data.setStyle({ visible: false });
       return;
@@ -111,9 +110,7 @@ export default function GoogleHarita({ koordinat, items, isInteractive = false, 
           styles: [{ featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }]
         }}
       >
-        {/* KRİTİK GÜNCELLEME BURADA */}
         {!isInteractive ? (
-          // Bina Karnesi: Tek bir mühür pini göster
           <MarkerF 
             position={center} 
             icon={{
@@ -126,7 +123,6 @@ export default function GoogleHarita({ koordinat, items, isInteractive = false, 
             }}
           />
         ) : (
-          // Arama Sayfası: Listelenen binaları göster
           (zoomLevel >= 14) && items?.map((bina, idx) => {
             if (!bina.koordinat) return null;
             const [lat, lng] = bina.koordinat.split(',').map((n: string) => parseFloat(n.trim()));

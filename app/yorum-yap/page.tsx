@@ -3,15 +3,14 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { Home, Camera, PlusCircle, CheckCircle2, UserCircle, UserX, Building2, UserCheck, History, Eye } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = "https://teakxifsmctudlpzuwkn.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlYWt4aWZzbWN0dWRscHp1d2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Mzc0NzUsImV4cCI6MjA4NDMxMzQ3NX0.NroN4nZW1cfxVT2apGoD6VyUpYJdJAjcSi6KJgF3mj8";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { db } from '@/app/lib/firebase';
+import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 function YorumFormu() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
   const [binaAdi, setBinaAdi] = useState("");
   const [kayitliBinalar, setKayitliBinalar] = useState<string[]>([]);
   const [filtrelenmişBinalar, setFiltrelenmişBinalar] = useState<string[]>([]);
@@ -33,35 +32,33 @@ function YorumFormu() {
   const [newCatName, setNewCatName] = useState("");
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      alert("Yorum yapmak için giriş yapman gerekiyor!");
+      router.push('/giris');
+    }
+  }, [user, authLoading]);
+
+  useEffect(() => {
     const binalariGetir = async () => {
-      const { data, error } = await supabase
-        .from('yorumlar')
-        .select('bina_adi');
-      
-      if (!error && data) {
-        const uniqueNames = Array.from(new Set(data.map(b => b.bina_adi?.toUpperCase().trim()))).filter(Boolean) as string[];
-        setKayitliBinalar(uniqueNames);
-      }
+      const snap = await getDocs(collection(db, 'yorumlar'));
+      const uniqueNames = Array.from(new Set(snap.docs.map(d => d.data().bina_adi?.toUpperCase().trim()))).filter(Boolean) as string[];
+      setKayitliBinalar(uniqueNames);
     };
     binalariGetir();
   }, []);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const queryBina = searchParams.get('binaAdi') || urlParams.get('binaAdi');
-    
+    const queryBina = searchParams.get('binaAdi');
     if (queryBina) {
-        setBinaAdi(decodeURIComponent(queryBina).toUpperCase().trim());
+      setBinaAdi(decodeURIComponent(queryBina).toUpperCase().trim());
     }
   }, [searchParams]);
 
   const handleBinaYazimi = (val: string) => {
     const uppercaseVal = val.toUpperCase();
     setBinaAdi(uppercaseVal);
-    
     if (uppercaseVal.length > 0) {
-      const filtre = kayitliBinalar.filter(b => b.includes(uppercaseVal));
-      setFiltrelenmişBinalar(filtre);
+      setFiltrelenmişBinalar(kayitliBinalar.filter(b => b.includes(uppercaseVal)));
       setShowDropdown(true);
     } else {
       setShowDropdown(false);
@@ -74,9 +71,7 @@ function YorumFormu() {
   };
 
   const handleScoreChange = (catId: number, value: number) => {
-    setCategories(categories.map(cat => 
-      cat.id === catId ? { ...cat, score: value } : cat
-    ));
+    setCategories(categories.map(cat => cat.id === catId ? { ...cat, score: value } : cat));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,12 +91,16 @@ function YorumFormu() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const temizBinaAdi = binaAdi.toUpperCase().trim();
-    
-    // Veritabanındaki "Anonim Sakın" tetikleyicisiyle birebir uyum sağlandı
-    const gecerliKullanici = isAnonymous ? "Anonim Sakın" : "Saltuk Buğra";
-
     if (!temizBinaAdi || !yorum.trim()) return alert("Bina adı ve deneyim metni zorunludur!");
-    
+    if (!user && !isAnonymous) {
+      alert("Yorum yapmak için giriş yapman gerekiyor!");
+      router.push('/giris');
+      return;
+    }
+
+    const gecerliKullaniciAdi = isAnonymous ? "Anonim Sakin" : (user?.displayName || user?.email?.split('@')[0] || "Anonim");
+    const gecerliKullaniciId = isAnonymous ? null : (user?.uid || null);
+
     setLoading(true);
 
     const puanlarVerisi = categories.reduce((acc: any, curr) => {
@@ -112,51 +111,28 @@ function YorumFormu() {
     const ortalamaPuan = Number((categories.reduce((acc, curr) => acc + curr.score, 0) / categories.length).toFixed(1));
 
     try {
-      const { error: insertError } = await supabase
-        .from('yorumlar')
-        .insert([{ 
-          bina_adi: temizBinaAdi,
-          yorum_metni: yorum.trim(), 
-          kullanıcı_adi: gecerliKullanici, 
-          puan: ortalamaPuan,
-          puanlar: puanlarVerisi,
-          baglanti_tipi: baglantiTipi
-        }]);
+      await addDoc(collection(db, 'yorumlar'), {
+        bina_adi: temizBinaAdi,
+        yeni_bina_adi: temizBinaAdi,
+        yorum_metni: yorum.trim(),
+        kullanici_adi: gecerliKullaniciAdi,
+        kullanici_id: gecerliKullaniciId,
+        puan: ortalamaPuan,
+        puanlar: puanlarVerisi,
+        baglanti_tipi: baglantiTipi,
+        created_at: serverTimestamp()
+      });
 
-      if (!insertError) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('muhur_sayisi, statu')
-          .eq('id', gecerliKullanici)
-          .single();
-
-        let tebrikMesaji = "BİNA MÜHÜRLENDİ!";
-        
-        if (profileData) {
-            if (profileData.muhur_sayisi === 1) {
-                tebrikMesaji = "TEBRİKLER! İLK MÜHÜRÜNÜ BASTIN VE ARTIK BİR 'KOMŞU'SUN. RADAR ÖZELLİĞİN AÇILDI! 📡";
-            } else if (profileData.muhur_sayisi === 5) {
-                tebrikMesaji = "MÜKEMMEL! 5 MÜHÜRLE 'BÖLGE SAKİNİ' OLDUN. MAVİ TİK ✅ ARTIK SENİNLE!";
-            } else if (profileData.muhur_sayisi === 15) {
-                tebrikMesaji = "İNANILMAZ! 15 MÜHÜRLE 'MUHTAR' RÜTBESİNE ERİŞTİN! 🏆";
-            } else {
-                tebrikMesaji = `BİNA MÜHÜRLENDİ! TOPLAM MÜHÜR: ${profileData.muhur_sayisi}`;
-            }
-        }
-
-        alert(tebrikMesaji);
-        router.push(`/bina/${encodeURIComponent(temizBinaAdi)}`);
-      } else {
-        alert("Bağlantı Hatası: " + insertError.message);
-      }
-    } catch (err) {
-      console.error(err);
+      alert("BİNA MÜHÜRLENDİ! 🎉");
+      router.push(`/bina/${encodeURIComponent(temizBinaAdi)}`);
+    } catch (err: any) {
+      alert("Hata: " + err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center font-black italic uppercase text-slate-200">Yükleniyor...</div>;
 
   return (
     <div className="min-h-screen bg-white p-4 md:p-8 text-black font-sans text-left">
@@ -182,16 +158,15 @@ function YorumFormu() {
           <form onSubmit={handleSubmit} className="space-y-10 text-left">
             <section className="relative text-left">
               <div className="bg-slate-50 p-1 rounded-[2rem] border border-slate-100 flex items-center px-6 focus-within:border-blue-600 transition-colors text-left">
-                 <Building2 className="text-slate-300" size={24} />
-                 <input 
-                    value={binaAdi} 
-                    onChange={(e) => handleBinaYazimi(e.target.value)} 
-                    onFocus={() => setShowDropdown(true)}
-                    placeholder="MÜHÜRLEYECEĞİN BİNAYI SEÇ..." 
-                    className="w-full p-6 bg-transparent font-black text-2xl uppercase italic outline-none placeholder:text-slate-200 text-left"
-                  />
+                <Building2 className="text-slate-300" size={24} />
+                <input 
+                  value={binaAdi} 
+                  onChange={(e) => handleBinaYazimi(e.target.value)} 
+                  onFocus={() => setShowDropdown(true)}
+                  placeholder="MÜHÜRLEYECEĞİN BİNAYI SEÇ..." 
+                  className="w-full p-6 bg-transparent font-black text-2xl uppercase italic outline-none placeholder:text-slate-200 text-left"
+                />
               </div>
-
               {showDropdown && filtrelenmişBinalar.length > 0 && (
                 <div className="absolute z-50 w-full mt-2 bg-white border-2 border-black rounded-[2rem] shadow-2xl overflow-hidden text-left">
                   {filtrelenmişBinalar.map((b, idx) => (
@@ -293,40 +268,44 @@ function YorumFormu() {
             </div>
 
             <div className="space-y-4 text-left">
-               <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2 text-left">DETAYLI DENEYİM</label>
-               <textarea 
-                  value={yorum} 
-                  onChange={(e) => setYorum(e.target.value)}
-                  rows={5} 
-                  className="w-full p-8 bg-white rounded-[2.5rem] border-2 border-slate-100 font-bold outline-none text-black focus:border-blue-600 transition-all text-lg italic shadow-sm text-left" 
-                  placeholder="Burada ne yaşadın? Gerçekleri dök..."
-                />
+              <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2 text-left">DETAYLI DENEYİM</label>
+              <textarea 
+                value={yorum} 
+                onChange={(e) => setYorum(e.target.value)}
+                rows={5} 
+                className="w-full p-8 bg-white rounded-[2.5rem] border-2 border-slate-100 font-bold outline-none text-black focus:border-blue-600 transition-all text-lg italic shadow-sm text-left" 
+                placeholder="Burada ne yaşadın? Gerçekleri dök..."
+              />
             </div>
 
             <div className="flex flex-col md:flex-row gap-6 items-center pt-8 border-t border-slate-100 text-left">
-                <button 
-                    type="button"
-                    onClick={() => setIsAnonymous(!isAnonymous)}
-                    className={`flex-1 w-full flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300 ${isAnonymous ? 'border-black bg-black text-white' : 'border-slate-100 bg-white text-slate-400'} text-left`}
-                >
-                    <div className="flex items-center gap-3 text-left">
-                        {isAnonymous ? <UserX size={24} /> : <UserCircle size={24} />}
-                        <div className="flex flex-col items-start text-left">
-                            <span className="font-black uppercase italic text-sm text-left">{isAnonymous ? 'ANONİM SAKIN' : 'SALTUK BUĞRA'}</span>
-                            <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter text-left">{isAnonymous ? 'Kimlik Gizli' : 'Kimlik Görünür'}</span>
-                        </div>
-                    </div>
-                    <div className={`w-10 h-5 rounded-full relative transition-all ${isAnonymous ? 'bg-blue-600' : 'bg-slate-200'} text-left`}>
-                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isAnonymous ? 'right-1' : 'left-1'}`} />
-                    </div>
-                </button>
+              <button 
+                type="button"
+                onClick={() => setIsAnonymous(!isAnonymous)}
+                className={`flex-1 w-full flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300 ${isAnonymous ? 'border-black bg-black text-white' : 'border-slate-100 bg-white text-slate-400'} text-left`}
+              >
+                <div className="flex items-center gap-3 text-left">
+                  {isAnonymous ? <UserX size={24} /> : <UserCircle size={24} />}
+                  <div className="flex flex-col items-start text-left">
+                    <span className="font-black uppercase italic text-sm text-left">
+                      {isAnonymous ? 'ANONİM SAKIN' : (user?.displayName || user?.email?.split('@')[0] || 'KULLANICI')}
+                    </span>
+                    <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter text-left">
+                      {isAnonymous ? 'Kimlik Gizli' : 'Kimlik Görünür'}
+                    </span>
+                  </div>
+                </div>
+                <div className={`w-10 h-5 rounded-full relative transition-all ${isAnonymous ? 'bg-blue-600' : 'bg-slate-200'} text-left`}>
+                  <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isAnonymous ? 'right-1' : 'left-1'}`} />
+                </div>
+              </button>
 
-                <button 
-                    type="submit" disabled={loading}
-                    className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-2xl uppercase italic hover:bg-black transition-all flex items-center justify-center gap-4 shadow-2xl active:scale-95 text-left"
-                >
-                   {loading ? "MÜHÜRLENİYOR..." : <>MÜHÜRÜ BAS! <CheckCircle2 size={28} /></>}
-                </button>
+              <button 
+                type="submit" disabled={loading}
+                className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-2xl uppercase italic hover:bg-black transition-all flex items-center justify-center gap-4 shadow-2xl active:scale-95 text-left"
+              >
+                {loading ? "MÜHÜRLENİYOR..." : <>MÜHÜRÜ BAS! <CheckCircle2 size={28} /></>}
+              </button>
             </div>
           </form>
         </main>

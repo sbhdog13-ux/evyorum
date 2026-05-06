@@ -1,25 +1,22 @@
 "use client";
 import React, { useState, Suspense, useEffect } from 'react';
-import { Navigation, ArrowLeft, Plus, Check, MapPin, AlignLeft, Search, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye } from 'lucide-react';
+import { ArrowLeft, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye, MapPin } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { db } from '@/app/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '@/app/contexts/AuthContext';
 import GoogleHarita from '@/app/components/GoogleHarita';
 
-// --- VERİTABANI BAĞLANTISI ---
-const supabaseUrl = "https://teakxifsmctudlpzuwkn.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlYWt4aWZzbWN0dWRscHp1d2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Mzc0NzUsImV4cCI6MjA4NDMxMzQ3NX0.NroN4nZW1cfxVT2apGoD6VyUpYJdJAjcSi6KJgF3mj8";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-const GOOGLE_MAPS_API_KEY = "AIzaSyDRejr9Dmhfx2sy0KobX7RbKvdREPFxQ30"; 
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
 function BinaOlusturForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
-
-  // GÜVEN KATMANI STATE'İ
   const [baglantiTipi, setBaglantiTipi] = useState<'sakin' | 'eski_sakin' | 'ziyaretci'>('sakin');
 
   const [formData, setFormData] = useState({
@@ -27,10 +24,24 @@ function BinaOlusturForm() {
     il: "İSTANBUL",
     ilce: "",
     mahalle: "",
-    acik_adres_ham: "", 
-    koordinat: "", 
-    foto_url: "" 
+    acik_adres_ham: "",
+    koordinat: "",
+    foto_url: ""
   });
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      alert("Bina oluşturmak için giriş yapman gerekiyor!");
+      router.push('/giris');
+    }
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    const qBina = searchParams?.get('binaAdi');
+    if (qBina) {
+      setFormData(prev => ({ ...prev, bina_adi: decodeURIComponent(qBina).toUpperCase().trim() }));
+    }
+  }, [searchParams]);
 
   const generateStreetViewUrl = (coords: string) => {
     if (!coords) return "";
@@ -56,7 +67,7 @@ function BinaOlusturForm() {
         components.forEach((c: any) => {
           if (c.types.includes("administrative_area_level_2")) district = c.long_name.toUpperCase();
           if (
-            c.types.includes("neighborhood") || 
+            c.types.includes("neighborhood") ||
             c.types.includes("sublocality") ||
             c.types.includes("sublocality_level_1") ||
             c.types.includes("administrative_area_level_4")
@@ -73,50 +84,55 @@ function BinaOlusturForm() {
           foto_url: generateStreetViewUrl(coords)
         }));
       }
-    } catch (error) { 
-      console.error("Hata:", error); 
-    } finally { 
-      setAddressLoading(false); 
+    } catch (error) {
+      console.error("Hata:", error);
+    } finally {
+      setAddressLoading(false);
     }
   };
-
-  useEffect(() => {
-    const qBina = searchParams?.get('binaAdi');
-    if (qBina) {
-        setFormData(prev => ({ ...prev, bina_adi: decodeURIComponent(qBina).toUpperCase().trim() }));
-    }
-  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const temizBinaAdi = formData.bina_adi.toUpperCase().trim();
-    
+
     if (!temizBinaAdi || !formData.ilce || !formData.koordinat) {
-        return alert("Mühürleme için tüm alanlar dolu olmalıdır!");
+      return alert("Mühürleme için tüm alanlar dolu olmalıdır!");
     }
-    
+
+    if (!user && !isAnonymous) {
+      alert("Bina oluşturmak için giriş yapman gerekiyor!");
+      router.push('/giris');
+      return;
+    }
+
     setLoading(true);
     try {
       const paketliAdres = `${formData.mahalle} MAH. ${formData.ilce}/${formData.il} | ADRES: ${formData.acik_adres_ham} | KOORD: ${formData.koordinat}`;
+      const kullaniciAdi = isAnonymous ? "Anonim Sakin" : (user?.displayName || user?.email?.split('@')[0] || "Anonim");
+      const kullaniciId = isAnonymous ? null : user?.uid;
 
-      const { error } = await supabase.from('yorumlar').insert([{ 
-          bina_adi: temizBinaAdi,
-          acik_adres: paketliAdres, 
-          yorum_metni: `${temizBinaAdi} binası mühürlendi.`,
-          kullanıcı_adi: isAnonymous ? "Anonim Sakin" : "Saltuk Buğra", 
-          puan: 0, 
-          puanlar: {}, 
-          foto_url: formData.foto_url,
-          baglanti_tipi: baglantiTipi // YENİ VERİ EKLEDİK
-        }]);
+      await addDoc(collection(db, 'yorumlar'), {
+        bina_adi: temizBinaAdi,
+        yeni_bina_adi: temizBinaAdi,
+        acik_adres: paketliAdres,
+        yorum_metni: `${temizBinaAdi} binası mühürlendi.`,
+        kullanici_adi: kullaniciAdi,
+        kullanici_id: kullaniciId,
+        puan: 0,
+        puanlar: {},
+        foto_url: formData.foto_url,
+        baglanti_tipi: baglantiTipi,
+        created_at: serverTimestamp()
+      });
 
-      if (error) throw error;
       router.push(`/bina/${encodeURIComponent(temizBinaAdi)}`);
-    } catch (err: any) { 
-        setLoading(false); 
-        alert("Supabase Hatası: " + err.message);
+    } catch (err: any) {
+      setLoading(false);
+      alert("Hata: " + err.message);
     }
   };
+
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center font-black italic uppercase text-slate-200">Yükleniyor...</div>;
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] p-4 md:p-6 text-black pb-20 text-left">
@@ -135,9 +151,9 @@ function BinaOlusturForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
             <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] relative bg-slate-100 text-left">
               {formData.foto_url ? (
-                  <img src={formData.foto_url} alt="Bina" className="w-full h-full object-cover" />
+                <img src={formData.foto_url} alt="Bina" className="w-full h-full object-cover" />
               ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px] p-4 text-center">Adres Çekilince Fotoğraf Gelecek</div>
+                <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px] p-4 text-center">Adres Çekilince Fotoğraf Gelecek</div>
               )}
               <div className="absolute top-2 left-2 bg-black/50 text-white p-2 rounded-full"><Camera size={14} /></div>
             </div>
@@ -150,13 +166,13 @@ function BinaOlusturForm() {
           <div className="bg-black p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden text-left">
             <label className="block text-[10px] font-black text-blue-400 uppercase italic mb-3 tracking-[0.3em] text-left">KONUM KOORDİNATLARI</label>
             <div className="flex flex-col md:flex-row gap-4 items-center relative z-10 text-left">
-              <input 
+              <input
                 value={formData.koordinat}
                 onChange={(e) => setFormData({...formData, koordinat: e.target.value})}
                 placeholder="ÖRN: 41.0253, 29.1175"
                 className="w-full bg-transparent text-white text-2xl font-black outline-none tracking-tighter text-left"
               />
-              <button 
+              <button
                 type="button"
                 onClick={() => adresiGetir(formData.koordinat)}
                 className="bg-blue-600 text-white px-6 py-4 rounded-2xl font-black text-[11px] uppercase italic hover:bg-white hover:text-blue-600 transition-all active:scale-95 shadow-xl text-left"
@@ -168,7 +184,7 @@ function BinaOlusturForm() {
 
           <div className="bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-blue-100 shadow-inner text-left">
             <label className="block text-[10px] font-black text-blue-600 uppercase italic mb-3 tracking-widest leading-none text-left">BİNA ADI</label>
-            <input 
+            <input
               value={formData.bina_adi}
               onChange={(e) => setFormData({...formData, bina_adi: e.target.value.toUpperCase()})}
               placeholder="BİNA İSMİNİ GİRİN"
@@ -176,7 +192,6 @@ function BinaOlusturForm() {
             />
           </div>
 
-          {/* GÜVEN KATMANI: BAĞLANTI TİPİ SEÇİMİ (YENİ) */}
           <section className="space-y-4 text-left">
             <label className="text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest pl-2 text-left">İSTİHBARAT KAYNAĞI / BAĞLANTIN</label>
             <div className="grid grid-cols-3 gap-3 text-left">
@@ -190,8 +205,8 @@ function BinaOlusturForm() {
                   type="button"
                   onClick={() => setBaglantiTipi(item.id as any)}
                   className={`p-5 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-2 group text-left ${
-                    baglantiTipi === item.id 
-                    ? 'border-blue-600 bg-blue-50/50 shadow-lg shadow-blue-100' 
+                    baglantiTipi === item.id
+                    ? 'border-blue-600 bg-blue-50/50 shadow-lg shadow-blue-100'
                     : 'border-slate-100 bg-white hover:border-blue-200'
                   }`}
                 >
@@ -207,7 +222,7 @@ function BinaOlusturForm() {
 
           <div className="bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-slate-100 text-left">
             <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest leading-none text-left">AÇIK ADRES</label>
-            <textarea 
+            <textarea
               value={formData.acik_adres_ham}
               onChange={(e) => setFormData({...formData, acik_adres_ham: e.target.value.toUpperCase()})}
               className="w-full bg-transparent text-sm font-bold outline-none uppercase italic text-black resize-none text-left"
@@ -227,15 +242,17 @@ function BinaOlusturForm() {
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 items-center pt-4 text-left">
-              <button type="button" onClick={() => setIsAnonymous(!isAnonymous)} className={`flex-1 w-full flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300 ${isAnonymous ? 'border-black bg-black text-white' : 'border-slate-100 bg-white text-slate-400'} text-left`}>
-                  <div className="flex items-center gap-3 text-left">
-                      {isAnonymous ? <UserX size={24} /> : <UserCircle size={24} />}
-                      <span className="font-black uppercase italic text-sm text-left">{isAnonymous ? 'ANONİM SAKİN' : 'SALTUK BUĞRA'}</span>
-                  </div>
-              </button>
-              <button type="submit" disabled={loading} className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-xl hover:bg-black transition-all shadow-2xl italic active:scale-95 text-left">
-                 {loading ? "MÜHÜRLENİYOR..." : "BİNAYI MÜHÜRLE"}
-              </button>
+            <button type="button" onClick={() => setIsAnonymous(!isAnonymous)} className={`flex-1 w-full flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300 ${isAnonymous ? 'border-black bg-black text-white' : 'border-slate-100 bg-white text-slate-400'} text-left`}>
+              <div className="flex items-center gap-3 text-left">
+                {isAnonymous ? <UserX size={24} /> : <UserCircle size={24} />}
+                <span className="font-black uppercase italic text-sm text-left">
+                  {isAnonymous ? 'ANONİM SAKİN' : (user?.displayName || user?.email?.split('@')[0] || 'KULLANICI')}
+                </span>
+              </div>
+            </button>
+            <button type="submit" disabled={loading} className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-xl hover:bg-black transition-all shadow-2xl italic active:scale-95 text-left">
+              {loading ? "MÜHÜRLENİYOR..." : "BİNAYI MÜHÜRLE"}
+            </button>
           </div>
         </form>
       </div>

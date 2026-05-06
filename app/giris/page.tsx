@@ -1,20 +1,40 @@
 "use client";
 
 import { useState } from 'react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '@/app/lib/firebase';
 import { LogIn, ArrowRight, UserPlus, Mail } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function GirisKayitSayfasi() {
   const [mode, setMode] = useState<'giris' | 'kayit'>('giris');
+  const [email, setEmail] = useState('');
+  const [sifre, setSifre] = useState('');
+  const [isim, setIsim] = useState('');
+  const [hata, setHata] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Tarayıcıya "Giriş Yapıldı" notu bırakıyoruz
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('userLoggedIn', 'true');
-      localStorage.setItem('userName', 'SALTUK BUĞRA');
-      // Anasayfaya gönderiyoruz
-      window.location.href = '/'; 
+    setHata('');
+    setLoading(true);
+
+    try {
+      if (mode === 'giris') {
+        await signInWithEmailAndPassword(auth, email, sifre);
+      } else {
+        const result = await createUserWithEmailAndPassword(auth, email, sifre);
+        await updateProfile(result.user, { displayName: isim });
+      }
+      router.push('/');
+    } catch (err: any) {
+      if (err.code === 'auth/invalid-credential') setHata('E-posta veya şifre hatalı.');
+      else if (err.code === 'auth/email-already-in-use') setHata('Bu e-posta zaten kayıtlı.');
+      else if (err.code === 'auth/weak-password') setHata('Şifre en az 6 karakter olmalı.');
+      else setHata('Bir hata oluştu, tekrar dene.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,64 +54,64 @@ export default function GirisKayitSayfasi() {
           </p>
         </div>
 
+        {hata && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-[12px] font-bold text-center">
+            {hata}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           {mode === 'kayit' && (
             <div className="space-y-2">
               <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">ADIN VE SOYADIN</label>
-              <input 
-                type="text" 
-                required 
-                placeholder="ÖRN: SALTUK BUĞRA" 
-                className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all uppercase" 
+              <input
+                type="text"
+                required
+                value={isim}
+                onChange={(e) => setIsim(e.target.value)}
+                placeholder="ÖRN: SALTUK BUĞRA"
+                className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all uppercase"
               />
             </div>
           )}
 
           <div className="space-y-2">
             <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">E-POSTA</label>
-            <input 
-              type="email" 
-              required 
-              placeholder="ornek@mail.com" 
-              className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all" 
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ornek@mail.com"
+              className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all"
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">ŞİFREN</label>
-            <input 
-              type="password" 
-              required 
-              placeholder="••••••••" 
-              className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all" 
+            <input
+              type="password"
+              required
+              value={sifre}
+              onChange={(e) => setSifre(e.target.value)}
+              placeholder="••••••••"
+              className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all"
             />
           </div>
 
-          {mode === 'kayit' && (
-            <div className="space-y-2 pt-2">
-              <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-blue-600 flex items-center gap-2">
-                <Mail size={12} /> REFERANS E-POSTASI
-              </label>
-              <input 
-                type="email" 
-                placeholder="arkadas@mail.com" 
-                className="w-full h-16 bg-blue-50/30 border-2 border-dashed border-blue-100 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all" 
-              />
-              <p className="text-[10px] text-slate-400 italic ml-4 font-medium">Sizi kim davet etti? (İsteğe bağlıdır)</p>
-            </div>
-          )}
-
-          <button 
-            type="submit" 
+          <button
+            type="submit"
+            disabled={loading}
             className="w-full h-16 bg-black text-white rounded-2xl text-[14px] font-black uppercase italic tracking-widest hover:bg-blue-600 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 mt-4"
           >
-            {mode === 'giris' ? 'SİSTEME GİRİŞ YAP' : 'HESABI OLUŞTUR'} <ArrowRight size={20} />
+            {loading ? 'BEKLEYİN...' : mode === 'giris' ? 'SİSTEME GİRİŞ YAP' : 'HESABI OLUŞTUR'}
+            <ArrowRight size={20} />
           </button>
         </form>
 
         <div className="mt-10 text-center border-t border-slate-50 pt-8">
-          <button 
-            onClick={() => setMode(mode === 'giris' ? 'kayit' : 'giris')} 
+          <button
+            onClick={() => { setMode(mode === 'giris' ? 'kayit' : 'giris'); setHata(''); }}
             className="text-[11px] font-bold text-slate-400 uppercase italic hover:text-blue-600 transition-colors"
           >
             {mode === 'giris' ? "Hesabın yok mu? KAYIT OL" : "Zaten hesabın var mı? GİRİŞ YAP"}

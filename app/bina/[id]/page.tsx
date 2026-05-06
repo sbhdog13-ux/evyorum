@@ -1,32 +1,30 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Star, MapPin, ArrowLeft, Home, Wind, Shield, Users, MessageSquarePlus, Activity, Map as MapIcon, Camera, CheckCircle, AlertTriangle, Heart, Thermometer, Radio, Info, X } from 'lucide-react';
+import { Star, MapPin, ArrowLeft, Home, Wind, Shield, Users, MessageSquarePlus, Activity, Map as MapIcon, Camera, CheckCircle, AlertTriangle, Heart, Radio, Info, X } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { db } from '@/app/lib/firebase';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '@/app/contexts/AuthContext';
 import GoogleHarita from '@/app/components/GoogleHarita';
 import Link from 'next/link';
-
-const supabaseUrl = "https://teakxifsmctudlpzuwkn.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlYWt4aWZzbWN0dWRscHp1d2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Mzc0NzUsImV4cCI6MjA4NDMxMzQ3NX0.NroN4nZW1cfxVT2apGoD6VyUpYJdJAjcSi6KJgF3mj8";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function BinaDetayIcerik() {
   const params = useParams();
   const id = params?.id;
   const searchParams = useSearchParams();
-  
+  const { user } = useAuth();
+
   const [dbYorumlar, setDbYorumlar] = useState<any[]>([]);
   const [dinamikKarne, setDinamikKarne] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [binaFotosu, setBinaFotosu] = useState<string | null>(null);
   const [koordinat, setKoordinat] = useState<string>("41.0082, 28.9784");
   const [konumBilgisi, setKonumBilgisi] = useState({ ilce: "İSTANBUL", mahalle: "Bilinmiyor" });
-  
-  // RADAR STATE
   const [isFollowing, setIsFollowing] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [followingLoading, setFollowingLoading] = useState(false);
+  const [radarDocId, setRadarDocId] = useState<string | null>(null);
 
   const binaIsmiRaw = searchParams?.get('isim') || id;
   const binaIsmi = binaIsmiRaw ? decodeURIComponent(String(binaIsmiRaw)).toUpperCase().trim() : null;
@@ -34,110 +32,110 @@ function BinaDetayIcerik() {
   useEffect(() => {
     const verileriGetir = async () => {
       if (!binaIsmi) return;
-      
       setLoading(true);
       try {
-        // RADAR KONTROLÜ - SAYFA AÇILDIĞINDA VERİTABANINDAN DURUMU ÇEKER
-        const { data: followData } = await supabase
-          .from('takipler')
-          .select('*')
-          .eq('kullanıcı_adi', 'Saltuk Buğra')
-          .eq('bina_id', id)
-          .maybeSingle();
-        
-        if (followData) {
-          setIsFollowing(true);
-        } else {
-          setIsFollowing(false);
-        }
-
-        const { data: yData, error: yError } = await supabase
-          .from('yorumlar')
-          .select('*')
-          .ilike('bina_adi', binaIsmi) 
-          .order('created_at', { ascending: false });
-
-        if (yError) throw yError;
-
-        if (yData && yData.length > 0) {
-          const { data: pData } = await supabase.from('profiles').select('*');
-          
-          const birlesmis = yData.map(y => ({
-            ...y,
-            profiles: pData?.find(p => p.id === y.kullanıcı_adi) || null
-          }));
-
-          const siraliYorumlar = [...birlesmis].sort((a, b) => {
-            const aM = a.profiles?.statu === 'muhtar' ? 1 : 0;
-            const bM = b.profiles?.statu === 'muhtar' ? 1 : 0;
-            return bM - aM;
-          });
-
-          setDbYorumlar(siraliYorumlar);
-
-          const anaVeri = yData[yData.length - 1]; 
-          if (anaVeri.foto_url) setBinaFotosu(anaVeri.foto_url);
-          
-          if (anaVeri.acik_adres) {
-            const parcalar: string[] = anaVeri.acik_adres.split('|');
-            const yerBilgisi: string[] = parcalar[0]?.trim().split(' ');
-            if (yerBilgisi) {
-                setKonumBilgisi({
-                    mahalle: yerBilgisi[0] || "Bilinmiyor",
-                    ilce: yerBilgisi[2]?.split('/')[0] || "İSTANBUL"
-                });
-            }
-            const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
-            if (koordParca) setKoordinat(koordParca.replace('KOORD:', '').trim());
+        // RADAR KONTROLÜ
+        if (user) {
+          const radarQ = query(
+            collection(db, 'takipler'),
+            where('kullanici_id', '==', user.uid),
+            where('bina_id', '==', String(id))
+          );
+          const radarSnap = await getDocs(radarQ);
+          if (!radarSnap.empty) {
+            setIsFollowing(true);
+            setRadarDocId(radarSnap.docs[0].id);
+          } else {
+            setIsFollowing(false);
+            setRadarDocId(null);
           }
-
-          const kategoriToplamlari: { [key: string]: number } = {};
-          const kategoriSayaclari: { [key: string]: number } = {};
-
-          yData.forEach((satir) => {
-            const pv = typeof satir.puanlar === 'string' ? JSON.parse(satir.puanlar) : satir.puanlar;
-            if (pv && typeof pv === 'object') {
-              Object.entries(pv).forEach(([kategori, puan]) => {
-                const p = Number(puan);
-                if (!isNaN(p) && p > 0) {
-                  const anahtar = kategori.toUpperCase();
-                  kategoriToplamlari[anahtar] = (kategoriToplamlari[anahtar] || 0) + p;
-                  kategoriSayaclari[anahtar] = (kategoriSayaclari[anahtar] || 0) + 1;
-                }
-              });
-            }
-          });
-
-          const hesaplananKarne = Object.keys(kategoriToplamlari).map(key => ({
-            label: key,
-            score: (kategoriToplamlari[key] / (kategoriSayaclari[key] || 1)).toFixed(1),
-          }));
-          setDinamikKarne(hesaplananKarne);
         }
-      } catch (err) { console.error("Hata:", err); } finally { setLoading(false); }
+
+        // YORUMLARI ÇEK
+        const yorumlarQ = query(
+          collection(db, 'yorumlar'),
+          where('bina_adi', '==', binaIsmi)
+        );
+        const yorumSnap = await getDocs(yorumlarQ);
+        const yorumlar = yorumSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Tarihe göre sırala
+        yorumlar.sort((a: any, b: any) => {
+          const aTime = a.created_at?.seconds || 0;
+          const bTime = b.created_at?.seconds || 0;
+          return bTime - aTime;
+        });
+
+        setDbYorumlar(yorumlar);
+
+        // FOTOĞRAF VE KONUM
+        const sonYorum = yorumlar[yorumlar.length - 1] as any;
+        if (sonYorum?.foto_url) setBinaFotosu(sonYorum.foto_url);
+
+        if (sonYorum?.acik_adres) {
+          const parcalar: string[] = sonYorum.acik_adres.split('|');
+          const yerBilgisi: string[] = parcalar[0]?.trim().split(' ');
+          if (yerBilgisi) {
+            setKonumBilgisi({
+              mahalle: yerBilgisi[0] || "Bilinmiyor",
+              ilce: yerBilgisi[2]?.split('/')[0] || "İSTANBUL"
+            });
+          }
+          const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
+          if (koordParca) setKoordinat(koordParca.replace('KOORD:', '').trim());
+        }
+
+        // KARNEYİ HESAPLA
+        const kategoriToplamlari: { [key: string]: number } = {};
+        const kategoriSayaclari: { [key: string]: number } = {};
+
+        yorumlar.forEach((satir: any) => {
+          const pv = typeof satir.puanlar === 'string' ? JSON.parse(satir.puanlar) : satir.puanlar;
+          if (pv && typeof pv === 'object') {
+            Object.entries(pv).forEach(([kategori, puan]) => {
+              const p = Number(puan);
+              if (!isNaN(p) && p > 0) {
+                const anahtar = kategori.toUpperCase();
+                kategoriToplamlari[anahtar] = (kategoriToplamlari[anahtar] || 0) + p;
+                kategoriSayaclari[anahtar] = (kategoriSayaclari[anahtar] || 0) + 1;
+              }
+            });
+          }
+        });
+
+        const hesaplananKarne = Object.keys(kategoriToplamlari).map(key => ({
+          label: key,
+          score: (kategoriToplamlari[key] / (kategoriSayaclari[key] || 1)).toFixed(1),
+        }));
+        setDinamikKarne(hesaplananKarne);
+
+      } catch (err) { console.error("Hata:", err); } 
+      finally { setLoading(false); }
     };
     verileriGetir();
-  }, [binaIsmi, id]);
+  }, [binaIsmi, id, user]);
 
   const toggleRadar = async () => {
+    if (!user) {
+      alert("Radar özelliği için giriş yapman gerekiyor!");
+      return;
+    }
     setFollowingLoading(true);
     try {
-      if (isFollowing) {
-        await supabase
-          .from('takipler')
-          .delete()
-          .eq('kullanıcı_adi', 'Saltuk Buğra')
-          .eq('bina_id', id);
+      if (isFollowing && radarDocId) {
+        await deleteDoc(doc(db, 'takipler', radarDocId));
         setIsFollowing(false);
+        setRadarDocId(null);
       } else {
-        await supabase
-          .from('takipler')
-          .insert([{ 
-            kullanıcı_adi: 'Saltuk Buğra', 
-            bina_id: id, 
-            bina_adi: binaIsmi 
-          }]);
+        const newDoc = await addDoc(collection(db, 'takipler'), {
+          kullanici_id: user.uid,
+          kullanici_adi: user.displayName || user.email,
+          bina_id: String(id),
+          bina_adi: binaIsmi,
+          created_at: serverTimestamp()
+        });
         setIsFollowing(true);
+        setRadarDocId(newDoc.id);
       }
     } catch (err) {
       console.error("Radar hatası:", err);
@@ -169,7 +167,7 @@ function BinaDetayIcerik() {
 
   const StatuRozeti = ({ statu }: { statu: string }) => {
     switch (statu) {
-      case 'muhtar': return <span className="bg-black text-[#fbbf24] border border-[#fbbf24] px-2 py-0.5 rounded-md text-[9px] font-black italic shadow-[0_0_10px_rgba(251,191,36,0.2)]">MUHTAR 🏆</span>;
+      case 'muhtar': return <span className="bg-black text-[#fbbf24] border border-[#fbbf24] px-2 py-0.5 rounded-md text-[9px] font-black italic">MUHTAR 🏆</span>;
       case 'bolge_sakini': return <span className="bg-blue-600 text-white px-2 py-0.5 rounded-md text-[9px] font-black italic">BÖLGE SAKİNİ</span>;
       default: return <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[9px] font-black italic">KOMŞU</span>;
     }
@@ -179,7 +177,7 @@ function BinaDetayIcerik() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white p-6">
         <div className="text-center">
-          <h2 className="font-black italic uppercase text-slate-200 text-2xl mb-4 leading-none text-left">BİNA BULUNAMADI</h2>
+          <h2 className="font-black italic uppercase text-slate-200 text-2xl mb-4">BİNA BULUNAMADI</h2>
           <Link href="/arama" className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm uppercase italic">ARAMAYA DÖN</Link>
         </div>
       </div>
@@ -195,7 +193,6 @@ function BinaDetayIcerik() {
           </Link>
           
           <div className="flex items-center gap-3">
-            {/* RADARIMA AL BUTONU VE BİLGİ İKONU BURAYA TAŞINDI */}
             <div className="flex items-center gap-1">
               <button 
                 onClick={toggleRadar}
@@ -221,7 +218,6 @@ function BinaDetayIcerik() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 pt-8 relative">
-        {/* RADAR INFO TOOLTIP */}
         {showInfo && (
           <div className="absolute top-4 right-4 z-[100] bg-black text-white p-6 rounded-[2rem] shadow-2xl max-w-xs border border-blue-600/50 animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-start mb-2">
@@ -229,7 +225,7 @@ function BinaDetayIcerik() {
               <button onClick={() => setShowInfo(false)} className="text-slate-500 hover:text-white"><X size={16} /></button>
             </div>
             <p className="text-[12px] font-medium italic leading-relaxed text-slate-300">
-              Bu binayı radarına aldığında, binaya basılan her yeni mühür anında senin paneline istihbarat olarak düşer. Gözün kulağın bu binada olur.
+              Bu binayı radarına aldığında, binaya basılan her yeni mühür anında senin paneline istihbarat olarak düşer.
             </p>
           </div>
         )}
@@ -276,7 +272,7 @@ function BinaDetayIcerik() {
             <MapIcon size={18} className="text-blue-600" /> KONUM <span className="text-blue-600 opacity-40 ml-2">(GOOGLE HARİTA)</span>
           </h2>
           <div className="w-full h-80 rounded-[2.5rem] overflow-hidden">
-             <GoogleHarita koordinat={koordinat} isInteractive={false} />
+            <GoogleHarita koordinat={koordinat} isInteractive={false} />
           </div>
         </div>
 
@@ -298,7 +294,7 @@ function BinaDetayIcerik() {
               </div>
             )) : (
               <div className="col-span-4 py-14 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-100 flex items-center justify-center text-slate-300 font-black italic uppercase text-[11px] text-center w-full">
-                 BU BİNANIN HENÜZ KARNESİ OLUŞMAMIŞ
+                BU BİNANIN HENÜZ KARNESİ OLUŞMAMIŞ
               </div>
             )}
           </div>
@@ -307,32 +303,30 @@ function BinaDetayIcerik() {
         <div className="space-y-4 pb-10 text-left">
           <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">Sakin Deneyimleri</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {dbYorumlar.map((y, i) => {
-              const statu = y.profiles?.statu || 'komsu';
-              const isMuhtar = statu === 'muhtar';
-              const isVerified = statu === 'bolge_sakini' || isMuhtar;
-
+            {dbYorumlar.map((y: any, i) => {
+              const isMuhtar = false;
               return (
-                <div key={i} className={`p-6 rounded-[2.5rem] border transition-all flex flex-col gap-4 text-left ${isMuhtar ? 'bg-black text-white border-[#fbbf24] shadow-xl shadow-yellow-900/10' : 'bg-blue-50/30 border-blue-100 shadow-sm'}`}>
+                <div key={i} className="p-6 rounded-[2.5rem] border transition-all flex flex-col gap-4 text-left bg-blue-50/30 border-blue-100 shadow-sm">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-[12px] font-black uppercase italic ${isMuhtar ? 'bg-[#fbbf24] text-black' : 'bg-blue-600 text-white'}`}>
-                          {y.kullanıcı_adi ? y.kullanıcı_adi[0] : "S"}
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-[12px] font-black uppercase italic bg-blue-600 text-white">
+                        {y.kullanici_adi ? y.kullanici_adi[0] : "A"}
                       </div>
                       <div className="text-left">
-                        <div className="flex items-center gap-1.5">
-                          <h4 className={`text-[12px] font-black uppercase italic tracking-tighter leading-none ${isMuhtar ? 'text-[#fbbf24]' : 'text-blue-600'}`}>{y.kullanıcı_adi || "İSİMSİZ SAKİN"}</h4>
-                          {isVerified && <CheckCircle size={14} className={isMuhtar ? 'text-[#fbbf24]' : 'text-blue-500'} />}
+                        <h4 className="text-[12px] font-black uppercase italic tracking-tighter leading-none text-blue-600">
+                          {y.kullanici_adi || "Anonim Sakin"}
+                        </h4>
+                        <div className="mt-1.5">
+                          <StatuRozeti statu="komsu" />
                         </div>
-                        <div className="mt-1.5"><StatuRozeti statu={statu} /></div>
                       </div>
                     </div>
-                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${isMuhtar ? 'bg-white/10' : 'bg-blue-100'}`}>
-                      <Star size={12} fill={isMuhtar ? "#fbbf24" : "#2563eb"} className={isMuhtar ? "text-[#fbbf24]" : "text-blue-600"} />
-                      <span className={`font-black text-[13px] ${isMuhtar ? 'text-[#fbbf24]' : 'text-blue-600'}`}>{y.puan || 5}</span>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-100">
+                      <Star size={12} fill="#2563eb" className="text-blue-600" />
+                      <span className="font-black text-[13px] text-blue-600">{y.puan || 5}</span>
                     </div>
                   </div>
-                  <div className={`p-5 rounded-3xl text-[13px] font-medium italic border-l-4 ${isMuhtar ? 'bg-white/5 border-[#fbbf24] text-slate-200' : 'bg-white border-blue-600 text-slate-700'}`}>
+                  <div className="p-5 rounded-3xl text-[13px] font-medium italic border-l-4 bg-white border-blue-600 text-slate-700">
                     "{y.yorum_metni}"
                   </div>
                 </div>

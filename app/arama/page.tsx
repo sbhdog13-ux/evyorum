@@ -1,14 +1,11 @@
 "use client";
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
-import { Search, Home, Building2, MapPin, Star, MessageSquare, ArrowRight, X, Camera, Filter, SlidersHorizontal, ChevronRight, Map as MapIcon, List, ShieldCheck } from 'lucide-react';
+import { Search, Home, MapPin, Star, MessageSquare, ArrowRight, X, SlidersHorizontal, ChevronRight, Map as MapIcon, List, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { db } from '@/app/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import GoogleHarita from '@/app/components/GoogleHarita';
-
-const supabaseUrl = "https://teakxifsmctudlpzuwkn.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlYWt4aWZzbWN0dWRscHp1d2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3Mzc0NzUsImV4cCI6MjA4NDMxMzQ3NX0.NroN4nZW1cfxVT2apGoD6VyUpYJdJAjcSi6KJgF3mj8";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function AramaIcerik() {
   const router = useRouter();
@@ -28,11 +25,10 @@ function AramaIcerik() {
   useEffect(() => {
     const verileriGetir = async () => {
       setLoading(true);
-      const { data, error } = await supabase.from('yorumlar').select('*');
-      if (!error && data) {
-        setAllReviews(data);
-        gruplaVeFiltrele(data, searchTerm, filters);
-      }
+      const snap = await getDocs(collection(db, 'yorumlar'));
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setAllReviews(data);
+      gruplaVeFiltrele(data, searchTerm, filters);
       setLoading(false);
     };
     verileriGetir();
@@ -62,17 +58,16 @@ function AramaIcerik() {
       }
 
       if (item.acik_adres && item.acik_adres.includes('|')) {
-          const parcalar = item.acik_adres.split('|');
-          const yerBilgisi = parcalar[0]?.split(' ');
-          if (yerBilgisi && yerBilgisi.length > 2) {
-            gruplar[isim].mahalle = yerBilgisi[0] || gruplar[isim].mahalle;
-            gruplar[isim].ilce = yerBilgisi[2]?.split('/')[0].toUpperCase() || gruplar[isim].ilce;
-          }
-          const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
-          if (koordParca) gruplar[isim].koordinat = koordParca.replace('KOORD:', '').trim();
+        const parcalar = item.acik_adres.split('|');
+        const yerBilgisi = parcalar[0]?.split(' ');
+        if (yerBilgisi && yerBilgisi.length > 2) {
+          gruplar[isim].mahalle = yerBilgisi[0] || gruplar[isim].mahalle;
+          gruplar[isim].ilce = yerBilgisi[2]?.split('/')[0].toUpperCase() || gruplar[isim].ilce;
+        }
+        const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
+        if (koordParca) gruplar[isim].koordinat = koordParca.replace('KOORD:', '').trim();
       }
 
-      // PUANLAMA MANTIĞI: Bağlantı tipine göre ağırlıklandırma
       let etkiCarpani = 0.3; 
       if (item.baglanti_tipi === 'sakin') etkiCarpani = 1.0;
       if (item.baglanti_tipi === 'eski_sakin') etkiCarpani = 0.7;
@@ -122,7 +117,7 @@ function AramaIcerik() {
   const ilceListesi = useMemo(() => {
     return Array.from(new Set(allReviews.map(r => {
       if (r.acik_adres && r.acik_adres.includes('|')) {
-          return r.acik_adres.split('|')[0].split(' ')[2]?.split('/')[0].toUpperCase();
+        return r.acik_adres.split('|')[0].split(' ')[2]?.split('/')[0].toUpperCase();
       }
       return null;
     }))).filter(Boolean);
@@ -170,7 +165,7 @@ function AramaIcerik() {
 
           <div>
             <label className="text-slate-500 font-black italic text-[10px] uppercase tracking-[0.2em] mb-4 block">KRİTİK KRİTER</label>
-            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2">
               {dinamikKriterler.map(cat => (
                 <button 
                   key={cat}
@@ -257,41 +252,41 @@ function AramaIcerik() {
               {loading ? (
                 <p className="col-span-full font-black italic text-slate-200 text-4xl animate-pulse text-left">SİSTEM TARANIYOR...</p>
               ) : results.length > 0 ? (
-                 results.map((bina, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => router.push(`/bina/${encodeURIComponent(bina.ad)}`)}
-                      className="group bg-white border-2 border-slate-100 rounded-[3rem] hover:border-blue-600 transition-all cursor-pointer shadow-sm hover:shadow-2xl relative overflow-hidden flex flex-col"
-                    >
-                      <div className="h-48 w-full bg-slate-100 relative overflow-hidden">
-                        {bina.foto && <img src={bina.foto} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={bina.ad} />}
-                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl flex items-center gap-1 font-black italic shadow-sm">
-                          <Star size={14} className="fill-blue-600 text-blue-600" />
-                          <span className="text-sm">{bina.finalPuan.toFixed(1)}</span>
-                        </div>
-                        {bina.dogrulanmisSayisi > 0 && (
-                            <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1.5 rounded-2xl flex items-center gap-1 text-[9px] font-black italic uppercase shadow-xl">
-                                <ShieldCheck size={12} /> Doğrulanmış
-                            </div>
-                        )}
+                results.map((bina, idx) => (
+                  <div 
+                    key={idx}
+                    onClick={() => router.push(`/bina/${encodeURIComponent(bina.ad)}`)}
+                    className="group bg-white border-2 border-slate-100 rounded-[3rem] hover:border-blue-600 transition-all cursor-pointer shadow-sm hover:shadow-2xl relative overflow-hidden flex flex-col"
+                  >
+                    <div className="h-48 w-full bg-slate-100 relative overflow-hidden">
+                      {bina.foto && <img src={bina.foto} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={bina.ad} />}
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl flex items-center gap-1 font-black italic shadow-sm">
+                        <Star size={14} className="fill-blue-600 text-blue-600" />
+                        <span className="text-sm">{bina.finalPuan.toFixed(1)}</span>
                       </div>
-                      <div className="p-8">
-                        <h3 className="text-2xl font-black uppercase italic leading-tight mb-2 group-hover:text-blue-600 transition-colors">{bina.ad}</h3>
-                        <div className="flex items-center gap-2 text-slate-400 font-bold uppercase italic text-[10px] mb-8">
-                          <MapPin size={12} /> {bina.ilce} / {bina.mahalle}
+                      {bina.dogrulanmisSayisi > 0 && (
+                        <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1.5 rounded-2xl flex items-center gap-1 text-[9px] font-black italic uppercase shadow-xl">
+                          <ShieldCheck size={12} /> Doğrulanmış
                         </div>
-                        <div className="pt-6 border-t border-slate-50 flex justify-between items-center text-slate-400">
-                          <div className="flex items-center gap-2">
-                            <MessageSquare size={16} />
-                            <span className="font-black italic text-xs uppercase">
-                                {bina.sayi} Mühür • {Math.round(bina.toplamEtkiPayi * 10)} GÜVEN
-                            </span>
-                          </div>
-                          <ArrowRight className="text-blue-600 transform group-hover:translate-x-2 transition-transform" />
+                      )}
+                    </div>
+                    <div className="p-8">
+                      <h3 className="text-2xl font-black uppercase italic leading-tight mb-2 group-hover:text-blue-600 transition-colors">{bina.ad}</h3>
+                      <div className="flex items-center gap-2 text-slate-400 font-bold uppercase italic text-[10px] mb-8">
+                        <MapPin size={12} /> {bina.ilce} / {bina.mahalle}
+                      </div>
+                      <div className="pt-6 border-t border-slate-50 flex justify-between items-center text-slate-400">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare size={16} />
+                          <span className="font-black italic text-xs uppercase">
+                            {bina.sayi} Mühür • {Math.round(bina.toplamEtkiPayi * 10)} GÜVEN
+                          </span>
                         </div>
+                        <ArrowRight className="text-blue-600 transform group-hover:translate-x-2 transition-transform" />
                       </div>
                     </div>
-                  ))
+                  </div>
+                ))
               ) : (
                 <div className="col-span-full py-20 px-10 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[3.5rem] text-center">
                   <p className="text-2xl font-black uppercase italic text-slate-300 mb-6 text-left">KRİTERLERE UYGUN MÜHÜR BULUNAMADI.</p>
