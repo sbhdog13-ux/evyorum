@@ -8,8 +8,17 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Bulevini | Evi Tutmadan Önce Gerçekleri Öğren",
   description: "Kiracılar için şeffaf bina yorumları",
-};
-
+  manifest: "/manifest.json",
+  themeColor: "#2563eb",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Bulevini",
+  },
+  icons: {
+    apple: "/icons/icon-192.png",
+  },
+}
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr">
