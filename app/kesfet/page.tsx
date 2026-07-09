@@ -110,7 +110,7 @@ export default function Home() {
       <main className="flex-1 lg:ml-80 relative bg-transparent z-10 pb-32">
         <header className="fixed top-0 left-0 lg:left-80 right-0 z-[200] bg-white/40 backdrop-blur-2xl px-8 py-4 border-b border-black/5 flex justify-between items-center shadow-sm">
           <Link href="/" className="flex flex-col items-start lg:hidden text-black">
-            <span className="font-black italic tracking-tighter text-[22px] leading-none">BULEVİNİ</span>
+            <img src="/logo.png" alt="Bulevini" className="h-10" />
           </Link>
           <div className="hidden lg:block"></div>
           <div className="flex items-center gap-4">

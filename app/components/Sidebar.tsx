@@ -27,7 +27,7 @@ export default function Sidebar() {
   return (
     <aside className="w-80 h-screen bg-white text-black flex-col border-r border-slate-100 fixed left-0 top-0 z-[250] hidden lg:flex">
       <div className="px-6 pt-10 pb-5 border-b border-slate-100">
-        <Link href="/kesfet" className="text-[28px] font-black italic tracking-tighter uppercase block">BULEVİNİ</Link>
+        <Link href="/kesfet"><img src="/logo.png" alt="Bulevini" className="h-12" /></Link>
         <div className="h-[5px] w-10 bg-blue-600 mt-1.5 rounded-full" />
       </div>
 

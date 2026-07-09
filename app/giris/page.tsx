@@ -48,9 +48,7 @@ export default function GirisKayitSayfasi() {
       <div className="max-w-md w-full bg-white rounded-[3rem] p-12 shadow-2xl border border-slate-100 relative overflow-hidden">
         
         <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-[#023E56] rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl">
-            {mode === 'giris' ? <LogIn size={32} /> : <UserPlus size={32} />}
-          </div>
+          <img src="/logo.png" alt="Bulevini" className="h-20 mx-auto mb-6" />
           <h1 className="text-[28px] font-black uppercase italic tracking-tighter mb-2">
             {mode === 'giris' ? 'TEKRAR HOŞ GELDİN' : 'YENİ HESAP AÇ'}
           </h1>
