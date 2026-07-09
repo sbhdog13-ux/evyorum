@@ -7,6 +7,7 @@ import { db } from '@/app/lib/firebase';
 import { collection, getDocs, addDoc, serverTimestamp, query, where, limit } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { takipcilariBildir } from '@/app/lib/notifications';
 
 function YorumFormu() {
   const router = useRouter();
@@ -156,6 +157,7 @@ function YorumFormu() {
         created_at: serverTimestamp()
       });
 
+      takipcilariBildir(temizBinaAdi, gecerliKullaniciAdi).catch(() => {});
       alert("BİNA MÜHÜRLENDİ! 🎉");
       router.push(`/bina?isim=${encodeURIComponent(temizBinaAdi)}`);
     } catch (err: any) {
@@ -230,7 +232,7 @@ function YorumFormu() {
                     onClick={() => setBaglantiTipi(item.id as any)}
                     className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-3 text-left ${
                       baglantiTipi === item.id 
-                      ? 'border-blue-600 bg-blue-50/50 shadow-xl shadow-blue-100' 
+                      ? 'border-blue-600 bg-[#dcecf7]/50 shadow-xl shadow-blue-100' 
                       : 'border-slate-100 bg-white hover:border-blue-200'
                     }`}
                   >
@@ -282,7 +284,7 @@ function YorumFormu() {
                   type="file" accept="image/*" onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
-                <div className={`transition-all min-h-[120px] h-full flex flex-col items-center justify-center gap-2 text-left ${previewUrl ? 'bg-blue-50/10' : 'bg-white'}`}>
+                <div className={`transition-all min-h-[120px] h-full flex flex-col items-center justify-center gap-2 text-left ${previewUrl ? 'bg-[#dcecf7]/10' : 'bg-white'}`}>
                   {previewUrl ? (
                     <div className="flex items-center gap-4 text-left">
                       <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-blue-600 shadow-md text-left">
@@ -364,7 +366,7 @@ function YorumFormu() {
               <button 
                 type="button"
                 onClick={() => setIsAnonymous(!isAnonymous)}
-                className={`flex-1 w-full flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300 ${isAnonymous ? 'border-black bg-black text-white' : 'border-slate-100 bg-white text-slate-400'} text-left`}
+                className={`flex-1 w-full flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300 ${isAnonymous ? 'border-black bg-[#023E56] text-white' : 'border-slate-100 bg-white text-slate-400'} text-left`}
               >
                 <div className="flex items-center gap-3 text-left">
                   {isAnonymous ? <UserX size={24} /> : <UserCircle size={24} />}
@@ -384,7 +386,7 @@ function YorumFormu() {
 
               <button 
                 type="submit" disabled={loading}
-                className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-2xl uppercase italic hover:bg-black transition-all flex items-center justify-center gap-4 shadow-2xl active:scale-95 text-left"
+                className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-2xl uppercase italic hover:bg-[#023E56] transition-all flex items-center justify-center gap-4 shadow-2xl active:scale-95 text-left"
               >
                 {loading ? "MÜHÜRLENİYOR..." : <>MÜHÜRÜ BAS! <CheckCircle2 size={28} /></>}
               </button>

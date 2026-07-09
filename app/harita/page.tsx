@@ -130,7 +130,7 @@ export default function HaritaPage() {
         {sonuclar.length > 0 && (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
             {sonuclar.map((s: any, i) => (
-              <button key={i} onClick={() => { setAramaMetni(''); setSonuclar([]); pinKoy(parseFloat(s.lat), parseFloat(s.lon), true); }} className="w-full flex items-start gap-2 px-4 py-3 text-left border-b border-slate-50 hover:bg-blue-50 transition-colors">
+              <button key={i} onClick={() => { setAramaMetni(''); setSonuclar([]); pinKoy(parseFloat(s.lat), parseFloat(s.lon), true); }} className="w-full flex items-start gap-2 px-4 py-3 text-left border-b border-slate-50 hover:bg-[#e8f3fa] transition-colors">
                 <MapPin size={13} className="text-blue-600 mt-0.5 shrink-0" />
                 <span className="text-[12px] font-medium text-slate-700 line-clamp-2">{s.display_name}</span>
               </button>
@@ -145,7 +145,7 @@ export default function HaritaPage() {
           <div className="flex items-center gap-2 mb-3"><MapPin size={18} className="text-blue-600" /><span className="font-black uppercase italic text-[14px] text-blue-600">KONUM SEÇİLDİ</span></div>
           {adresYukleniyor ? <div className="text-[12px] text-slate-400 py-3">Adres alınıyor...</div> : <p className="text-[13px] font-medium text-slate-700 mb-2 line-clamp-3">{secilen.adres}</p>}
           <p className="text-[11px] text-slate-400 mb-4">Bu konuma ait binayı mühürlemek ister misin?</p>
-          <button disabled={adresYukleniyor} onClick={() => router.push(`/bina-olustur?koordinat=${encodeURIComponent(`${secilen.lat}, ${secilen.lng}`)}`)} className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black uppercase italic text-[13px] hover:bg-black transition-all">MÜHÜRLE →</button>
+          <button disabled={adresYukleniyor} onClick={() => router.push(`/bina-olustur?koordinat=${encodeURIComponent(`${secilen.lat}, ${secilen.lng}`)}`)} className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black uppercase italic text-[13px] hover:bg-[#023E56] transition-all">MÜHÜRLE →</button>
           <button onClick={() => setSecilen(null)} className="w-full py-3 text-[12px] font-bold text-slate-400">Farklı konum seç</button>
         </div>
       )}

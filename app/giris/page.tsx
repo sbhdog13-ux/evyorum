@@ -48,7 +48,7 @@ export default function GirisKayitSayfasi() {
       <div className="max-w-md w-full bg-white rounded-[3rem] p-12 shadow-2xl border border-slate-100 relative overflow-hidden">
         
         <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl">
+          <div className="w-16 h-16 bg-[#023E56] rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl">
             {mode === 'giris' ? <LogIn size={32} /> : <UserPlus size={32} />}
           </div>
           <h1 className="text-[28px] font-black uppercase italic tracking-tighter mb-2">
@@ -121,7 +121,7 @@ export default function GirisKayitSayfasi() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-16 bg-black text-white rounded-2xl text-[14px] font-black uppercase italic tracking-widest hover:bg-blue-600 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 mt-4"
+            className="w-full h-16 bg-[#023E56] text-white rounded-2xl text-[14px] font-black uppercase italic tracking-widest hover:bg-blue-600 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 mt-4"
           >
             {loading ? 'BEKLEYİN...' : mode === 'giris' ? 'SİSTEME GİRİŞ YAP' : 'HESABI OLUŞTUR'}
             <ArrowRight size={20} />

@@ -156,7 +156,7 @@ function BinaOlusturForm() {
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px] p-4 text-center">Adres Çekilince Fotoğraf Gelecek</div>
               )}
-              <div className="absolute top-2 left-2 bg-black/50 text-white p-2 rounded-full"><Camera size={14} /></div>
+              <div className="absolute top-2 left-2 bg-[#023E56]/50 text-white p-2 rounded-full"><Camera size={14} /></div>
             </div>
 
             <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] bg-slate-50 text-left">
@@ -164,7 +164,7 @@ function BinaOlusturForm() {
             </div>
           </div>
 
-          <div className="bg-black p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden text-left">
+          <div className="bg-[#023E56] p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden text-left">
             <label className="block text-[10px] font-black text-blue-400 uppercase italic mb-3 tracking-[0.3em] text-left">KONUM KOORDİNATLARI</label>
             <div className="flex flex-col md:flex-row gap-4 items-center relative z-10 text-left">
               <input
@@ -183,7 +183,7 @@ function BinaOlusturForm() {
             </div>
           </div>
 
-          <div className="bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-blue-100 shadow-inner text-left">
+          <div className="bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-[#A1CDE9] shadow-inner text-left">
             <label className="block text-[10px] font-black text-blue-600 uppercase italic mb-3 tracking-widest leading-none text-left">BİNA ADI</label>
             <input
               value={formData.bina_adi}
@@ -207,7 +207,7 @@ function BinaOlusturForm() {
                   onClick={() => setBaglantiTipi(item.id as any)}
                   className={`p-5 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-2 group text-left ${
                     baglantiTipi === item.id
-                    ? 'border-blue-600 bg-blue-50/50 shadow-lg shadow-blue-100'
+                    ? 'border-blue-600 bg-[#dcecf7]/50 shadow-lg shadow-blue-100'
                     : 'border-slate-100 bg-white hover:border-blue-200'
                   }`}
                 >
@@ -243,7 +243,7 @@ function BinaOlusturForm() {
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 items-center pt-4 text-left">
-            <button type="button" onClick={() => setIsAnonymous(!isAnonymous)} className={`flex-1 w-full flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300 ${isAnonymous ? 'border-black bg-black text-white' : 'border-slate-100 bg-white text-slate-400'} text-left`}>
+            <button type="button" onClick={() => setIsAnonymous(!isAnonymous)} className={`flex-1 w-full flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300 ${isAnonymous ? 'border-black bg-[#023E56] text-white' : 'border-slate-100 bg-white text-slate-400'} text-left`}>
               <div className="flex items-center gap-3 text-left">
                 {isAnonymous ? <UserX size={24} /> : <UserCircle size={24} />}
                 <span className="font-black uppercase italic text-sm text-left">
@@ -251,7 +251,7 @@ function BinaOlusturForm() {
                 </span>
               </div>
             </button>
-            <button type="submit" disabled={loading} className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-xl hover:bg-black transition-all shadow-2xl italic active:scale-95 text-left">
+            <button type="submit" disabled={loading} className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-xl hover:bg-[#023E56] transition-all shadow-2xl italic active:scale-95 text-left">
               {loading ? "MÜHÜRLENİYOR..." : "BİNAYI MÜHÜRLE"}
             </button>
           </div>

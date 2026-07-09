@@ -101,7 +101,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen bg-white relative overflow-hidden">
       <div className="fixed top-[-5%] left-[15%] w-[45%] h-[45%] bg-blue-100/50 rounded-full blur-[140px] z-0 pointer-events-none"></div>
-      <div className="fixed bottom-[-10%] right-[5%] w-[35%] h-[35%] bg-blue-50 rounded-full blur-[110px] z-0 pointer-events-none"></div>
+      <div className="fixed bottom-[-10%] right-[5%] w-[35%] h-[35%] bg-[#e8f3fa] rounded-full blur-[110px] z-0 pointer-events-none"></div>
 
       {/* SIDEBAR */}
       <Sidebar />
@@ -114,12 +114,12 @@ export default function Home() {
           </Link>
           <div className="hidden lg:block"></div>
           <div className="flex items-center gap-4">
-            <Link href="/profil" className={`p-3 rounded-2xl transition-all border-2 border-white bg-white/60 backdrop-blur-md shadow-sm ${radarBinalar.length > 0 ? 'text-blue-600 border-blue-100 animate-pulse' : 'text-slate-300'}`}>
+            <Link href="/profil" className={`p-3 rounded-2xl transition-all border-2 border-white bg-white/60 backdrop-blur-md shadow-sm ${radarBinalar.length > 0 ? 'text-blue-600 border-[#A1CDE9] animate-pulse' : 'text-slate-300'}`}>
               <Radio size={20} />
             </Link>
             {user ? (
               <div className="flex items-center gap-2">
-                <Link href="/profil" className="flex items-center gap-3 bg-black text-white px-5 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all">
+                <Link href="/profil" className="flex items-center gap-3 bg-[#023E56] text-white px-5 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all">
                   <span className="font-black italic text-[12px] uppercase tracking-tighter">
                     {user.displayName || user.email?.split('@')[0]}
                   </span>
@@ -129,11 +129,11 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <Link href="/giris" className="flex items-center gap-3 bg-black text-white px-5 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all">
+              <Link href="/giris" className="flex items-center gap-3 bg-[#023E56] text-white px-5 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all">
                 <span className="font-black italic text-[12px] uppercase tracking-tighter">GİRİŞ YAP</span>
               </Link>
             )}
-            <Link href="/yorum-yap" className="hidden md:flex bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-black italic text-[11px] uppercase items-center gap-2 shadow-xl shadow-blue-200 hover:bg-black transition-all">
+            <Link href="/yorum-yap" className="hidden md:flex bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-black italic text-[11px] uppercase items-center gap-2 shadow-xl shadow-blue-200 hover:bg-[#023E56] transition-all">
               <MessageSquarePlus size={16} /> DENEYİMİNİ PAYLAŞ
             </Link>
           </div>
@@ -197,7 +197,7 @@ export default function Home() {
 
         {/* MOBİL UYGULAMA */}
         <section className="max-w-7xl mx-auto px-10 pb-20">
-          <div className="bg-black text-white rounded-[4rem] p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden">
+          <div className="bg-[#023E56] text-white rounded-[4rem] p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full pointer-events-none" />
             <div className="relative z-10 text-center md:text-left">
               <h3 className="text-[28px] font-black uppercase italic tracking-tighter leading-none mb-3">
@@ -221,12 +221,12 @@ export default function Home() {
 
       {/* CONFIRM MODAL */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/30 backdrop-blur-md">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-[#023E56]/30 backdrop-blur-md">
           <div className="bg-white/90 backdrop-blur-3xl w-full max-w-md rounded-[4rem] overflow-hidden shadow-2xl border-2 border-white text-black">
             <div className="p-12 text-center">
-              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-8"><AlertCircle size={44} className="text-blue-600" /></div>
+              <div className="w-20 h-20 bg-[#e8f3fa] rounded-full flex items-center justify-center mx-auto mb-8"><AlertCircle size={44} className="text-blue-600" /></div>
               <h3 className="text-[24px] font-black uppercase italic tracking-tighter mb-6 leading-none">BU BİNA HENÜZ <span className="text-blue-600">MÜHÜRLENMEMİŞ!</span></h3>
-              <button onClick={() => router.push(`/bina-olustur?binaAdi=${encodeURIComponent(pendingSelection.name)}`)} className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black uppercase italic text-[13px] shadow-xl shadow-blue-200/50 hover:bg-black transition-all">EVET, BİNAYI MÜHÜRLE</button>
+              <button onClick={() => router.push(`/bina-olustur?binaAdi=${encodeURIComponent(pendingSelection.name)}`)} className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black uppercase italic text-[13px] shadow-xl shadow-blue-200/50 hover:bg-[#023E56] transition-all">EVET, BİNAYI MÜHÜRLE</button>
               <button onClick={() => setShowConfirmModal(false)} className="mt-6 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-black transition-colors">ŞİMDİLİK KALSIN</button>
             </div>
           </div>

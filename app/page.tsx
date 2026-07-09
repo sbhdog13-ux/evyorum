@@ -19,7 +19,7 @@ export default function AcilisSayfasi() {
         <img src="/logo.png" alt="Bulevini" className="h-11" onError={(e: any) => { e.target.outerHTML = '<span class="text-2xl font-black italic tracking-tighter uppercase">BULEVİNİ</span>'; }} />
         <div className="flex items-center gap-3">
           <Link href="/gizlilik" className="hidden md:block text-[12px] font-black uppercase italic text-slate-400 hover:text-blue-600 tracking-wide">GİZLİLİK</Link>
-          <Link href="/giris" className="bg-blue-600 text-white px-6 py-3 rounded-2xl text-[12px] font-black uppercase italic tracking-wide hover:bg-black transition-all shadow-lg shadow-blue-200">GİRİŞ YAP / KAYIT OL</Link>
+          <Link href="/giris" className="bg-blue-600 text-white px-6 py-3 rounded-2xl text-[12px] font-black uppercase italic tracking-wide hover:bg-[#023E56] transition-all shadow-lg shadow-blue-200">GİRİŞ YAP / KAYIT OL</Link>
         </div>
       </header>
 
@@ -31,7 +31,7 @@ export default function AcilisSayfasi() {
           İstanbul'daki binaların gerçek sakin deneyimleri. Kiralamadan önce binanın karnesini gör; sen de yaşadıklarını paylaş, mührünü bas.
         </p>
         <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link href="/giris" className="bg-blue-600 text-white px-9 py-4 rounded-2xl text-[13px] font-black uppercase italic tracking-wide hover:bg-black transition-all shadow-xl shadow-blue-200">HEMEN BAŞLA →</Link>
+          <Link href="/giris" className="bg-blue-600 text-white px-9 py-4 rounded-2xl text-[13px] font-black uppercase italic tracking-wide hover:bg-[#023E56] transition-all shadow-xl shadow-blue-200">HEMEN BAŞLA →</Link>
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4">
             <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
             <span className="text-[11px] font-black uppercase italic text-blue-600 tracking-widest">ÇOK YAKINDA APP STORE'DA</span>

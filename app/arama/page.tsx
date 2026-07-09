@@ -143,7 +143,7 @@ function AramaIcerik() {
     <div className="min-h-screen bg-white text-black font-sans text-left relative overflow-x-hidden">
       
       {/* SOL FİLTRE PANELİ */}
-      <div className={`fixed inset-y-0 left-0 w-80 bg-black z-[110] transform transition-transform duration-500 ease-in-out shadow-[20px_0px_60px_rgba(0,0,0,0.5)] p-8 ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-y-0 left-0 w-80 bg-[#023E56] z-[110] transform transition-transform duration-500 ease-in-out shadow-[20px_0px_60px_rgba(0,0,0,0.5)] p-8 ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex justify-between items-center mb-12">
           <h2 className="text-blue-600 font-black italic text-2xl tracking-tighter uppercase">FİLTRE ODASI</h2>
           <button onClick={() => setIsFilterOpen(false)} className="text-white hover:rotate-90 transition-all"><X size={24}/></button>
@@ -157,8 +157,8 @@ function AramaIcerik() {
               onChange={(e) => handleFilterChange({...filters, ilce: e.target.value})}
               className="w-full bg-transparent border-b-2 border-slate-800 text-white font-bold py-2 outline-none focus:border-blue-600 transition-colors uppercase text-sm"
             >
-              <option value="" className="bg-black">TÜM İLÇELER</option>
-              {ilceListesi.map((ilce: any) => <option key={ilce} value={ilce} className="bg-black">{ilce}</option>)}
+              <option value="" className="bg-[#023E56]">TÜM İLÇELER</option>
+              {ilceListesi.map((ilce: any) => <option key={ilce} value={ilce} className="bg-[#023E56]">{ilce}</option>)}
             </select>
           </div>
 
@@ -199,7 +199,7 @@ function AramaIcerik() {
       {isFilterOpen && <div onClick={() => setIsFilterOpen(false)} className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[100] transition-opacity" />}
 
       {/* LİSTE / HARİTA GEÇİŞ BUTONU */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex bg-black p-2 rounded-full shadow-2xl border-2 border-white/10 scale-110 md:scale-125">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex bg-[#023E56] p-2 rounded-full shadow-2xl border-2 border-white/10 scale-110 md:scale-125">
         <button 
           onClick={() => setViewMode('list')}
           className={`flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase italic transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}
@@ -222,7 +222,7 @@ function AramaIcerik() {
           </Link>
           <button 
             onClick={() => router.push('/bina-olustur')} 
-            className="bg-black text-white px-8 py-4 rounded-full font-black uppercase italic text-xs hover:bg-blue-600 transition-all shadow-xl active:scale-95"
+            className="bg-[#023E56] text-white px-8 py-4 rounded-full font-black uppercase italic text-xs hover:bg-blue-600 transition-all shadow-xl active:scale-95"
           >
             YENİ BİNA MÜHÜRLE +
           </button>
@@ -299,18 +299,18 @@ function AramaIcerik() {
               ) : (
                 <div className="col-span-full py-20 px-10 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[3.5rem] text-center">
                   <p className="text-2xl font-black uppercase italic text-slate-300 mb-6 text-left">KRİTERLERE UYGUN MÜHÜR BULUNAMADI.</p>
-                  <button onClick={() => {setFilters({ilce: "", minPuan: 0, kategori: ""}); handleSearch("");}} className="bg-blue-600 text-white px-10 py-5 rounded-full font-black uppercase italic text-lg hover:bg-black transition-all shadow-xl">FİLTRELERİ SIFIRLA</button>
+                  <button onClick={() => {setFilters({ilce: "", minPuan: 0, kategori: ""}); handleSearch("");}} className="bg-blue-600 text-white px-10 py-5 rounded-full font-black uppercase italic text-lg hover:bg-[#023E56] transition-all shadow-xl">FİLTRELERİ SIFIRLA</button>
                 </div>
               )}
             </div>
           ) : (
             <div className="relative h-[650px] w-full rounded-[3.5rem] overflow-hidden border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom-4 duration-500 z-10 bg-slate-50">
-              <div className="absolute top-6 left-6 z-20 flex items-center gap-3 bg-black/90 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 text-white shadow-2xl">
+              <div className="absolute top-6 left-6 z-20 flex items-center gap-3 bg-[#023E56]/90 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 text-white shadow-2xl">
                 <span className="text-blue-600 font-black italic text-[11px] uppercase tracking-widest">İSTANBUL</span>
                 <ChevronRight size={14} className="text-slate-600" />
                 <span className="font-black italic text-[11px] uppercase tracking-widest">{filters.ilce || "TÜM İLÇELER"}</span>
               </div>
-              <div className="absolute bottom-6 right-6 z-20 bg-black/90 backdrop-blur-md p-5 rounded-[2rem] border border-white/10 shadow-2xl">
+              <div className="absolute bottom-6 right-6 z-20 bg-[#023E56]/90 backdrop-blur-md p-5 rounded-[2rem] border border-white/10 shadow-2xl">
                 <h4 className="text-[9px] font-black italic text-slate-500 uppercase tracking-widest mb-4">MÜHÜR ANALİZİ</h4>
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">

@@ -192,7 +192,7 @@ function BinaDetayIcerik() {
 
   const StatuRozeti = ({ statu }: { statu: string }) => {
     switch (statu) {
-      case 'muhtar': return <span className="bg-black text-[#fbbf24] border border-[#fbbf24] px-2 py-0.5 rounded-md text-[9px] font-black italic">MUHTAR 🏆</span>;
+      case 'muhtar': return <span className="bg-[#023E56] text-[#fbbf24] border border-[#fbbf24] px-2 py-0.5 rounded-md text-[9px] font-black italic">MUHTAR 🏆</span>;
       case 'bolge_sakini': return <span className="bg-blue-600 text-white px-2 py-0.5 rounded-md text-[9px] font-black italic">BÖLGE SAKİNİ</span>;
       default: return <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[9px] font-black italic">KOMŞU</span>;
     }
@@ -227,14 +227,14 @@ function BinaDetayIcerik() {
                 <Radio size={14} className={isFollowing ? 'animate-pulse' : ''} />
                 {isFollowing ? 'RADARIMDA' : 'RADARIMA AL'}
               </button>
-              <button onClick={() => setShowInfo(!showInfo)} className="p-3 bg-slate-50 text-slate-400 rounded-full hover:bg-blue-50 hover:text-blue-600 transition-all">
+              <button onClick={() => setShowInfo(!showInfo)} className="p-3 bg-slate-50 text-slate-400 rounded-full hover:bg-[#e8f3fa] hover:text-blue-600 transition-all">
                 <Info size={14} />
               </button>
             </div>
 
             <Link 
               href={`/yorum-yap?binaAdi=${encodeURIComponent(binaIsmi || "")}`}
-              className="bg-blue-600 text-white px-6 py-3 rounded-full text-[11px] font-black uppercase italic hover:bg-black transition-all shadow-xl shadow-blue-100 flex items-center gap-2"
+              className="bg-blue-600 text-white px-6 py-3 rounded-full text-[11px] font-black uppercase italic hover:bg-[#023E56] transition-all shadow-xl shadow-blue-100 flex items-center gap-2"
             >
               <MessageSquarePlus size={14} /> DENEYİMİNİ PAYLAŞ
             </Link>
@@ -244,7 +244,7 @@ function BinaDetayIcerik() {
 
       <main className="max-w-5xl mx-auto px-4 pt-8 relative">
         {showInfo && (
-          <div className="absolute top-4 right-4 z-[100] bg-black text-white p-6 rounded-[2rem] shadow-2xl max-w-xs border border-blue-600/50 animate-in fade-in zoom-in duration-200">
+          <div className="absolute top-4 right-4 z-[100] bg-[#023E56] text-white p-6 rounded-[2rem] shadow-2xl max-w-xs border border-blue-600/50 animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-start mb-2">
               <h4 className="text-[11px] font-black italic uppercase text-blue-400 tracking-widest">RADAR İSTİHBARATI</h4>
               <button onClick={() => setShowInfo(false)} className="text-slate-500 hover:text-white"><X size={16} /></button>
@@ -254,6 +254,46 @@ function BinaDetayIcerik() {
             </p>
           </div>
         )}
+
+        {/* Özet puan kartı — mobil ile aynı */}
+        {(() => {
+          const ort = dinamikKarne.length > 0
+            ? Number((dinamikKarne.reduce((a, k) => a + Number(k.score), 0) / dinamikKarne.length).toFixed(1))
+            : 0;
+          const sakinSayisi = dbYorumlar.filter((y: any) => y.baglanti_tipi === 'sakin').length;
+          const sorun = dbYorumlar.reduce((a: number, y: any) => a + (y.red_flags?.length || 0), 0);
+          const arti = dbYorumlar.reduce((a: number, y: any) => a + (y.green_flags?.length || 0), 0);
+          return (
+            <div className="bg-slate-50 border border-slate-100 rounded-[2.5rem] p-8 mb-10">
+              <div className="flex flex-wrap items-center justify-between gap-6">
+                <div>
+                  <div className="text-[52px] font-black italic text-blue-600 leading-none">{ort}</div>
+                  <div className="flex gap-1 mt-2">
+                    {[1, 2, 3, 4, 5].map(p => (
+                      <Star key={p} size={18} className="text-blue-600" fill={p <= Math.round(ort) ? '#2563eb' : 'none'} />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-8">
+                  <div className="text-center">
+                    <div className="text-[28px] font-black italic">{dbYorumlar.length}</div>
+                    <div className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-1">MÜHÜR</div>
+                  </div>
+                  <div className="text-center border-l border-slate-200 pl-8">
+                    <div className="text-[28px] font-black italic">{sakinSayisi}</div>
+                    <div className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-1">SAKİN</div>
+                  </div>
+                </div>
+              </div>
+              {(sorun > 0 || arti > 0) && (
+                <div className="flex gap-3 mt-5">
+                  {sorun > 0 && <span className="bg-white border border-red-200 text-red-600 rounded-xl px-4 py-1.5 text-[11px] font-black uppercase italic">🚩 {sorun} SORUN</span>}
+                  {arti > 0 && <span className="bg-white border border-green-200 text-green-700 rounded-xl px-4 py-1.5 text-[11px] font-black uppercase italic">✅ {arti} ARTI</span>}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         <div className="flex flex-col md:flex-row gap-8 mb-12 border-b border-slate-50 pb-8">
           <div className="relative self-start">
@@ -334,7 +374,7 @@ function BinaDetayIcerik() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {dinamikKarne.length > 0 ? dinamikKarne.map((rate, i) => (
               <div key={i} className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center gap-2 text-center transition-all hover:shadow-md">
-                <div className="bg-blue-50 p-2 rounded-xl text-blue-600"><Activity size={14} /></div>
+                <div className="bg-[#e8f3fa] p-2 rounded-xl text-blue-600"><Activity size={14} /></div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none">{rate.label}</span>
                 <div className="flex items-center gap-1">
                   <span className="text-[14px] font-black italic text-black">{rate.score}</span>
@@ -361,7 +401,7 @@ function BinaDetayIcerik() {
             ).map((y: any, i) => {
               const isMuhtar = false;
               return (
-                <div key={i} className="p-6 rounded-[2.5rem] border transition-all flex flex-col gap-4 text-left bg-blue-50/30 border-blue-100 shadow-sm">
+                <div key={i} className="p-6 rounded-[2.5rem] border transition-all flex flex-col gap-4 text-left bg-[#dcecf7]/30 border-[#A1CDE9] shadow-sm">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-[12px] font-black uppercase italic bg-blue-600 text-white">

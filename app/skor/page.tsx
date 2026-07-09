@@ -161,8 +161,8 @@ function SkorIcerik() {
 
       {!seciliIlce && (
         <div className="max-w-3xl mx-auto px-4 pt-5 flex gap-2">
-          <button onClick={() => setMod('skorlar')} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-[11px] font-black uppercase italic transition-all ${mod === 'skorlar' ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-400'}`}><BarChart2 size={14} /> SKORLAR</button>
-          <button onClick={() => setMod('binalar')} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-[11px] font-black uppercase italic transition-all ${mod === 'binalar' ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-400'}`}><Trophy size={14} /> BİNA SIRALAMASI</button>
+          <button onClick={() => setMod('skorlar')} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-[11px] font-black uppercase italic transition-all ${mod === 'skorlar' ? 'border-blue-600 bg-[#e8f3fa] text-blue-600' : 'border-slate-200 text-slate-400'}`}><BarChart2 size={14} /> SKORLAR</button>
+          <button onClick={() => setMod('binalar')} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-[11px] font-black uppercase italic transition-all ${mod === 'binalar' ? 'border-blue-600 bg-[#e8f3fa] text-blue-600' : 'border-slate-200 text-slate-400'}`}><Trophy size={14} /> BİNA SIRALAMASI</button>
         </div>
       )}
 
