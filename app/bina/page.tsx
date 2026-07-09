@@ -214,7 +214,7 @@ function BinaDetayIcerik() {
       <header className="p-4 border-b border-slate-50 sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <Link href="/arama" className="flex items-center gap-2 text-slate-400 hover:text-black transition-all text-[12px] font-bold uppercase tracking-tight italic">
-            <ArrowLeft size={14} /> Aramaya Dön
+            <ArrowLeft size={14} /> <span className="hidden md:inline">Aramaya Dön</span>
           </Link>
           
           <div className="flex items-center gap-3">
@@ -222,10 +222,10 @@ function BinaDetayIcerik() {
               <button 
                 onClick={toggleRadar}
                 disabled={followingLoading}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full text-[11px] font-black uppercase italic transition-all duration-300 border-2 ${isFollowing ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-slate-400 border-slate-100 hover:border-blue-600 hover:text-blue-600'}`}
+                className={`flex items-center gap-2 px-3 md:px-6 py-2.5 md:py-3 rounded-full text-[10px] md:text-[11px] font-black uppercase italic transition-all duration-300 border-2 ${isFollowing ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-slate-400 border-slate-100 hover:border-blue-600 hover:text-blue-600'}`}
               >
                 <Radio size={14} className={isFollowing ? 'animate-pulse' : ''} />
-                {isFollowing ? 'RADARIMDA' : 'RADARIMA AL'}
+                <span className="hidden sm:inline">{isFollowing ? 'RADARIMDA' : 'RADARIMA AL'}</span>
               </button>
               <button onClick={() => setShowInfo(!showInfo)} className="p-3 bg-slate-50 text-slate-400 rounded-full hover:bg-[#e8f3fa] hover:text-blue-600 transition-all">
                 <Info size={14} />
@@ -236,7 +236,7 @@ function BinaDetayIcerik() {
               href={`/yorum-yap?binaAdi=${encodeURIComponent(binaIsmi || "")}`}
               className="bg-blue-600 text-white px-6 py-3 rounded-full text-[11px] font-black uppercase italic hover:bg-[#023E56] transition-all shadow-xl shadow-blue-100 flex items-center gap-2"
             >
-              <MessageSquarePlus size={14} /> DENEYİMİNİ PAYLAŞ
+              <MessageSquarePlus size={14} /> <span className="hidden sm:inline">DENEYİMİNİ PAYLAŞ</span><span className="sm:hidden">PAYLAŞ</span>
             </Link>
           </div>
         </div>

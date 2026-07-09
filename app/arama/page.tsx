@@ -199,7 +199,7 @@ function AramaIcerik() {
       {isFilterOpen && <div onClick={() => setIsFilterOpen(false)} className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[100] transition-opacity" />}
 
       {/* LİSTE / HARİTA GEÇİŞ BUTONU */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex bg-[#023E56] p-2 rounded-full shadow-2xl border-2 border-white/10 scale-110 md:scale-125">
+      <div className="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 z-[490] flex bg-[#023E56] p-1.5 md:p-2 rounded-full shadow-2xl border-2 border-white/10 md:scale-125">
         <button 
           onClick={() => setViewMode('list')}
           className={`flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase italic transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}
@@ -215,31 +215,30 @@ function AramaIcerik() {
       </div>
 
       <div className="max-w-6xl mx-auto p-4 md:p-8">
-        <header className="mb-16 flex justify-between items-center border-b border-slate-100 pb-8">
+        <header className="mb-8 md:mb-16 flex justify-between items-center border-b border-slate-100 pb-5 md:pb-8">
           <Link href="/" className="flex items-center gap-2">
-            <Home size={24} className="text-blue-600" /> 
-            <span className="text-2xl font-black uppercase italic tracking-tighter">BULEVİNİ</span>
+            <img src="/logo.png" alt="Bulevini" className="h-10 md:h-12" />
           </Link>
           <button 
             onClick={() => router.push('/bina-olustur')} 
-            className="bg-[#023E56] text-white px-8 py-4 rounded-full font-black uppercase italic text-xs hover:bg-blue-600 transition-all shadow-xl active:scale-95"
+            className="bg-[#023E56] text-white px-4 md:px-8 py-3 md:py-4 rounded-full font-black uppercase italic text-[10px] md:text-xs hover:bg-blue-600 transition-all shadow-xl active:scale-95"
           >
             YENİ BİNA MÜHÜRLE +
           </button>
         </header>
 
         <main className="pb-32">
-          <div className="mb-16">
-            <h1 className="text-[40px] md:text-[70px] font-black uppercase italic leading-[0.8] mb-8 tracking-tighter">
+          <div className="mb-8 md:mb-16">
+            <h1 className="text-[28px] md:text-[70px] font-black uppercase italic leading-[1] md:leading-[0.8] mb-5 md:mb-8 tracking-tighter">
               {viewMode === 'list' ? 'MEVCUT' : 'BÖLGESEL'} <span className="text-blue-600">{viewMode === 'list' ? 'MÜHÜRLER.' : 'İSTİHBARAT.'}</span>
             </h1>
             
-            <div className="flex flex-col md:flex-row gap-4 items-stretch">
+            <div className="flex flex-row gap-3 md:gap-4 items-stretch">
               <button 
                 onClick={() => setIsFilterOpen(true)}
-                className={`p-6 rounded-[2.5rem] border-2 border-black transition-all flex items-center justify-center ${isFilterOpen || filters.ilce || filters.minPuan > 0 ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-black hover:bg-slate-50'}`}
+                className={`p-4 md:p-6 rounded-2xl md:rounded-[2.5rem] border-2 border-black transition-all flex items-center justify-center shrink-0 ${isFilterOpen || filters.ilce || filters.minPuan > 0 ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-black hover:bg-slate-50'}`}
               >
-                <SlidersHorizontal size={30} />
+                <SlidersHorizontal size={22} />
               </button>
 
               <div className="relative flex-1">
