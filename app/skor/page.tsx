@@ -31,6 +31,8 @@ function SkorIcerik() {
   const [mod, setMod] = useState<'skorlar' | 'binalar'>('skorlar');
   const [loading, setLoading] = useState(true);
   const [allDocs, setAllDocs] = useState<any[]>([]);
+  const [filtreler, setFiltreler] = useState<{ [k: string]: number }>({});
+  const [filtreAcik, setFiltreAcik] = useState(false);
 
   useEffect(() => {
     getDocs(collection(db, 'yorumlar'))
@@ -84,13 +86,19 @@ function SkorIcerik() {
   const binalar = useMemo(() => {
     return Object.entries(binaMap)
       .map(([ad, val]) => {
-        const katOrt = Object.entries(val.katToplam).map(([, v]) => v.t / v.s);
+        const kategoriOrt: { [k: string]: number } = {};
+        Object.entries(val.katToplam).forEach(([k, v]) => { kategoriOrt[k.toUpperCase()] = Number((v.t / v.s).toFixed(1)); });
+        const katOrt = Object.values(kategoriOrt);
         const finalPuan = katOrt.length > 0 ? Number((katOrt.reduce((a, v) => a + v, 0) / katOrt.length).toFixed(1)) : 0;
-        return { ad, finalPuan, muhurSayisi: val.muhurSayisi, dogrulanmis: val.dogrulanmis };
+        return { ad, finalPuan, muhurSayisi: val.muhurSayisi, dogrulanmis: val.dogrulanmis, kategoriOrt };
       })
-      .filter(b => b.finalPuan > 0)
+      .filter(b => b.finalPuan > 0 && Object.entries(filtreler).every(([k, min]) => min === 0 || (b.kategoriOrt[k] !== undefined && b.kategoriOrt[k] >= min)))
       .sort((a, b) => b.finalPuan - a.finalPuan);
-  }, [binaMap]);
+  }, [binaMap, filtreler]);
+
+  const tumKategoriler = useMemo(() => Array.from(new Set(
+    allDocs.flatMap((d: any) => d.puanlar ? Object.keys(d.puanlar).map(k => k.toUpperCase()) : [])
+  )).sort(), [allDocs]);
 
   const { ilceler, mahalleler } = useMemo(() => {
     const ilceMap: { [k: string]: { puanlar: number[]; mahalleler: Set<string>; binalar: Set<string> } } = {};
