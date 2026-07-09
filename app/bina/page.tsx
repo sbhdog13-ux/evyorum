@@ -24,6 +24,7 @@ function BinaDetayIcerik() {
   const [followingLoading, setFollowingLoading] = useState(false);
   const [radarDocId, setRadarDocId] = useState<string | null>(null);
   const [poilar, setPoilar] = useState<{ ad: string; tur: string; mesafe: number }[]>([]);
+  const [aktifKat, setAktifKat] = useState<string[]>(['saglik', 'egitim', 'ulasim', 'market']);
 
   // Yakın çevre analizi — Overpass API (mobil ile aynı sorgu)
   useEffect(() => {
@@ -354,9 +355,26 @@ function BinaDetayIcerik() {
 
         {poilar.length > 0 && (
           <div className="mb-12 text-left">
-            <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">Konum &amp; Çevre Analizi</h2>
+            <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-4 border-l-4 border-blue-600 pl-3">Konum &amp; Çevre Analizi</h2>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {[
+                { id: 'saglik', emoji: '🏥', etiket: 'SAĞLIK' },
+                { id: 'egitim', emoji: '🎓', etiket: 'EĞİTİM' },
+                { id: 'ulasim', emoji: '🚌', etiket: 'ULAŞIM' },
+                { id: 'market', emoji: '🛒', etiket: 'MARKET' },
+              ].map(kat => {
+                const aktif = aktifKat.includes(kat.id);
+                const sayi = poilar.filter(p => p.tur === kat.id).length;
+                return (
+                  <button key={kat.id} onClick={() => setAktifKat(prev => aktif ? prev.filter(k => k !== kat.id) : [...prev, kat.id])}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border-2 text-[10px] font-black uppercase italic transition-all ${aktif ? 'border-blue-600 bg-[#e8f3fa] text-blue-600' : 'border-slate-200 text-slate-400'}`}>
+                    <span>{kat.emoji}</span> {kat.etiket}{sayi > 0 && <span className="opacity-60">{sayi}</span>}
+                  </button>
+                );
+              })}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {poilar.map((p, i) => {
+              {poilar.filter(p => aktifKat.includes(p.tur)).map((p, i) => {
                 const b: any = { saglik: ['🏥', 'text-red-600'], egitim: ['🎓', 'text-purple-600'], market: ['🛒', 'text-green-600'], ulasim: ['🚌', 'text-orange-500'] }[p.tur] || ['📍', 'text-slate-400'];
                 return (
                   <div key={i} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3">
