@@ -10,6 +10,7 @@ import { db } from '@/app/lib/firebase';
 import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Sidebar from '@/app/components/Sidebar';
+import ProfilKimlik from '@/app/components/ProfilKimlik';
 
 function ProfilIcerik() {
   const router = useRouter();
@@ -60,7 +61,8 @@ function ProfilIcerik() {
 
   const rutbe = getRutbeDetay(statu);
   const gosterilecekDeneyimler = showAll ? canliDeneyimler : canliDeneyimler.slice(0, 3);
-  const displayName = user?.displayName || user?.email?.split('@')[0] || 'Kullanıcı';
+  const [adSoyad, setAdSoyad] = useState('');
+  const displayName = adSoyad || user?.displayName || user?.email?.split('@')[0] || 'Kullanıcı';
   const initials = displayName[0]?.toUpperCase() || 'U';
 
   const rozetler = [
@@ -153,14 +155,9 @@ function ProfilIcerik() {
 
           <section className={`p-12 rounded-[4rem] border shadow-2xl relative overflow-hidden transition-all duration-700 backdrop-blur-2xl ${statu === 'muhtar' ? 'bg-[#023E56]/90 text-white border-amber-400/50' : 'bg-white text-black border-slate-200'}`}>
             <div className="flex flex-col md:flex-row gap-12 items-center">
-              <div className={`w-48 h-48 rounded-[3.5rem] flex items-center justify-center border-[8px] shadow-2xl text-6xl font-black ${statu === 'muhtar' ? 'bg-amber-400 text-black border-white/10' : 'bg-[#023E56] text-white border-white'}`}>
-                {initials}
-              </div>
-              <div className="flex-1 text-center md:text-left">
-                <h2 className={`text-[48px] font-black uppercase italic tracking-tighter leading-none mb-6 ${statu === 'muhtar' ? 'text-amber-400' : 'text-black'}`}>{displayName.toUpperCase()}</h2>
-                <div className={`inline-flex items-center gap-3 px-8 py-3 rounded-2xl text-[12px] font-black italic uppercase border ${rutbe.bg} ${rutbe.color} ${rutbe.border}`}>
-                  {rutbe.icon} {rutbe.label}
-                </div>
+              <ProfilKimlik displayName={displayName} onIsimGuncellendi={setAdSoyad} />
+              <div className={`inline-flex items-center gap-3 px-8 py-3 rounded-2xl text-[12px] font-black italic uppercase border ${rutbe.bg} ${rutbe.color} ${rutbe.border}`}>
+                {rutbe.icon} {rutbe.label}
               </div>
             </div>
           </section>
