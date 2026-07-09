@@ -299,6 +299,7 @@ function BinaDetayIcerik() {
           <div className="relative self-start">
             <img 
               src={binaFotosu || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80"} 
+              onError={(e: any) => { e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80"; e.currentTarget.onerror = null; }}
               className="w-full md:w-64 h-64 object-cover rounded-[2.5rem] border border-slate-100 shadow-sm"
               alt="Bina"
             />

@@ -152,7 +152,7 @@ function BinaOlusturForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
             <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] relative bg-slate-100 text-left">
               {formData.foto_url ? (
-                <img src={formData.foto_url} alt="Bina" className="w-full h-full object-cover" />
+                <img src={formData.foto_url} alt="Bina" onError={(e: any) => { e.currentTarget.style.display = "none"; }} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px] p-4 text-center">Adres Çekilince Fotoğraf Gelecek</div>
               )}
