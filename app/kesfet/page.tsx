@@ -31,7 +31,7 @@ export default function Home() {
       const yorumlarRef = collection(db, 'yorumlar');
       const q = query(yorumlarRef, orderBy('created_at', 'desc'), limit(15));
       const snap = await getDocs(q);
-      setGercekYorumlar(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setGercekYorumlar(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((y: any) => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0))));
 
       // Tüm benzersiz bina adları — arama önerileri için (mobil ile aynı)
       const tumSnap = await getDocs(collection(db, 'yorumlar'));
@@ -50,13 +50,24 @@ export default function Home() {
     veriGetir();
   }, [user]);
 
+  const karuselRef = useRef<HTMLDivElement>(null);
+
+  // Otomatik kayan karusel — mobil ile aynı his (3.5 sn)
   useEffect(() => {
-    if (gercekYorumlar.length === 0) return;
+    if (gercekYorumlar.length < 2) return;
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 3 >= gercekYorumlar.length ? 0 : prev + 3));
-    }, 30000);
+      setCurrentIndex(prev => {
+        const sonraki = (prev + 1) % gercekYorumlar.length;
+        const el = karuselRef.current;
+        if (el) {
+          const kart = el.children[sonraki] as HTMLElement;
+          if (kart) el.scrollTo({ left: kart.offsetLeft - 16, behavior: 'smooth' });
+        }
+        return sonraki;
+      });
+    }, 3500);
     return () => clearInterval(interval);
-  }, [gercekYorumlar]);
+  }, [gercekYorumlar.length]);
 
   // Nominatim adres önerileri (mobil ile aynı sistem — Google Places yerine)
   useEffect(() => {
@@ -107,7 +118,7 @@ export default function Home() {
       <Sidebar />
 
       {/* ANA İÇERİK */}
-      <main className="flex-1 lg:ml-80 relative bg-transparent z-10 pb-32">
+      <main className="flex-1 lg:ml-80 min-w-0 relative bg-transparent z-10 pb-32">
         <header className="fixed top-0 left-0 lg:left-80 right-0 z-[200] bg-white/40 backdrop-blur-2xl px-8 py-4 border-b border-black/5 flex justify-between items-center shadow-sm">
           <Link href="/" className="flex flex-col items-start lg:hidden text-black">
             <img src="/logo.png" alt="Bulevini" className="h-10" />
@@ -170,29 +181,36 @@ export default function Home() {
               <span className="text-[11px] font-black text-blue-600 uppercase italic tracking-widest">CANLI AKIŞ</span>
             </div>
           </div>
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div ref={karuselRef} className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-4" style={{ scrollbarWidth: 'none' }}>
             {gercekYorumlar.length > 0 ? (
-              gercekYorumlar.slice(currentIndex, currentIndex + 3).map((yorum, i) => (
-                <Link key={i} href={`/bina?isim=${encodeURIComponent(yorum.yeni_bina_adi || yorum.bina_adi)}`} className="group bg-white/60 backdrop-blur-2xl p-6 md:p-10 rounded-[2.5rem] md:rounded-[4rem] border border-white hover:border-blue-600 transition-all shadow-xl hover:shadow-2xl">
-                  <div className="flex justify-between items-start mb-8 text-black">
+              gercekYorumlar.map((yorum, i) => (
+                <Link key={i} href={`/bina?isim=${encodeURIComponent(yorum.yeni_bina_adi || yorum.bina_adi)}`} className="group snap-start shrink-0 w-[85%] sm:w-[380px] bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-white hover:border-blue-600 transition-all shadow-xl">
+                  <div className="flex justify-between items-start mb-5 text-black">
                     <div className="flex-1 pr-4">
-                      <h3 className="text-[16px] font-black uppercase italic tracking-tighter group-hover:text-blue-600 leading-none mb-3 line-clamp-1">{yorum.yeni_bina_adi || yorum.bina_adi}</h3>
+                      <h3 className="text-[15px] font-black uppercase italic tracking-tighter group-hover:text-blue-600 leading-none mb-2 line-clamp-1">{yorum.yeni_bina_adi || yorum.bina_adi}</h3>
                       <div className="flex items-center gap-2">
-                        <ShieldCheck size={14} className="text-blue-600" />
-                        <span className="text-[11px] font-bold text-slate-400 uppercase italic">{yorum.kullanici_adi || yorum.kullanıcı_adi || 'Anonim'}</span>
+                        <ShieldCheck size={13} className="text-blue-600" />
+                        <span className="text-[11px] font-bold text-slate-400 uppercase italic">{yorum.kullanici_adi || 'Anonim'}</span>
                       </div>
                     </div>
-                    <div className="bg-white/80 px-4 py-1.5 rounded-2xl flex items-center gap-1.5 border border-white text-blue-600 font-black italic text-[13px]">
-                      <Star size={14} fill="currentColor" /> {yorum.puan || '5.0'}
+                    <div className="bg-white/80 px-3 py-1 rounded-2xl flex items-center gap-1.5 border border-white text-blue-600 font-black italic text-[12px]">
+                      <Star size={13} fill="currentColor" /> {yorum.puan || '5.0'}
                     </div>
                   </div>
                   <p className="text-[13px] font-medium text-slate-700 italic leading-relaxed line-clamp-3">"{yorum.yorum_metni}"</p>
                 </Link>
               ))
             ) : (
-              <div className="col-span-full py-24 text-center opacity-30 font-black italic uppercase tracking-[0.5em] text-black text-[12px]">Veriler mühürleniyor...</div>
+              <div className="w-full py-20 text-center opacity-30 font-black italic uppercase tracking-[0.5em] text-black text-[12px]">Veriler mühürleniyor...</div>
             )}
           </div>
+          {gercekYorumlar.length > 1 && (
+            <div className="flex justify-center gap-1.5 mt-2">
+              {gercekYorumlar.map((_, i) => (
+                <span key={i} className={`h-1.5 rounded-full transition-all ${i === currentIndex ? 'w-5 bg-blue-600' : 'w-1.5 bg-slate-200'}`} />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* MOBİL UYGULAMA */}
