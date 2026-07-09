@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/app/contexts/AuthContext";
 import BottomNav from "@/app/components/BottomNav";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Bulevini | Evi Tutmadan Önce Gerçekleri Öğren",
@@ -17,6 +14,8 @@ export const metadata: Metadata = {
     title: "Bulevini",
   },
   icons: {
+    icon: "/icons/icon-192.png",
+    shortcut: "/icons/icon-192.png",
     apple: "/icons/icon-192.png",
   },
 };
@@ -24,7 +23,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr">
-      <body className={inter.className}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body style={{ fontFamily: "'Inter', sans-serif" }}>
         <AuthProvider>
           {children}
           <BottomNav />

@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
-import GoogleHarita from '@/app/components/GoogleHarita';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
@@ -41,6 +40,13 @@ function BinaOlusturForm() {
     if (qBina) {
       setFormData(prev => ({ ...prev, bina_adi: decodeURIComponent(qBina).toUpperCase().trim() }));
     }
+    // Haritadan pin ile gelindi (mobil KonumSecim akışının web karşılığı)
+    const qKoord = searchParams?.get('koordinat');
+    if (qKoord) {
+      const koord = decodeURIComponent(qKoord);
+      setFormData(prev => ({ ...prev, koordinat: koord }));
+      adresiGetir(koord);
+    }
   }, [searchParams]);
 
   const generateStreetViewUrl = (coords: string) => {
@@ -53,33 +59,22 @@ function BinaOlusturForm() {
     setAddressLoading(true);
     try {
       const [lat, lng] = coords.split(',').map(c => c.trim());
+      // Nominatim — mobil ile aynı adres servisi (Google key gerektirmez)
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}&language=tr`
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=tr&addressdetails=1`
       );
       const data = await response.json();
 
-      if (data.status === "OK" && data.results.length > 0) {
-        const fullAddress = data.results[0].formatted_address;
-        const components = data.results[0].address_components;
-        let district = "";
-        let neighborhood = "";
-
-        components.forEach((c: any) => {
-          if (c.types.includes("administrative_area_level_2")) district = c.long_name.toUpperCase();
-          if (
-            c.types.includes("neighborhood") ||
-            c.types.includes("sublocality") ||
-            c.types.includes("sublocality_level_1") ||
-            c.types.includes("administrative_area_level_4")
-          ) {
-            neighborhood = c.long_name.toUpperCase();
-          }
-        });
+      if (data && data.address) {
+        const a = data.address;
+        const fullAddress = data.display_name || '';
+        const district = (a.town || a.city_district || a.district || a.county || '').toUpperCase().replace('İLÇESİ', '').trim();
+        const neighborhood = (a.suburb || a.quarter || a.neighbourhood || '').toUpperCase().replace('MAHALLESİ', '').replace('MAH.', '').trim();
 
         setFormData(prev => ({
           ...prev,
           acik_adres_ham: fullAddress.toUpperCase(),
-          ilce: district.replace("İSTANBUL", "").trim(),
+          ilce: district,
           mahalle: neighborhood,
           foto_url: generateStreetViewUrl(coords)
         }));
@@ -111,11 +106,17 @@ function BinaOlusturForm() {
       const kullaniciAdi = isAnonymous ? "Anonim Sakin" : (user?.displayName || user?.email?.split('@')[0] || "Anonim");
       const kullaniciId = isAnonymous ? null : user?.uid;
 
+      // Mobil ile aynı şema: yapısal konum alanları + standart oluşturma metni
+      const [koordLat, koordLng] = formData.koordinat.split(',').map((c: string) => parseFloat(c.trim()));
       await addDoc(collection(db, 'yorumlar'), {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
         acik_adres: paketliAdres,
-        yorum_metni: `${temizBinaAdi} binası mühürlendi.`,
+        il: formData.il,
+        ilce: formData.ilce,
+        mahalle: formData.mahalle,
+        koordinat: (!isNaN(koordLat) && !isNaN(koordLng)) ? { lat: koordLat, lng: koordLng } : null,
+        yorum_metni: 'BİNA MÜHÜRLENDİ.',
         kullanici_adi: kullaniciAdi,
         kullanici_id: kullaniciId,
         puan: 0,
@@ -125,7 +126,7 @@ function BinaOlusturForm() {
         created_at: serverTimestamp()
       });
 
-      router.push(`/bina/${encodeURIComponent(temizBinaAdi)}`);
+      router.push(`/bina?isim=${encodeURIComponent(temizBinaAdi)}`);
     } catch (err: any) {
       setLoading(false);
       alert("Hata: " + err.message);
@@ -159,7 +160,7 @@ function BinaOlusturForm() {
             </div>
 
             <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] bg-slate-50 text-left">
-              {formData.koordinat ? <GoogleHarita koordinat={formData.koordinat} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px]">Harita Bekleniyor</div>}
+              {formData.koordinat ? <iframe title="Konum" className="w-full h-full border-0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(formData.koordinat.split(',')[1]) - 0.004},${parseFloat(formData.koordinat.split(',')[0]) - 0.004},${parseFloat(formData.koordinat.split(',')[1]) + 0.004},${parseFloat(formData.koordinat.split(',')[0]) + 0.004}&layer=mapnik&marker=${formData.koordinat.split(',')[0].trim()},${formData.koordinat.split(',')[1].trim()}`} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px]">Harita Bekleniyor</div>}
             </div>
           </div>
 

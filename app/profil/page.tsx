@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
+import Sidebar from '@/app/components/Sidebar';
 
 function ProfilIcerik() {
   const router = useRouter();
@@ -77,37 +78,7 @@ function ProfilIcerik() {
       <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100 rounded-full blur-[120px] opacity-40 z-0"></div>
       <div className="fixed bottom-[-10%] right-[10%] w-[30%] h-[30%] bg-blue-50 rounded-full blur-[100px] opacity-50 z-0"></div>
 
-      <aside className="w-80 h-screen bg-black/5 backdrop-blur-3xl text-black flex flex-col p-8 border-r border-black/5 fixed left-0 top-0 z-[250] hidden lg:flex">
-        <div className="mb-12">
-          <Link href="/" className="text-[22px] font-black italic tracking-tighter uppercase block text-black">BULEVİNİ</Link>
-          <div className="h-1.5 w-10 bg-blue-600 mt-2 rounded-full"></div>
-        </div>
-        <nav className="flex-1 space-y-3 text-black font-black italic uppercase">
-          <button onClick={() => router.push('/')} className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-black/5 transition-all text-slate-400 hover:text-black group">
-            <Map size={20} /> <span className="text-[12px] tracking-widest">BİNALARI KEŞFET</span>
-          </button>
-          <button onClick={() => router.push('/profil')} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/40 shadow-xl border border-white/20 backdrop-blur-md">
-            <Radar size={20} className="text-blue-600" /> <span className="text-[12px] tracking-widest">RADARIMDAKİLER</span>
-          </button>
-          <button className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-black/5 transition-all text-slate-400 hover:text-black group">
-            <Users size={20} /> <span className="text-[12px] tracking-widest">TOPLULUK</span>
-          </button>
-          <button onClick={() => router.push('/profil')} className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-black/5 transition-all text-slate-400 hover:text-black group">
-            <MessageSquare size={20} /> <span className="text-[12px] tracking-widest">YORUMLARIM</span>
-          </button>
-        </nav>
-        <div className="mt-auto pt-8 border-t border-black/5">
-          <div className="bg-white/40 p-5 rounded-[2rem] border border-white/40 shadow-sm backdrop-blur-xl">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black italic text-white shadow-lg">{initials}</div>
-              <div className="flex flex-col">
-                <span className="text-[13px] font-black italic uppercase leading-none text-black">{displayName.toUpperCase()}</span>
-                <span className="text-[9px] font-black text-blue-600 mt-2 uppercase">{rutbe.label}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <Sidebar />
 
       <main className="flex-1 lg:ml-80 relative bg-white/30 backdrop-blur-sm pb-20 z-10">
         <header className="py-8 px-10 border-b border-black/5 sticky top-0 bg-white/40 backdrop-blur-2xl z-50 flex justify-between items-center text-black font-black uppercase italic">

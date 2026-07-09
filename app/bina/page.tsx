@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Star, MapPin, ArrowLeft, Home, Wind, Shield, Users, MessageSquarePlus, Activity, Map as MapIcon, Camera, CheckCircle, AlertTriangle, Heart, Radio, Info, X } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
 import { db } from '@/app/lib/firebase';
@@ -10,8 +10,6 @@ import GoogleHarita from '@/app/components/GoogleHarita';
 import Link from 'next/link';
 
 function BinaDetayIcerik() {
-  const params = useParams();
-  const id = params?.id;
   const searchParams = useSearchParams();
   const { user } = useAuth();
 
@@ -25,8 +23,23 @@ function BinaDetayIcerik() {
   const [showInfo, setShowInfo] = useState(false);
   const [followingLoading, setFollowingLoading] = useState(false);
   const [radarDocId, setRadarDocId] = useState<string | null>(null);
+  const [poilar, setPoilar] = useState<{ ad: string; tur: string; mesafe: number }[]>([]);
 
-  const binaIsmiRaw = searchParams?.get('isim') || id;
+  // Yakın çevre analizi — Overpass API (mobil ile aynı sorgu)
+  useEffect(() => {
+    const [lat, lng] = koordinat.split(',').map(v => parseFloat(v.trim()));
+    if (isNaN(lat) || koordinat === "41.0082, 28.9784") return;
+    const sorgu = `[out:json][timeout:20];(node["amenity"~"hospital|clinic|pharmacy"](around:1500,${lat},${lng});node["amenity"~"school|university"](around:1500,${lat},${lng});node["shop"="supermarket"](around:800,${lat},${lng});node["highway"="bus_stop"](around:800,${lat},${lng});node["railway"~"station|subway_entrance"](around:2000,${lat},${lng}););out body;`;
+    fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: `data=${encodeURIComponent(sorgu)}`, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+      .then(r => r.json())
+      .then((json: any) => {
+        const tur = (t: any) => /hospital|clinic|pharmacy/.test(t.amenity || '') ? 'saglik' : /school|university/.test(t.amenity || '') ? 'egitim' : t.shop === 'supermarket' ? 'market' : 'ulasim';
+        const mesafe = (pLat: number, pLng: number) => { const R = 6371000, dLa = (pLat - lat) * Math.PI / 180, dLo = (pLng - lng) * Math.PI / 180; const a = Math.sin(dLa / 2) ** 2 + Math.cos(lat * Math.PI / 180) * Math.cos(pLat * Math.PI / 180) * Math.sin(dLo / 2) ** 2; return Math.round(2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))); };
+        setPoilar((json.elements || []).filter((e: any) => e.lat && e.lon).map((e: any) => ({ ad: e.tags?.name || ({ saglik: 'Sağlık Noktası', egitim: 'Okul', market: 'Market', ulasim: 'Durak' } as any)[tur(e.tags || {})], tur: tur(e.tags || {}), mesafe: mesafe(e.lat, e.lon) })).sort((a: any, b: any) => a.mesafe - b.mesafe).slice(0, 12));
+      }).catch(() => {});
+  }, [koordinat]);
+
+  const binaIsmiRaw = searchParams?.get('isim');
   const binaIsmi = binaIsmiRaw ? decodeURIComponent(String(binaIsmiRaw)).toUpperCase().trim() : null;
 
   useEffect(() => {
@@ -39,7 +52,7 @@ function BinaDetayIcerik() {
           const radarQ = query(
             collection(db, 'takipler'),
             where('kullanici_id', '==', user.uid),
-            where('bina_id', '==', String(id))
+            where('bina_adi', '==', binaIsmi)
           );
           const radarSnap = await getDocs(radarQ);
           if (!radarSnap.empty) {
@@ -51,13 +64,14 @@ function BinaDetayIcerik() {
           }
         }
 
-        // YORUMLARI ÇEK
-        const yorumlarQ = query(
-          collection(db, 'yorumlar'),
-          where('bina_adi', '==', binaIsmi)
-        );
-        const yorumSnap = await getDocs(yorumlarQ);
-        const yorumlar = yorumSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // YORUMLARI ÇEK — hem yeni_bina_adi hem bina_adi (mobil ile aynı)
+        const [yeniSnap, eskiSnap] = await Promise.all([
+          getDocs(query(collection(db, 'yorumlar'), where('yeni_bina_adi', '==', binaIsmi))),
+          getDocs(query(collection(db, 'yorumlar'), where('bina_adi', '==', binaIsmi))),
+        ]);
+        const yorumMap: { [id: string]: any } = {};
+        [...yeniSnap.docs, ...eskiSnap.docs].forEach(d => { yorumMap[d.id] = { id: d.id, ...d.data() }; });
+        const yorumlar = Object.values(yorumMap);
 
         // Tarihe göre sırala
         yorumlar.sort((a: any, b: any) => {
@@ -72,7 +86,14 @@ function BinaDetayIcerik() {
         const sonYorum = yorumlar[yorumlar.length - 1] as any;
         if (sonYorum?.foto_url) setBinaFotosu(sonYorum.foto_url);
 
-        if (sonYorum?.acik_adres) {
+        // Konum — önce yapısal alanlar, sonra acik_adres fallback (mobil ile aynı öncelik)
+        const konumluKayit = yorumlar.find((y: any) => y.ilce || y.koordinat) as any || sonYorum;
+        if (konumluKayit?.ilce || konumluKayit?.mahalle) {
+          setKonumBilgisi({
+            mahalle: konumluKayit.mahalle || "Bilinmiyor",
+            ilce: konumluKayit.ilce || "İSTANBUL",
+          });
+        } else if (sonYorum?.acik_adres) {
           const parcalar: string[] = sonYorum.acik_adres.split('|');
           const yerBilgisi: string[] = parcalar[0]?.trim().split(' ');
           if (yerBilgisi) {
@@ -81,7 +102,11 @@ function BinaDetayIcerik() {
               ilce: yerBilgisi[2]?.split('/')[0] || "İSTANBUL"
             });
           }
-          const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
+        }
+        if (konumluKayit?.koordinat?.lat && konumluKayit?.koordinat?.lng) {
+          setKoordinat(`${konumluKayit.koordinat.lat}, ${konumluKayit.koordinat.lng}`);
+        } else if (sonYorum?.acik_adres) {
+          const koordParca = sonYorum.acik_adres.split('|').find((p: string) => p.includes('KOORD:'));
           if (koordParca) setKoordinat(koordParca.replace('KOORD:', '').trim());
         }
 
@@ -113,7 +138,7 @@ function BinaDetayIcerik() {
       finally { setLoading(false); }
     };
     verileriGetir();
-  }, [binaIsmi, id, user]);
+  }, [binaIsmi, user]);
 
   const toggleRadar = async () => {
     if (!user) {
@@ -130,7 +155,7 @@ function BinaDetayIcerik() {
         const newDoc = await addDoc(collection(db, 'takipler'), {
           kullanici_id: user.uid,
           kullanici_adi: user.displayName || user.email,
-          bina_id: String(id),
+          bina_id: binaIsmi,
           bina_adi: binaIsmi,
           created_at: serverTimestamp()
         });
@@ -269,12 +294,40 @@ function BinaDetayIcerik() {
 
         <div className="mb-12 text-left">
           <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-4 border-l-4 border-blue-600 pl-3 flex items-center gap-2">
-            <MapIcon size={18} className="text-blue-600" /> KONUM <span className="text-blue-600 opacity-40 ml-2">(GOOGLE HARİTA)</span>
+            <MapIcon size={18} className="text-blue-600" /> KONUM
           </h2>
-          <div className="w-full h-80 rounded-[2.5rem] overflow-hidden">
-            <GoogleHarita koordinat={koordinat} isInteractive={false} />
+          <div className="w-full h-80 rounded-[2.5rem] overflow-hidden border border-slate-100">
+            {(() => {
+              const [lat, lng] = koordinat.split(',').map(v => parseFloat(v.trim()));
+              const d = 0.004;
+              return (
+                <iframe
+                  title="Konum"
+                  className="w-full h-full border-0"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - d},${lat - d},${lng + d},${lat + d}&layer=mapnik&marker=${lat},${lng}`}
+                />
+              );
+            })()}
           </div>
         </div>
+
+        {poilar.length > 0 && (
+          <div className="mb-12 text-left">
+            <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">Konum &amp; Çevre Analizi</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {poilar.map((p, i) => {
+                const b: any = { saglik: ['🏥', 'text-red-600'], egitim: ['🎓', 'text-purple-600'], market: ['🛒', 'text-green-600'], ulasim: ['🚌', 'text-orange-500'] }[p.tur] || ['📍', 'text-slate-400'];
+                return (
+                  <div key={i} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3">
+                    <span className="text-[15px]">{b[0]}</span>
+                    <span className="flex-1 text-[12px] font-bold text-slate-700 truncate">{p.ad}</span>
+                    <span className={`text-[12px] font-black ${b[1]}`}>{p.mesafe < 1000 ? `${p.mesafe}m` : `${(p.mesafe / 1000).toFixed(1)}km`}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="mb-12 text-left">
           <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">Bina Karnesi</h2>
@@ -303,7 +356,9 @@ function BinaDetayIcerik() {
         <div className="space-y-4 pb-10 text-left">
           <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">Sakin Deneyimleri</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {dbYorumlar.map((y: any, i) => {
+            {dbYorumlar.filter((y: any) =>
+              !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0))
+            ).map((y: any, i) => {
               const isMuhtar = false;
               return (
                 <div key={i} className="p-6 rounded-[2.5rem] border transition-all flex flex-col gap-4 text-left bg-blue-50/30 border-blue-100 shadow-sm">
@@ -329,6 +384,19 @@ function BinaDetayIcerik() {
                   <div className="p-5 rounded-3xl text-[13px] font-medium italic border-l-4 bg-white border-blue-600 text-slate-700">
                     "{y.yorum_metni}"
                   </div>
+                  {!!y.foto_url && (
+                    <img src={y.foto_url} alt="Kanıt" className="w-full h-52 object-cover rounded-3xl border border-slate-100" />
+                  )}
+                  {((y.red_flags?.length > 0) || (y.green_flags?.length > 0)) && (
+                    <div className="flex flex-wrap gap-2">
+                      {(y.red_flags || []).map((f: string) => (
+                        <span key={f} className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-3 py-1 text-[10px] font-black uppercase italic">🚩 {f}</span>
+                      ))}
+                      {(y.green_flags || []).map((f: string) => (
+                        <span key={f} className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-3 py-1 text-[10px] font-black uppercase italic">✅ {f}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}

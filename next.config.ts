@@ -7,5 +7,5 @@ const withPWA = require('next-pwa')({
 });
 
 module.exports = withPWA({
-  /* config options here */
+  output: 'export',
 });

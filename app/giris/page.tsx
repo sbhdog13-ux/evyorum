@@ -13,11 +13,16 @@ export default function GirisKayitSayfasi() {
   const [isim, setIsim] = useState('');
   const [hata, setHata] = useState('');
   const [loading, setLoading] = useState(false);
+  const [kvkkOnay, setKvkkOnay] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setHata('');
+    if (mode === 'kayit' && !kvkkOnay) {
+      setHata('Devam etmek için KVKK metnini kabul etmelisin.');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -98,6 +103,20 @@ export default function GirisKayitSayfasi() {
               className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all"
             />
           </div>
+
+          {mode === 'kayit' && (
+            <label className="flex items-start gap-3 px-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={kvkkOnay}
+                onChange={(e) => setKvkkOnay(e.target.checked)}
+                className="mt-0.5 w-5 h-5 accent-blue-600"
+              />
+              <span className="text-[11px] font-bold text-slate-500 leading-relaxed">
+                <a href="/gizlilik" target="_blank" className="text-blue-600 underline">KVKK Aydınlatma Metni ve Kullanım Koşulları</a>'nı okudum, kabul ediyorum.
+              </span>
+            </label>
+          )}
 
           <button
             type="submit"

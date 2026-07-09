@@ -4,7 +4,8 @@ import { Home, Camera, PlusCircle, CheckCircle2, UserCircle, UserX, Building2, U
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
-import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, where, limit } from 'firebase/firestore';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 function YorumFormu() {
@@ -30,6 +31,13 @@ function YorumFormu() {
     { id: 4, label: "YÖNETİM / AİDAT", score: 3 }
   ]);
   const [newCatName, setNewCatName] = useState("");
+  const [redFlags, setRedFlags] = useState<string[]>([]);
+  const [greenFlags, setGreenFlags] = useState<string[]>([]);
+  const [yeniRedFlag, setYeniRedFlag] = useState("");
+  const [yeniGreenFlag, setYeniGreenFlag] = useState("");
+
+  const RED_PRESET = ['BÖCEKLENMİŞ', 'ASANSÖR BOZUK', 'KÜF / NEM', 'GÜRÜLTÜ', 'FİBER YOK', 'SU BASKINI'];
+  const GREEN_PRESET = ['SESSİZ MAHALLE', 'FİBER VAR', 'İYİ YÖNETİM', 'KOMŞULAR İYİ', 'YENİ BİNA', 'ULAŞIM KOLAY'];
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -41,7 +49,9 @@ function YorumFormu() {
   useEffect(() => {
     const binalariGetir = async () => {
       const snap = await getDocs(collection(db, 'yorumlar'));
-      const uniqueNames = Array.from(new Set(snap.docs.map(d => d.data().bina_adi?.toUpperCase().trim()))).filter(Boolean) as string[];
+      const uniqueNames = Array.from(new Set(
+        snap.docs.map(d => ((d.data().yeni_bina_adi || d.data().bina_adi) as string | undefined)?.toUpperCase().trim())
+      )).filter(Boolean) as string[];
       setKayitliBinalar(uniqueNames);
     };
     binalariGetir();
@@ -111,20 +121,43 @@ function YorumFormu() {
     const ortalamaPuan = Number((categories.reduce((acc, curr) => acc + curr.score, 0) / categories.length).toFixed(1));
 
     try {
+      // Kanıt fotoğrafını Storage'a yükle (mobil ile aynı yol)
+      let foto_url = '';
+      if (selectedFile) {
+        try {
+          const storage = getStorage();
+          const path = `yorumlar/${user?.uid || 'anon'}/${Date.now()}.jpg`;
+          const ref = storageRef(storage, path);
+          await uploadBytes(ref, selectedFile);
+          foto_url = await getDownloadURL(ref);
+        } catch (e) { console.error('Foto yükleme hatası:', e); }
+      }
+
+      // Binanın konum bilgilerini mevcut kayıttan kopyala (mobil ile aynı şema)
+      const binaKonum = await getDocs(query(collection(db, 'yorumlar'), where('yeni_bina_adi', '==', temizBinaAdi), limit(1)));
+      const konum = binaKonum.docs[0]?.data() || {};
+
       await addDoc(collection(db, 'yorumlar'), {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
+        il: konum.il || 'İSTANBUL',
+        ilce: konum.ilce || '',
+        mahalle: konum.mahalle || '',
+        koordinat: konum.koordinat || null,
         yorum_metni: yorum.trim(),
         kullanici_adi: gecerliKullaniciAdi,
         kullanici_id: gecerliKullaniciId,
         puan: ortalamaPuan,
         puanlar: puanlarVerisi,
         baglanti_tipi: baglantiTipi,
+        foto_url,
+        red_flags: redFlags,
+        green_flags: greenFlags,
         created_at: serverTimestamp()
       });
 
       alert("BİNA MÜHÜRLENDİ! 🎉");
-      router.push(`/bina/${encodeURIComponent(temizBinaAdi)}`);
+      router.push(`/bina?isim=${encodeURIComponent(temizBinaAdi)}`);
     } catch (err: any) {
       alert("Hata: " + err.message);
     } finally {
@@ -266,6 +299,55 @@ function YorumFormu() {
                 </div>
               </div>
             </div>
+
+            {/* HIZLI İŞARETLER — mobil ile aynı */}
+            <section className="space-y-6 text-left">
+              <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2">HIZLI İŞARETLER</label>
+
+              <div className="space-y-3">
+                <span className="text-[10px] font-black uppercase italic text-red-500 pl-2 block">SORUNLAR (Kırmızı)</span>
+                <div className="flex flex-wrap gap-2">
+                  {[...RED_PRESET, ...redFlags.filter(f => !RED_PRESET.includes(f))].map(f => {
+                    const aktif = redFlags.includes(f);
+                    return (
+                      <button key={f} type="button"
+                        onClick={() => setRedFlags(prev => aktif ? prev.filter(x => x !== f) : [...prev, f])}
+                        className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase italic border-2 transition-all ${aktif ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-400 border-slate-100 hover:border-red-300'}`}>
+                        {aktif ? `🚩 ${f}` : f}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-2 max-w-sm">
+                  <input value={yeniRedFlag} onChange={e => setYeniRedFlag(e.target.value.toUpperCase())}
+                    placeholder="SORUN EKLE..." className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
+                  <button type="button" onClick={() => { const t = yeniRedFlag.trim(); if (t && !redFlags.includes(t)) setRedFlags(p => [...p, t]); setYeniRedFlag(''); }}
+                    className="bg-red-600 text-white p-3 rounded-2xl"><PlusCircle size={16} /></button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <span className="text-[10px] font-black uppercase italic text-green-600 pl-2 block">ARTILAR (Yeşil)</span>
+                <div className="flex flex-wrap gap-2">
+                  {[...GREEN_PRESET, ...greenFlags.filter(f => !GREEN_PRESET.includes(f))].map(f => {
+                    const aktif = greenFlags.includes(f);
+                    return (
+                      <button key={f} type="button"
+                        onClick={() => setGreenFlags(prev => aktif ? prev.filter(x => x !== f) : [...prev, f])}
+                        className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase italic border-2 transition-all ${aktif ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-400 border-slate-100 hover:border-green-300'}`}>
+                        {aktif ? `✅ ${f}` : f}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-2 max-w-sm">
+                  <input value={yeniGreenFlag} onChange={e => setYeniGreenFlag(e.target.value.toUpperCase())}
+                    placeholder="ARTI EKLE..." className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
+                  <button type="button" onClick={() => { const t = yeniGreenFlag.trim(); if (t && !greenFlags.includes(t)) setGreenFlags(p => [...p, t]); setYeniGreenFlag(''); }}
+                    className="bg-green-600 text-white p-3 rounded-2xl"><PlusCircle size={16} /></button>
+                </div>
+              </div>
+            </section>
 
             <div className="space-y-4 text-left">
               <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2 text-left">DETAYLI DENEYİM</label>

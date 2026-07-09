@@ -1,0 +1,237 @@
+"use client";
+
+import { useState, useEffect, useRef } from 'react';
+import { Search, MapPin, Star, ShieldCheck, Loader2, AlertCircle, Radio, MessageSquarePlus, Map, Radar, Users, MessageSquare, ShieldCheck as ShieldIcon, LogOut } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { db } from '@/app/lib/firebase';
+import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
+import { useAuth } from '@/app/contexts/AuthContext';
+import Sidebar from '@/app/components/Sidebar';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/app/lib/firebase';
+
+export default function Home() {
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingSelection, setPendingSelection] = useState({ name: "", city: "" });
+  const [radarBinalar, setRadarBinalar] = useState<any[]>([]);
+  const [gercekYorumlar, setGercekYorumlar] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const [tumBinalar, setTumBinalar] = useState<string[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    const veriGetir = async () => {
+      const yorumlarRef = collection(db, 'yorumlar');
+      const q = query(yorumlarRef, orderBy('created_at', 'desc'), limit(15));
+      const snap = await getDocs(q);
+      setGercekYorumlar(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+      // Tüm benzersiz bina adları — arama önerileri için (mobil ile aynı)
+      const tumSnap = await getDocs(collection(db, 'yorumlar'));
+      const unique = Array.from(new Set(
+        tumSnap.docs.map(d => ((d.data().yeni_bina_adi || d.data().bina_adi) as string | undefined)?.toUpperCase().trim())
+      )).filter(Boolean) as string[];
+      setTumBinalar(unique);
+
+      if (user) {
+        const radarRef = collection(db, 'takipler');
+        const radarQ = query(radarRef, where('kullanici_id', '==', user.uid));
+        const radarSnap = await getDocs(radarQ);
+        setRadarBinalar(radarSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+    };
+    veriGetir();
+  }, [user]);
+
+  useEffect(() => {
+    if (gercekYorumlar.length === 0) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 3 >= gercekYorumlar.length ? 0 : prev + 3));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [gercekYorumlar]);
+
+  // Nominatim adres önerileri (mobil ile aynı sistem — Google Places yerine)
+  useEffect(() => {
+    if (searchTerm.length < 3) { setSuggestions([]); return; }
+    const delay = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm + ' İstanbul')}&viewbox=27.9,41.65,29.95,40.55&bounded=1&format=json&limit=4&accept-language=tr`;
+        const res = await fetch(url);
+        const json = await res.json();
+        setSuggestions(json || []);
+      } catch { setSuggestions([]); }
+      finally { setIsSearching(false); }
+    }, 400);
+    return () => clearTimeout(delay);
+  }, [searchTerm]);
+
+  const eslesenBinalar = searchTerm.length >= 2
+    ? tumBinalar.filter(b => b.includes(searchTerm.toUpperCase())).slice(0, 4)
+    : [];
+
+  const handleSelection = async (mainText: string, secondaryText: string) => {
+    setIsSearching(true);
+    const yorumlarRef = collection(db, 'yorumlar');
+    const q = query(yorumlarRef, where('yeni_bina_adi', '==', mainText.toUpperCase()));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      router.push(`/bina?isim=${encodeURIComponent(mainText.toUpperCase())}`);
+    } else {
+      setPendingSelection({ name: mainText.toUpperCase(), city: secondaryText });
+      setShowConfirmModal(true);
+    }
+    setIsSearching(false);
+    setShowSuggestions(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/giris');
+  };
+
+  return (
+    <div className="flex min-h-screen bg-white relative overflow-hidden">
+      <div className="fixed top-[-5%] left-[15%] w-[45%] h-[45%] bg-blue-100/50 rounded-full blur-[140px] z-0 pointer-events-none"></div>
+      <div className="fixed bottom-[-10%] right-[5%] w-[35%] h-[35%] bg-blue-50 rounded-full blur-[110px] z-0 pointer-events-none"></div>
+
+      {/* SIDEBAR */}
+      <Sidebar />
+
+      {/* ANA İÇERİK */}
+      <main className="flex-1 lg:ml-80 relative bg-transparent z-10 pb-20">
+        <header className="fixed top-0 left-0 lg:left-80 right-0 z-[200] bg-white/40 backdrop-blur-2xl px-8 py-4 border-b border-black/5 flex justify-between items-center shadow-sm">
+          <Link href="/" className="flex flex-col items-start lg:hidden text-black">
+            <span className="font-black italic tracking-tighter text-[22px] leading-none">BULEVİNİ</span>
+          </Link>
+          <div className="hidden lg:block"></div>
+          <div className="flex items-center gap-4">
+            <Link href="/profil" className={`p-3 rounded-2xl transition-all border-2 border-white bg-white/60 backdrop-blur-md shadow-sm ${radarBinalar.length > 0 ? 'text-blue-600 border-blue-100 animate-pulse' : 'text-slate-300'}`}>
+              <Radio size={20} />
+            </Link>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <Link href="/profil" className="flex items-center gap-3 bg-black text-white px-5 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all">
+                  <span className="font-black italic text-[12px] uppercase tracking-tighter">
+                    {user.displayName || user.email?.split('@')[0]}
+                  </span>
+                </Link>
+                <button onClick={handleLogout} className="p-3 bg-slate-100 rounded-2xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                  <LogOut size={18} />
+                </button>
+              </div>
+            ) : (
+              <Link href="/giris" className="flex items-center gap-3 bg-black text-white px-5 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all">
+                <span className="font-black italic text-[12px] uppercase tracking-tighter">GİRİŞ YAP</span>
+              </Link>
+            )}
+            <Link href="/yorum-yap" className="hidden md:flex bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-black italic text-[11px] uppercase items-center gap-2 shadow-xl shadow-blue-200 hover:bg-black transition-all">
+              <MessageSquarePlus size={16} /> DENEYİMİNİ PAYLAŞ
+            </Link>
+          </div>
+        </header>
+
+        {/* MOTTO + BLUR HARİTA (mobil ile aynı düzen) */}
+        <section className="pt-44 pb-8 px-6 relative z-[100]">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-[36px] md:text-[56px] font-black leading-[0.9] tracking-tighter uppercase mb-8 text-black text-left">
+              EVİNİ TUTMADAN ÖNCE <br />
+              <span className="text-blue-600 italic underline">GERÇEKLERİ</span> ÖĞREN.
+            </h1>
+            <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-4 shadow-xl">
+              <img src="https://staticmap.openstreetmap.de/staticmap.php?center=41.0082,28.9784&zoom=10&size=900x400&maptype=mapnik" alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e: any) => { e.target.style.display = 'none'; }} />
+              <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md flex flex-col items-center justify-center gap-3 text-white">
+                <Map size={30} className="opacity-70" />
+                <div className="font-black uppercase italic text-[17px]">Bina veya adres ara</div>
+                <div className="text-[12px] font-medium opacity-70">Harita üzerinden mühürlenmiş binaları keşfet</div>
+                <button onClick={() => router.push('/harita')} className="mt-2 bg-blue-600 px-8 py-3.5 rounded-2xl font-black uppercase italic text-[13px] tracking-wide hover:bg-white hover:text-blue-600 transition-all shadow-xl">HARİTAYI AÇ →</button>
+              </div>
+            </div>
+                      </div>
+        </section>
+
+        {/* FEED */}
+        <section className="max-w-7xl mx-auto px-10 pt-20 pb-20 relative z-[10]">
+          <div className="flex justify-between items-end mb-12 border-l-4 border-blue-600 pl-6">
+            <div>
+              <h2 className="text-[16px] font-black uppercase italic tracking-tighter text-black">SON SAKİN YORUMLARI</h2>
+              <p className="text-[11px] font-bold text-slate-400 uppercase italic mt-1 tracking-widest">TOPLULUK TARAFINDAN MÜHÜRLENDİ</p>
+            </div>
+            <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-2xl border border-white text-black font-black">
+              <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-ping"></div>
+              <span className="text-[11px] font-black text-blue-600 uppercase italic tracking-widest">CANLI AKIŞ</span>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {gercekYorumlar.length > 0 ? (
+              gercekYorumlar.slice(currentIndex, currentIndex + 3).map((yorum, i) => (
+                <Link key={i} href={`/bina?isim=${encodeURIComponent(yorum.yeni_bina_adi || yorum.bina_adi)}`} className="group bg-white/60 backdrop-blur-2xl p-10 rounded-[4rem] border border-white hover:border-blue-600 transition-all shadow-xl hover:shadow-2xl">
+                  <div className="flex justify-between items-start mb-8 text-black">
+                    <div className="flex-1 pr-4">
+                      <h3 className="text-[16px] font-black uppercase italic tracking-tighter group-hover:text-blue-600 leading-none mb-3 line-clamp-1">{yorum.yeni_bina_adi || yorum.bina_adi}</h3>
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck size={14} className="text-blue-600" />
+                        <span className="text-[11px] font-bold text-slate-400 uppercase italic">{yorum.kullanici_adi || yorum.kullanıcı_adi || 'Anonim'}</span>
+                      </div>
+                    </div>
+                    <div className="bg-white/80 px-4 py-1.5 rounded-2xl flex items-center gap-1.5 border border-white text-blue-600 font-black italic text-[13px]">
+                      <Star size={14} fill="currentColor" /> {yorum.puan || '5.0'}
+                    </div>
+                  </div>
+                  <p className="text-[13px] font-medium text-slate-700 italic leading-relaxed line-clamp-3">"{yorum.yorum_metni}"</p>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full py-24 text-center opacity-30 font-black italic uppercase tracking-[0.5em] text-black text-[12px]">Veriler mühürleniyor...</div>
+            )}
+          </div>
+        </section>
+
+        {/* MOBİL UYGULAMA */}
+        <section className="max-w-7xl mx-auto px-10 pb-20">
+          <div className="bg-black text-white rounded-[4rem] p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full pointer-events-none" />
+            <div className="relative z-10 text-center md:text-left">
+              <h3 className="text-[28px] font-black uppercase italic tracking-tighter leading-none mb-3">
+                BULEVİNİ <span className="text-blue-600">CEBİNDE.</span>
+              </h3>
+              <p className="text-[13px] font-bold text-slate-400 uppercase italic tracking-wide">
+                Haritada keşfet, konumundan mühürle, radarından takip et.
+              </p>
+            </div>
+            <div className="relative z-10 flex items-center gap-3 bg-white/10 border border-white/20 px-8 py-4 rounded-2xl backdrop-blur-md">
+              <span className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse" />
+              <span className="text-[12px] font-black uppercase italic tracking-widest">ÇOK YAKINDA APP STORE'DA</span>
+            </div>
+          </div>
+        </section>
+
+        <footer className="py-24 border-t border-black/5 text-center text-slate-400 font-bold uppercase italic text-[11px] tracking-[0.2em]">
+          © 2026 BULEVİNİ — Şeffaf Bina Kültürü
+        </footer>
+      </main>
+
+      {/* CONFIRM MODAL */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/30 backdrop-blur-md">
+          <div className="bg-white/90 backdrop-blur-3xl w-full max-w-md rounded-[4rem] overflow-hidden shadow-2xl border-2 border-white text-black">
+            <div className="p-12 text-center">
+              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-8"><AlertCircle size={44} className="text-blue-600" /></div>
+              <h3 className="text-[24px] font-black uppercase italic tracking-tighter mb-6 leading-none">BU BİNA HENÜZ <span className="text-blue-600">MÜHÜRLENMEMİŞ!</span></h3>
+              <button onClick={() => router.push(`/bina-olustur?binaAdi=${encodeURIComponent(pendingSelection.name)}`)} className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black uppercase italic text-[13px] shadow-xl shadow-blue-200/50 hover:bg-black transition-all">EVET, BİNAYI MÜHÜRLE</button>
+              <button onClick={() => setShowConfirmModal(false)} className="mt-6 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-black transition-colors">ŞİMDİLİK KALSIN</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

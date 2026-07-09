@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import GoogleHarita from '@/app/components/GoogleHarita';
+import LeafletHarita from '@/app/components/LeafletHarita';
 
 function AramaIcerik() {
   const router = useRouter();
@@ -39,7 +39,7 @@ function AramaIcerik() {
     const gruplar: { [key: string]: any } = {};
     
     data.forEach(item => {
-      const isim = item.bina_adi?.toString().toUpperCase().trim() || "";
+      const isim = (item.yeni_bina_adi || item.bina_adi)?.toString().toUpperCase().trim() || "";
       if (!isim) return;
 
       if (!gruplar[isim]) {
@@ -57,15 +57,23 @@ function AramaIcerik() {
         };
       }
 
-      if (item.acik_adres && item.acik_adres.includes('|')) {
+      // Önce yapısal alanlar (mobil şeması), sonra acik_adres fallback
+      if (item.ilce) gruplar[isim].ilce = item.ilce.toString().toUpperCase().trim();
+      if (item.mahalle) gruplar[isim].mahalle = item.mahalle.toString().toUpperCase().trim();
+      if (item.koordinat?.lat && item.koordinat?.lng) {
+        gruplar[isim].koordinat = `${item.koordinat.lat}, ${item.koordinat.lng}`;
+      }
+      if ((!item.ilce || !gruplar[isim].koordinat) && item.acik_adres && item.acik_adres.includes('|')) {
         const parcalar = item.acik_adres.split('|');
         const yerBilgisi = parcalar[0]?.split(' ');
-        if (yerBilgisi && yerBilgisi.length > 2) {
+        if (!item.ilce && yerBilgisi && yerBilgisi.length > 2) {
           gruplar[isim].mahalle = yerBilgisi[0] || gruplar[isim].mahalle;
           gruplar[isim].ilce = yerBilgisi[2]?.split('/')[0].toUpperCase() || gruplar[isim].ilce;
         }
-        const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
-        if (koordParca) gruplar[isim].koordinat = koordParca.replace('KOORD:', '').trim();
+        if (!gruplar[isim].koordinat) {
+          const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
+          if (koordParca) gruplar[isim].koordinat = koordParca.replace('KOORD:', '').trim();
+        }
       }
 
       let etkiCarpani = 0.3; 
@@ -116,6 +124,7 @@ function AramaIcerik() {
 
   const ilceListesi = useMemo(() => {
     return Array.from(new Set(allReviews.map(r => {
+      if (r.ilce) return r.ilce.toString().toUpperCase().trim();
       if (r.acik_adres && r.acik_adres.includes('|')) {
         return r.acik_adres.split('|')[0].split(' ')[2]?.split('/')[0].toUpperCase();
       }
@@ -255,7 +264,7 @@ function AramaIcerik() {
                 results.map((bina, idx) => (
                   <div 
                     key={idx}
-                    onClick={() => router.push(`/bina/${encodeURIComponent(bina.ad)}`)}
+                    onClick={() => router.push(`/bina?isim=${encodeURIComponent(bina.ad)}`)}
                     className="group bg-white border-2 border-slate-100 rounded-[3rem] hover:border-blue-600 transition-all cursor-pointer shadow-sm hover:shadow-2xl relative overflow-hidden flex flex-col"
                   >
                     <div className="h-48 w-full bg-slate-100 relative overflow-hidden">
@@ -326,12 +335,7 @@ function AramaIcerik() {
                   </div>
                 </div>
               </div>
-              <GoogleHarita 
-                koordinat={results.length > 0 && results[0].koordinat ? results[0].koordinat : "41.0082, 28.9784"} 
-                isInteractive={true}
-                items={results.map(r => ({ ...r, toplamPuan: r.toplamAgirlikliPuan, sayi: r.toplamEtkiPayi }))} 
-                onRegionSelect={(ilceAdi: string) => setFilters({ ...filters, ilce: ilceAdi.toUpperCase() })}
-              />
+              <LeafletHarita binalar={results.map(r => ({ ad: r.ad, koordinat: r.koordinat, finalPuan: r.finalPuan, sayi: r.sayi }))} />
             </div>
           )}
         </main>

@@ -2,16 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Radar, MessageSquarePlus, User } from 'lucide-react';
+import { Search, Radar, MessageSquarePlus, User, BarChart2 } from 'lucide-react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useAuth();
 
+  // Açılış (tanıtım) sayfasında alt menü gösterilmez
+  if (pathname === '/') return null;
+
   const items = [
-  { href: '/', icon: Search, label: 'Keşfet' },
+  { href: '/kesfet', icon: Search, label: 'Keşfet' },
   { href: '/arama', icon: Radar, label: 'Radar' },
+  { href: '/skor', icon: BarChart2, label: 'Skor' },
   { href: '/yorum-yap', icon: MessageSquarePlus, label: 'Mühürle' },
   { href: user ? '/profil' : '/giris', icon: User, label: 'Profil' },
 ];
