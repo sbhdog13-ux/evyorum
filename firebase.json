@@ -1,7 +1,11 @@
 {
   "hosting": {
     "public": "out",
-    "ignore": ["firebase.json", "**/.*"],
-    "cleanUrls": true
+    "ignore": [
+      "firebase.json",
+      "**/.*"
+    ],
+    "cleanUrls": true,
+    "site": "bulevini-3896a"
   }
 }
