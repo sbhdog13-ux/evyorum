@@ -1,48 +1,91 @@
 "use client";
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Search, Radar, MessageSquarePlus, User, BarChart2 } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Search, Radar, MessageSquarePlus, User, BarChart2, Menu, X, Map, Building2, MessageSquare, LogOut } from 'lucide-react';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/app/lib/firebase';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
+  const [menuAcik, setMenuAcik] = useState(false);
 
   // Açılış (tanıtım) sayfasında alt menü gösterilmez
   if (pathname === '/') return null;
 
   const items = [
-  { href: '/kesfet', icon: Search, label: 'Keşfet' },
-  { href: '/arama', icon: Radar, label: 'Radar' },
-  { href: '/skor', icon: BarChart2, label: 'Skor' },
-  { href: '/yorum-yap', icon: MessageSquarePlus, label: 'Mühürle' },
-  { href: user ? '/profil' : '/giris', icon: User, label: 'Profil' },
-];
+    { href: '/kesfet', icon: Search, label: 'Keşfet' },
+    { href: '/arama', icon: Radar, label: 'Radar' },
+    { href: '/skor', icon: BarChart2, label: 'Skor' },
+    { href: '/yorum-yap', icon: MessageSquarePlus, label: 'Mühürle' },
+    { href: user ? '/profil' : '/giris', icon: User, label: 'Profil' },
+  ];
+
+  // Hamburger çekmecesi — mobil uygulamadaki Drawer ile aynı öğeler
+  const drawerItems = [
+    { icon: Map, label: 'BİNALARI KEŞFET', href: '/kesfet' },
+    { icon: Search, label: 'TÜM MÜHÜRLER', href: '/arama' },
+    { icon: BarChart2, label: 'İLÇE / MAHALLE SKORLARI', href: '/skor' },
+    { icon: Building2, label: 'BİNA OLUŞTUR', href: '/bina-olustur' },
+    { icon: Radar, label: 'RADARIMDAKİLER', href: '/profil' },
+    { icon: MessageSquare, label: 'YORUMLARIM', href: '/profil' },
+  ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[500] bg-white/80 backdrop-blur-xl border-t border-slate-100 lg:hidden">
-      <div className="flex items-center justify-around px-2 py-2 pb-safe">
-        {items.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all"
-            >
-              <item.icon
-                size={22}
-                className={isActive ? 'text-blue-600' : 'text-slate-400'}
-                strokeWidth={isActive ? 2.5 : 1.8}
-              />
-              <span className={`text-[10px] font-black italic uppercase tracking-tight ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    <>
+      {menuAcik && (
+        <div className="fixed inset-0 z-[550] bg-black/45 lg:hidden" onClick={() => setMenuAcik(false)}>
+          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="px-6 pt-8 pb-4 border-b border-slate-100 flex items-center justify-between">
+              <img src="/logo.png" alt="Bulevini" className="h-10" />
+              <button onClick={() => setMenuAcik(false)} className="p-2 bg-slate-50 rounded-xl"><X size={18} /></button>
+            </div>
+            <nav className="flex-1">
+              {drawerItems.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <button key={i} onClick={() => { setMenuAcik(false); router.push(item.href); }}
+                    className="w-full flex items-center gap-4 h-14 px-6 border-b border-slate-100 text-left">
+                    <Icon size={20} className="text-blue-600" />
+                    <span className="text-[12px] font-black uppercase tracking-wide text-black">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+            {user && (
+              <button onClick={async () => { setMenuAcik(false); await signOut(auth); router.push('/'); }}
+                className="flex items-center gap-3 px-6 py-5 text-red-500 border-t border-slate-100 mb-20">
+                <LogOut size={18} />
+                <span className="text-[13px] font-black uppercase tracking-widest">ÇIKIŞ YAP</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <nav className="fixed bottom-0 left-0 right-0 z-[500] bg-white/80 backdrop-blur-xl border-t border-slate-100 lg:hidden">
+        <div className="flex items-center justify-around px-1 py-2 pb-safe">
+          <button onClick={() => setMenuAcik(true)} className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl">
+            <Menu size={22} className="text-slate-400" strokeWidth={1.8} />
+            <span className="text-[10px] font-black italic uppercase tracking-tight text-slate-400">Menü</span>
+          </button>
+          {items.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all">
+                <item.icon size={22} className={isActive ? 'text-blue-600' : 'text-slate-400'} strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className={`text-[10px] font-black italic uppercase tracking-tight ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
   );
 }
