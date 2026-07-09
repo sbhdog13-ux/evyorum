@@ -83,12 +83,12 @@ function ProfilIcerik() {
       <Sidebar />
 
       <main className="flex-1 lg:ml-80 relative bg-white/30 backdrop-blur-sm pb-20 z-10">
-        <header className="py-8 px-10 border-b border-black/5 sticky top-0 bg-white/40 backdrop-blur-2xl z-50 flex justify-between items-center text-black font-black uppercase italic">
+        <header className="py-5 px-4 md:py-8 md:px-10 border-b border-black/5 sticky top-0 bg-white/40 backdrop-blur-2xl z-50 flex justify-between items-center text-black font-black uppercase italic">
           <div className="flex items-center gap-6">
             <Link href="/" className="p-3 bg-white/60 rounded-2xl shadow-sm border border-white hover:bg-blue-600 hover:text-white transition-all backdrop-blur-md text-black">
               <ArrowLeft size={20} />
             </Link>
-            <h1 className="text-[24px] tracking-tighter border-l-[10px] border-blue-600 pl-5 text-black">KARAKTER PANELİ</h1>
+            <h1 className="text-[16px] md:text-[24px] tracking-tighter border-l-[6px] md:border-l-[10px] border-blue-600 pl-5 text-black">KARAKTER PANELİ</h1>
           </div>
           <div className="bg-white/50 px-5 py-2.5 rounded-2xl border border-white/50 backdrop-blur-md shadow-sm flex items-center gap-3">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -96,9 +96,9 @@ function ProfilIcerik() {
           </div>
         </header>
 
-        <div className="max-w-6xl mx-auto px-10 pt-12 space-y-10">
+        <div className="max-w-6xl mx-auto px-4 md:px-10 pt-8 md:pt-12 pb-24 space-y-10">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <section className="bg-white/60 backdrop-blur-2xl p-8 rounded-[3rem] border border-white shadow-xl hover:-translate-y-1 transition-all">
+            <section className="bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white shadow-xl hover:-translate-y-1 transition-all">
               <div className="flex justify-between items-start mb-6 text-black">
                 <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg"><LocateFixed size={24} /></div>
                 <div className="text-right">
@@ -112,7 +112,7 @@ function ProfilIcerik() {
               <span className="text-[10px] font-black text-slate-400 uppercase italic">{muhurSayisi} / 15 MUHTAR MÜHÜRÜ</span>
             </section>
 
-            <section className="bg-[#023E56] text-white p-8 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden">
+            <section className="bg-[#023E56] text-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden">
               <div className="relative z-10">
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-[10px] font-black italic uppercase text-amber-400 tracking-widest">PUAN</span>
@@ -123,7 +123,7 @@ function ProfilIcerik() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/10 blur-[50px] rounded-full" />
             </section>
 
-            <button onClick={() => document.getElementById('radar-detay-bolumu')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white/60 backdrop-blur-2xl p-8 rounded-[3rem] border border-white shadow-xl flex flex-col justify-between group hover:border-blue-600 transition-all text-left">
+            <button onClick={() => document.getElementById('radar-detay-bolumu')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white shadow-xl flex flex-col justify-between group hover:border-blue-600 transition-all text-left">
               <div className="flex justify-between items-center mb-4 text-black">
                 <span className="text-[10px] font-black text-slate-400 uppercase italic">Radar Odası</span>
                 <Radio size={20} className="text-blue-600 animate-pulse" />
@@ -136,9 +136,9 @@ function ProfilIcerik() {
             </button>
           </div>
 
-          <section className="bg-white/60 backdrop-blur-2xl p-12 rounded-[4rem] border border-white shadow-2xl text-black">
+          <section className="bg-white/60 backdrop-blur-2xl p-6 md:p-12 rounded-[2rem] md:rounded-[4rem] border border-white shadow-2xl text-black">
             <h3 className="text-[14px] font-black italic uppercase tracking-widest mb-12 border-l-4 border-blue-600 pl-5 text-black">KOLEKSİYONUM VE ROZETLERİM</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-4 md:gap-10">
               {rozetler.map((rozet) => (
                 <div key={rozet.id} className={`flex flex-col items-center gap-4 transition-all ${rozet.active ? 'opacity-100' : 'opacity-20 grayscale'}`}>
                   <div className={`w-24 h-24 rounded-[2.5rem] flex items-center justify-center border-4 transition-all duration-500 ${rozet.active ? 'bg-white border-blue-600 text-blue-600 shadow-xl scale-110' : 'bg-[#023E56]/5 border-black/5 text-slate-300'}`}>
@@ -153,7 +153,7 @@ function ProfilIcerik() {
             </div>
           </section>
 
-          <section className={`p-12 rounded-[4rem] border shadow-2xl relative overflow-hidden transition-all duration-700 backdrop-blur-2xl ${statu === 'muhtar' ? 'bg-[#023E56]/90 text-white border-amber-400/50' : 'bg-white text-black border-slate-200'}`}>
+          <section className={`p-6 md:p-12 rounded-[2rem] md:rounded-[4rem] border shadow-2xl relative overflow-hidden transition-all duration-700 backdrop-blur-2xl ${statu === 'muhtar' ? 'bg-[#023E56]/90 text-white border-amber-400/50' : 'bg-white text-black border-slate-200'}`}>
             <div className="flex flex-col md:flex-row gap-12 items-center">
               <ProfilKimlik displayName={displayName} onIsimGuncellendi={setAdSoyad} />
               <div className={`inline-flex items-center gap-3 px-8 py-3 rounded-2xl text-[12px] font-black italic uppercase border ${rutbe.bg} ${rutbe.color} ${rutbe.border}`}>
@@ -168,7 +168,7 @@ function ProfilIcerik() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {radarBinalar.length > 0 ? radarBinalar.map((bina) => (
-                <div key={bina.id} className="bg-white/60 backdrop-blur-2xl p-8 rounded-[3.5rem] border border-white shadow-xl group hover:border-blue-600 text-black transition-all">
+                <div key={bina.id} className="bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] md:rounded-[3.5rem] border border-white shadow-xl group hover:border-blue-600 text-black transition-all">
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-12 h-12 bg-[#dcecf7]/50 rounded-2xl flex items-center justify-center text-blue-600"><MapPin size={22} /></div>
                     <button onClick={() => radarSil(bina.id)} className="p-3 bg-[#023E56]/5 text-slate-300 rounded-xl hover:text-red-500 hover:bg-red-50 transition-all"><X size={18} /></button>
@@ -192,7 +192,7 @@ function ProfilIcerik() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {gosterilecekDeneyimler.map((deneyim) => (
-                <div key={deneyim.id} className="bg-white/60 backdrop-blur-2xl p-12 rounded-[4rem] border border-white shadow-xl hover:border-blue-600 transition-all group relative">
+                <div key={deneyim.id} className="bg-white/60 backdrop-blur-2xl p-6 md:p-12 rounded-[2rem] md:rounded-[4rem] border border-white shadow-xl hover:border-blue-600 transition-all group relative">
                   <div className="flex justify-between items-start mb-8 text-black">
                     <div>
                       <h4 className="text-[24px] font-black uppercase italic tracking-tighter group-hover:text-blue-600 text-black">{deneyim.bina_adi}</h4>
@@ -200,7 +200,7 @@ function ProfilIcerik() {
                     </div>
                     <button onClick={() => silYorum(deneyim.id)} className="p-4 bg-[#023E56]/5 text-slate-300 rounded-2xl hover:text-red-500 transition-all"><Trash2 size={24} /></button>
                   </div>
-                  <div className="bg-white/40 backdrop-blur-md p-8 rounded-[3rem] border-l-[10px] border-blue-600 mb-8 shadow-sm">
+                  <div className="bg-white/40 backdrop-blur-md p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border-l-[10px] border-blue-600 mb-8 shadow-sm">
                     <p className="text-[17px] font-medium text-slate-700 italic leading-relaxed">"{deneyim.yorum_metni}"</p>
                   </div>
                   <div className="flex items-center gap-3 text-[12px] font-black text-blue-600 bg-[#dcecf7]/50 px-6 py-3 rounded-2xl border border-[#A1CDE9] uppercase">

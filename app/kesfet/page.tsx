@@ -107,7 +107,7 @@ export default function Home() {
       <Sidebar />
 
       {/* ANA İÇERİK */}
-      <main className="flex-1 lg:ml-80 relative bg-transparent z-10 pb-20">
+      <main className="flex-1 lg:ml-80 relative bg-transparent z-10 pb-32">
         <header className="fixed top-0 left-0 lg:left-80 right-0 z-[200] bg-white/40 backdrop-blur-2xl px-8 py-4 border-b border-black/5 flex justify-between items-center shadow-sm">
           <Link href="/" className="flex flex-col items-start lg:hidden text-black">
             <span className="font-black italic tracking-tighter text-[22px] leading-none">BULEVİNİ</span>
@@ -140,9 +140,9 @@ export default function Home() {
         </header>
 
         {/* MOTTO + BLUR HARİTA (mobil ile aynı düzen) */}
-        <section className="pt-44 pb-8 px-6 relative z-[100]">
+        <section className="pt-28 lg:pt-44 pb-8 px-5 relative z-[100]">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-[36px] md:text-[56px] font-black leading-[0.9] tracking-tighter uppercase mb-8 text-black text-left">
+            <h1 className="text-[30px] md:text-[56px] font-black leading-[1.05] md:leading-[0.9] tracking-tighter uppercase mb-8 text-black text-left">
               EVİNİ TUTMADAN ÖNCE <br />
               <span className="text-blue-600 italic underline">GERÇEKLERİ</span> ÖĞREN.
             </h1>
@@ -159,7 +159,7 @@ export default function Home() {
         </section>
 
         {/* FEED */}
-        <section className="max-w-7xl mx-auto px-10 pt-20 pb-20 relative z-[10]">
+        <section className="max-w-7xl mx-auto px-5 md:px-10 pt-10 md:pt-20 pb-20 relative z-[10]">
           <div className="flex justify-between items-end mb-12 border-l-4 border-blue-600 pl-6">
             <div>
               <h2 className="text-[16px] font-black uppercase italic tracking-tighter text-black">SON SAKİN YORUMLARI</h2>
@@ -173,7 +173,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
             {gercekYorumlar.length > 0 ? (
               gercekYorumlar.slice(currentIndex, currentIndex + 3).map((yorum, i) => (
-                <Link key={i} href={`/bina?isim=${encodeURIComponent(yorum.yeni_bina_adi || yorum.bina_adi)}`} className="group bg-white/60 backdrop-blur-2xl p-10 rounded-[4rem] border border-white hover:border-blue-600 transition-all shadow-xl hover:shadow-2xl">
+                <Link key={i} href={`/bina?isim=${encodeURIComponent(yorum.yeni_bina_adi || yorum.bina_adi)}`} className="group bg-white/60 backdrop-blur-2xl p-6 md:p-10 rounded-[2.5rem] md:rounded-[4rem] border border-white hover:border-blue-600 transition-all shadow-xl hover:shadow-2xl">
                   <div className="flex justify-between items-start mb-8 text-black">
                     <div className="flex-1 pr-4">
                       <h3 className="text-[16px] font-black uppercase italic tracking-tighter group-hover:text-blue-600 leading-none mb-3 line-clamp-1">{yorum.yeni_bina_adi || yorum.bina_adi}</h3>
@@ -196,8 +196,8 @@ export default function Home() {
         </section>
 
         {/* MOBİL UYGULAMA */}
-        <section className="max-w-7xl mx-auto px-10 pb-20">
-          <div className="bg-[#023E56] text-white rounded-[4rem] p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden">
+        <section className="max-w-7xl mx-auto px-5 md:px-10 pb-24">
+          <div className="bg-[#023E56] text-white rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full pointer-events-none" />
             <div className="relative z-10 text-center md:text-left">
               <h3 className="text-[28px] font-black uppercase italic tracking-tighter leading-none mb-3">
