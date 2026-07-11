@@ -7,32 +7,34 @@ import { Search, Radar, MessageSquarePlus, User, BarChart2, Menu, X, Map, Buildi
 import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useLang } from '@/app/lib/i18n';
 
 export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
   const [menuAcik, setMenuAcik] = useState(false);
+  const { t } = useLang();
 
   // Açılış (tanıtım) sayfasında alt menü gösterilmez
   if (pathname === '/') return null;
 
   const items = [
-    { href: '/kesfet', icon: Search, label: 'Keşfet' },
-    { href: user ? '/profil#radar-detay-bolumu' : '/giris', icon: Radar, label: 'Radar' },
-    { href: '/skor', icon: BarChart2, label: 'Skor' },
-    { href: '/yorum-yap', icon: MessageSquarePlus, label: 'Mühürle' },
-    { href: user ? '/profil' : '/giris', icon: User, label: 'Profil' },
+    { href: '/kesfet', icon: Search, label: t('nav.kesfet') },
+    { href: user ? '/profil#radar-detay-bolumu' : '/giris', icon: Radar, label: t('nav.radar') },
+    { href: '/skor', icon: BarChart2, label: t('nav.skor') },
+    { href: '/yorum-yap', icon: MessageSquarePlus, label: t('nav.muhurle') },
+    { href: user ? '/profil' : '/giris', icon: User, label: t('nav.profil') },
   ];
 
   // Hamburger çekmecesi — mobil uygulamadaki Drawer ile aynı öğeler
   const drawerItems = [
-    { icon: Map, label: 'BİNALARI KEŞFET', href: '/kesfet' },
-    { icon: Search, label: 'TÜM MÜHÜRLER', href: '/arama' },
-    { icon: BarChart2, label: 'İLÇE / MAHALLE SKORLARI', href: '/skor' },
-    { icon: Building2, label: 'BİNA OLUŞTUR', href: '/bina-olustur' },
-    { icon: Radar, label: 'RADARIMDAKİLER', href: '/profil#radar-detay-bolumu' },
-    { icon: MessageSquare, label: 'YORUMLARIM', href: '/profil' },
+    { icon: Map, label: t('menu.kesfet'), href: '/kesfet' },
+    { icon: Search, label: t('menu.muhurler'), href: '/arama' },
+    { icon: BarChart2, label: t('menu.skorlar'), href: '/skor' },
+    { icon: Building2, label: t('menu.binaOlustur'), href: '/bina-olustur' },
+    { icon: Radar, label: t('menu.radar'), href: '/profil#radar-detay-bolumu' },
+    { icon: MessageSquare, label: t('menu.yorumlarim'), href: '/profil' },
   ];
 
   return (
@@ -60,7 +62,7 @@ export default function BottomNav() {
               <button onClick={async () => { setMenuAcik(false); await signOut(auth); router.push('/'); }}
                 className="flex items-center gap-3 px-6 py-5 text-red-500 border-t border-slate-100 mb-20">
                 <LogOut size={18} />
-                <span className="text-[13px] font-black uppercase tracking-widest">ÇIKIŞ YAP</span>
+                <span className="text-[13px] font-black uppercase tracking-widest">{t('menu.cikis')}</span>
               </button>
             )}
           </div>
@@ -71,7 +73,7 @@ export default function BottomNav() {
         <div className="flex items-center justify-around px-1 py-2 pb-safe">
           <button onClick={() => setMenuAcik(true)} className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl">
             <Menu size={22} className="text-slate-400" strokeWidth={1.8} />
-            <span className="text-[10px] font-black italic uppercase tracking-tight text-slate-400">Menü</span>
+            <span className="text-[10px] font-black italic uppercase tracking-tight text-slate-400">{t('nav.menu')}</span>
           </button>
           {items.map((item) => {
             const isActive = pathname === item.href;

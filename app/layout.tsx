@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/app/contexts/AuthContext";
+import { LangProvider } from "@/app/lib/i18n";
 import BottomNav from "@/app/components/BottomNav";
 
 export const metadata: Metadata = {
@@ -32,10 +33,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body style={{ fontFamily: "'Inter', sans-serif" }}>
+        <LangProvider>
         <AuthProvider>
           {children}
           <BottomNav />
         </AuthProvider>
+        </LangProvider>
       </body>
     </html>
   );

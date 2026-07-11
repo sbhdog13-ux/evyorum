@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfi
 import { auth } from '@/app/lib/firebase';
 import { LogIn, ArrowRight, UserPlus, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useLang, LangSwitcher } from '@/app/lib/i18n';
 
 export default function GirisKayitSayfasi() {
   const [mode, setMode] = useState<'giris' | 'kayit'>('giris');
@@ -15,6 +16,7 @@ export default function GirisKayitSayfasi() {
   const [loading, setLoading] = useState(false);
   const [kvkkOnay, setKvkkOnay] = useState(false);
   const router = useRouter();
+  const { t } = useLang();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,13 +49,14 @@ export default function GirisKayitSayfasi() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-black font-sans">
       <div className="max-w-md w-full bg-white rounded-[3rem] p-12 shadow-2xl border border-slate-100 relative overflow-hidden">
         
+        <div className="absolute top-5 right-5"><LangSwitcher /></div>
         <div className="text-center mb-10">
           <img src="/logo.png" alt="Bulevini" className="h-20 mx-auto mb-6" />
           <h1 className="text-[28px] font-black uppercase italic tracking-tighter mb-2">
-            {mode === 'giris' ? 'TEKRAR HOŞ GELDİN' : 'YENİ HESAP AÇ'}
+            {mode === 'giris' ? t('giris.hosgeldin') : t('giris.yeniHesap')}
           </h1>
           <p className="text-slate-400 text-[12px] font-bold uppercase italic">
-            {mode === 'giris' ? 'Radarın seni bekliyor' : 'Bulevini topluluğuna katıl'}
+            {mode === 'giris' ? t('giris.altYazi') : t('giris.katil')}
           </p>
         </div>
 
@@ -66,7 +69,7 @@ export default function GirisKayitSayfasi() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {mode === 'kayit' && (
             <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">ADIN VE SOYADIN</label>
+              <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">{t('giris.isim')}</label>
               <input
                 type="text"
                 required
@@ -79,7 +82,7 @@ export default function GirisKayitSayfasi() {
           )}
 
           <div className="space-y-2">
-            <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">E-POSTA</label>
+            <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">{t('giris.eposta')}</label>
             <input
               type="email"
               required
@@ -91,7 +94,7 @@ export default function GirisKayitSayfasi() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">ŞİFREN</label>
+            <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">{t('giris.sifre')}</label>
             <input
               type="password"
               required
@@ -121,7 +124,7 @@ export default function GirisKayitSayfasi() {
             disabled={loading}
             className="w-full h-16 bg-[#023E56] text-white rounded-2xl text-[14px] font-black uppercase italic tracking-widest hover:bg-blue-600 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 mt-4"
           >
-            {loading ? 'BEKLEYİN...' : mode === 'giris' ? 'SİSTEME GİRİŞ YAP' : 'HESABI OLUŞTUR'}
+            {loading ? t('giris.bekle') : mode === 'giris' ? t('giris.girisYap') : t('giris.hesapOlustur')}
             <ArrowRight size={20} />
           </button>
         </form>
@@ -131,7 +134,7 @@ export default function GirisKayitSayfasi() {
             onClick={() => { setMode(mode === 'giris' ? 'kayit' : 'giris'); setHata(''); }}
             className="text-[11px] font-bold text-slate-400 uppercase italic hover:text-blue-600 transition-colors"
           >
-            {mode === 'giris' ? "Hesabın yok mu? KAYIT OL" : "Zaten hesabın var mı? GİRİŞ YAP"}
+            {mode === 'giris' ? t('giris.kayitOl') : t('giris.girise')}
           </button>
         </div>
       </div>
