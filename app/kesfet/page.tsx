@@ -9,6 +9,7 @@ import { db } from '@/app/lib/firebase';
 import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import LeafletHarita from '@/app/components/LeafletHarita';
+import { useLang } from '@/app/lib/i18n';
 import Sidebar from '@/app/components/Sidebar';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
@@ -28,6 +29,7 @@ export default function Home() {
   const [tumBinalar, setTumBinalar] = useState<string[]>([]);
   const [stats, setStats] = useState({ muhur: 0, bina: 0, ilce: 0 });
   const router = useRouter();
+  const { t } = useLang();
 
   useEffect(() => {
     const veriGetir = async () => {
@@ -174,20 +176,20 @@ export default function Home() {
         <section className="pt-28 lg:pt-44 pb-8 px-5 relative z-[100]">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-[30px] md:text-[56px] font-black leading-[1.05] md:leading-[0.9] tracking-tighter uppercase mb-8 text-black text-left">
-              EVİNİ TUTMADAN ÖNCE <br />
-              <span className="text-blue-600 italic underline">GERÇEKLERİ</span> ÖĞREN.
+              {t('acilis.motto1')} <br />
+              <span className="text-blue-600 italic underline">{t('acilis.motto2')}</span> {t('acilis.motto3')}
             </h1>
             <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-4 shadow-xl">
               <div className="absolute inset-0 pointer-events-none"><LeafletHarita binalar={[]} /></div>
               <div className="absolute inset-0 bg-slate-900/45 backdrop-blur-[3px] flex flex-col items-center justify-center gap-3 text-white">
                 <Map size={30} className="opacity-70" />
-                <div className="font-black uppercase italic text-[17px]">Bina veya adres ara</div>
-                <div className="text-[12px] font-medium opacity-70">Harita üzerinden mühürlenmiş binaları keşfet</div>
-                <button onClick={() => router.push('/harita')} className="mt-2 bg-blue-600 px-8 py-3.5 rounded-2xl font-black uppercase italic text-[13px] tracking-wide hover:bg-white hover:text-blue-600 transition-all shadow-xl">HARİTAYI AÇ →</button>
+                <div className="font-black uppercase italic text-[17px]">{t('kesfet.haritaBaslik')}</div>
+                <div className="text-[12px] font-medium opacity-70">{t('kesfet.haritaAlt')}</div>
+                <button onClick={() => router.push('/harita')} className="mt-2 bg-blue-600 px-8 py-3.5 rounded-2xl font-black uppercase italic text-[13px] tracking-wide hover:bg-white hover:text-blue-600 transition-all shadow-xl">{t('kesfet.haritayiAc')}</button>
               </div>
             </div>
             <div className="flex bg-[#023E56] rounded-2xl overflow-hidden mb-3">
-              {[[stats.muhur, 'Mühür'], [stats.bina, 'Bina'], [stats.ilce || '—', 'İlçe']].map(([sayi, etiket], i) => (
+              {[[stats.muhur, t('kesfet.muhur')], [stats.bina, t('kesfet.bina')], [stats.ilce || '—', t('kesfet.ilce')]].map(([sayi, etiket], i) => (
                 <div key={etiket as string} className={`flex-1 text-center py-3 ${i > 0 ? 'border-l border-white/10' : ''}`}>
                   <div className="text-white font-black italic text-[16px] leading-none">{sayi}</div>
                   <div className="text-[10px] text-[#A1CDE9] font-bold mt-1">{etiket}</div>
@@ -195,8 +197,8 @@ export default function Home() {
               ))}
             </div>
             <div className="flex gap-3">
-              <Link href="/arama" className="flex-1 flex items-center justify-center gap-2 bg-[#e8f3fa] border border-[#A1CDE9] rounded-2xl py-3 text-[11px] font-black uppercase italic text-blue-600 hover:border-blue-600 transition-all">⚡ Son Eklenen</Link>
-              <Link href="/skor?mod=binalar" className="flex-1 flex items-center justify-center gap-2 bg-[#e8f3fa] border border-[#A1CDE9] rounded-2xl py-3 text-[11px] font-black uppercase italic text-blue-600 hover:border-blue-600 transition-all">📈 En Yüksek Skor</Link>
+              <Link href="/arama" className="flex-1 flex items-center justify-center gap-2 bg-[#e8f3fa] border border-[#A1CDE9] rounded-2xl py-3 text-[11px] font-black uppercase italic text-blue-600 hover:border-blue-600 transition-all">{t('kesfet.sonEklenen')}</Link>
+              <Link href="/skor?mod=binalar" className="flex-1 flex items-center justify-center gap-2 bg-[#e8f3fa] border border-[#A1CDE9] rounded-2xl py-3 text-[11px] font-black uppercase italic text-blue-600 hover:border-blue-600 transition-all">{t('kesfet.enYuksek')}</Link>
             </div>
                       </div>
         </section>
@@ -205,12 +207,12 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-5 md:px-10 pt-10 md:pt-20 pb-20 relative z-[10]">
           <div className="flex justify-between items-end mb-12 border-l-4 border-blue-600 pl-6">
             <div>
-              <h2 className="text-[16px] font-black uppercase italic tracking-tighter text-black">SON SAKİN YORUMLARI</h2>
-              <p className="text-[11px] font-bold text-slate-400 uppercase italic mt-1 tracking-widest">TOPLULUK TARAFINDAN MÜHÜRLENDİ</p>
+              <h2 className="text-[16px] font-black uppercase italic tracking-tighter text-black">{t('kesfet.feedBaslik')}</h2>
+              <p className="text-[11px] font-bold text-slate-400 uppercase italic mt-1 tracking-widest">{t('kesfet.feedAlt')}</p>
             </div>
             <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-2xl border border-white text-black font-black">
               <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-ping"></div>
-              <span className="text-[11px] font-black text-blue-600 uppercase italic tracking-widest">CANLI AKIŞ</span>
+              <span className="text-[11px] font-black text-blue-600 uppercase italic tracking-widest">{t('kesfet.canli')}</span>
             </div>
           </div>
           <div ref={karuselRef} onScroll={karuselScroll} className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-4" style={{ scrollbarWidth: 'none' }}>
@@ -233,7 +235,7 @@ export default function Home() {
                 </Link>
               ))
             ) : (
-              <div className="w-full py-20 text-center opacity-30 font-black italic uppercase tracking-[0.5em] text-black text-[12px]">Veriler mühürleniyor...</div>
+              <div className="w-full py-20 text-center opacity-30 font-black italic uppercase tracking-[0.5em] text-black text-[12px]">{t('kesfet.veriYok')}</div>
             )}
           </div>
           {gercekYorumlar.length > 1 && (
@@ -251,7 +253,7 @@ export default function Home() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full pointer-events-none" />
             <div className="relative z-10 text-center md:text-left">
               <h3 className="text-[28px] font-black uppercase italic tracking-tighter leading-none mb-3">
-                BULEVİNİ <span className="text-blue-600">CEBİNDE.</span>
+                {t('kesfet.cebinde')} <span className="text-blue-600">{t('kesfet.cebinde2')}</span>
               </h3>
               <p className="text-[13px] font-bold text-slate-400 uppercase italic tracking-wide">
                 Haritada keşfet, konumundan mühürle, radarından takip et.
@@ -259,7 +261,7 @@ export default function Home() {
             </div>
             <div className="relative z-10 flex items-center gap-3 bg-white/10 border border-white/20 px-8 py-4 rounded-2xl backdrop-blur-md">
               <span className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse" />
-              <span className="text-[12px] font-black uppercase italic tracking-widest">ÇOK YAKINDA APP STORE'DA</span>
+              <span className="text-[12px] font-black uppercase italic tracking-widest">{t('acilis.yakinda')}</span>
             </div>
           </div>
         </section>

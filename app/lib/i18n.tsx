@@ -24,6 +24,13 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kesfet.feedBaslik': 'SON SAKİN YORUMLARI', 'kesfet.feedAlt': 'TOPLULUK TARAFINDAN MÜHÜRLENDİ', 'kesfet.canli': 'CANLI AKIŞ',
     'kesfet.veriYok': 'Veriler mühürleniyor...', 'kesfet.cebinde': 'BULEVİNİ', 'kesfet.cebinde2': 'CEBİNDE.',
     'kesfet.cebindeAlt': 'Haritada keşfet, konumundan mühürle, radarından takip et.',
+    'skor.altBaslik': 'bina & bölge analizi', 'skor.mahalleAlt': 'mahalle skorları', 'skor.skorlar': 'SKORLAR', 'skor.binaSiralamasi': 'BİNA SIRALAMASI',
+    'skor.filtre': 'FİLTRE', 'skor.filtreAciklama': 'Kategori başına minimum puan — tıkladıkça artar', 'skor.temizle': 'FİLTRELERİ TEMİZLE',
+    'skor.hesaplaniyor': 'SKORLAR HESAPLANIYOR...', 'skor.veriYok': 'Henüz yeterli veri yok', 'skor.ilcedeVeriYok': 'Bu ilçede veri yok', 'skor.binaYok': 'Henüz mühürlenmiş bina yok',
+    'skor.iyi': 'İYİ', 'skor.orta': 'ORTA', 'skor.sorunlu': 'SORUNLU', 'skor.muhur': 'MÜHÜR', 'skor.bina': 'BİNA', 'skor.mahalle': 'MAHALLE', 'skor.sakin': 'SAKİN',
+    'harita.baslik': 'HARİTA ÜZERİNDEN SEÇ', 'harita.alt': 'Mühürlemek istediğin konuma dokun', 'harita.ara': 'İlçe, sokak veya bina ara...',
+    'harita.konumSecildi': 'KONUM SEÇİLDİ', 'harita.adresAliniyor': 'Adres alınıyor...', 'harita.soru': 'Bu konuma ait binayı mühürlemek ister misin?',
+    'harita.muhurle': 'MÜHÜRLE →', 'harita.farkliKonum': 'Farklı konum seç',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -46,6 +53,13 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kesfet.feedBaslik': 'LATEST RESIDENT REVIEWS', 'kesfet.feedAlt': 'SEALED BY THE COMMUNITY', 'kesfet.canli': 'LIVE FEED',
     'kesfet.veriYok': 'Sealing the data...', 'kesfet.cebinde': 'BULEVINI', 'kesfet.cebinde2': 'IN YOUR POCKET.',
     'kesfet.cebindeAlt': 'Explore on the map, seal from your location, follow with your radar.',
+    'skor.altBaslik': 'building & area analysis', 'skor.mahalleAlt': 'neighbourhood scores', 'skor.skorlar': 'SCORES', 'skor.binaSiralamasi': 'BUILDING RANKING',
+    'skor.filtre': 'FILTER', 'skor.filtreAciklama': 'Minimum score per category — tap to increase', 'skor.temizle': 'CLEAR FILTERS',
+    'skor.hesaplaniyor': 'CALCULATING SCORES...', 'skor.veriYok': 'Not enough data yet', 'skor.ilcedeVeriYok': 'No data in this district', 'skor.binaYok': 'No sealed buildings yet',
+    'skor.iyi': 'GOOD', 'skor.orta': 'AVERAGE', 'skor.sorunlu': 'POOR', 'skor.muhur': 'SEALS', 'skor.bina': 'BLDG', 'skor.mahalle': 'AREAS', 'skor.sakin': 'RESIDENTS',
+    'harita.baslik': 'PICK ON THE MAP', 'harita.alt': 'Tap the location you want to seal', 'harita.ara': 'Search district, street or building...',
+    'harita.konumSecildi': 'LOCATION SELECTED', 'harita.adresAliniyor': 'Fetching address...', 'harita.soru': 'Want to seal the building at this location?',
+    'harita.muhurle': 'SEAL IT →', 'harita.farkliKonum': 'Pick another location',
   },
 };
 

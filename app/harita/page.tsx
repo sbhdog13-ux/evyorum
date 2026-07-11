@@ -4,11 +4,13 @@ import { ArrowLeft, Search, MapPin, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { useLang } from '@/app/lib/i18n';
 
 declare global { interface Window { L: any } }
 
 export default function HaritaPage() {
   const router = useRouter();
+  const { t } = useLang();
   const mapRef = useRef<any>(null);
   const aktifPinRef = useRef<any>(null);
   const mapDivRef = useRef<HTMLDivElement>(null);
@@ -129,13 +131,13 @@ export default function HaritaPage() {
         <div className="flex items-center gap-3 bg-white rounded-2xl shadow-xl px-4 py-3">
           <button onClick={() => router.push('/')} className="p-1"><ArrowLeft size={18} /></button>
           <div className="flex-1">
-            <div className="font-black uppercase italic text-[13px] leading-none">HARİTA ÜZERİNDEN SEÇ</div>
-            <div className="text-[10px] font-bold text-slate-400 mt-0.5">Mühürlemek istediğin konuma dokun</div>
+            <div className="font-black uppercase italic text-[13px] leading-none">{t('harita.baslik')}</div>
+            <div className="text-[10px] font-bold text-slate-400 mt-0.5">{t('harita.alt')}</div>
           </div>
         </div>
         <div className="flex items-center gap-2 bg-white rounded-2xl shadow-xl px-4 py-3">
           <Search size={15} className="text-slate-400" />
-          <input value={aramaMetni} onChange={e => aramaYap(e.target.value)} placeholder="İlçe, sokak veya bina ara..." className="flex-1 text-[13px] font-medium outline-none" />
+          <input value={aramaMetni} onChange={e => aramaYap(e.target.value)} placeholder={t('harita.ara')} className="flex-1 text-[13px] font-medium outline-none" />
           {aramaMetni && <button onClick={() => { setAramaMetni(''); setSonuclar([]); }}><X size={15} className="text-slate-400" /></button>}
         </div>
         {sonuclar.length > 0 && (
@@ -153,11 +155,11 @@ export default function HaritaPage() {
       {/* Konum onay paneli (mobil ile aynı akış) */}
       {secilen && (
         <div className="absolute bottom-0 left-0 right-0 z-[1000] bg-white rounded-t-[2rem] shadow-2xl p-6 max-w-xl mx-auto">
-          <div className="flex items-center gap-2 mb-3"><MapPin size={18} className="text-blue-600" /><span className="font-black uppercase italic text-[14px] text-blue-600">KONUM SEÇİLDİ</span></div>
-          {adresYukleniyor ? <div className="text-[12px] text-slate-400 py-3">Adres alınıyor...</div> : <p className="text-[13px] font-medium text-slate-700 mb-2 line-clamp-3">{secilen.adres}</p>}
-          <p className="text-[11px] text-slate-400 mb-4">Bu konuma ait binayı mühürlemek ister misin?</p>
-          <button disabled={adresYukleniyor} onClick={() => router.push(`/bina-olustur?koordinat=${encodeURIComponent(`${secilen.lat}, ${secilen.lng}`)}`)} className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black uppercase italic text-[13px] hover:bg-[#023E56] transition-all">MÜHÜRLE →</button>
-          <button onClick={() => setSecilen(null)} className="w-full py-3 text-[12px] font-bold text-slate-400">Farklı konum seç</button>
+          <div className="flex items-center gap-2 mb-3"><MapPin size={18} className="text-blue-600" /><span className="font-black uppercase italic text-[14px] text-blue-600">{t('harita.konumSecildi')}</span></div>
+          {adresYukleniyor ? <div className="text-[12px] text-slate-400 py-3">{t('harita.adresAliniyor')}</div> : <p className="text-[13px] font-medium text-slate-700 mb-2 line-clamp-3">{secilen.adres}</p>}
+          <p className="text-[11px] text-slate-400 mb-4">{t('harita.soru')}</p>
+          <button disabled={adresYukleniyor} onClick={() => router.push(`/bina-olustur?koordinat=${encodeURIComponent(`${secilen.lat}, ${secilen.lng}`)}`)} className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black uppercase italic text-[13px] hover:bg-[#023E56] transition-all">{t('harita.muhurle')}</button>
+          <button onClick={() => setSecilen(null)} className="w-full py-3 text-[12px] font-bold text-slate-400">{t('harita.farkliKonum')}</button>
         </div>
       )}
     </div>

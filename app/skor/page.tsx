@@ -6,17 +6,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { useLang } from '@/app/lib/i18n';
 
 function puanRenk(p: number) {
   if (p >= 4) return 'text-green-600';
   if (p >= 2.5) return 'text-orange-500';
   return 'text-red-600';
 }
-function puanEtiket(p: number) {
-  if (p >= 4) return 'İYİ';
-  if (p >= 2.5) return 'ORTA';
-  return 'SORUNLU';
-}
+
 function siraRenk(i: number) {
   if (i === 0) return 'border-amber-400 text-amber-500';
   if (i === 1) return 'border-slate-400 text-slate-400';
@@ -28,6 +25,8 @@ function SkorIcerik() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const seciliIlce = searchParams?.get('ilce') || undefined;
+  const { t } = useLang();
+  const puanEtiket = (p: number) => p >= 4 ? t('skor.iyi') : p >= 2.5 ? t('skor.orta') : t('skor.sorunlu');
 
   const [mod, setMod] = useState<'skorlar' | 'binalar'>('skorlar');
   const [loading, setLoading] = useState(true);
@@ -162,7 +161,7 @@ function SkorIcerik() {
           <button onClick={() => seciliIlce ? router.push('/skor') : router.push('/')} className="p-3 bg-slate-50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all"><ArrowLeft size={18} /></button>
           <div className="flex-1">
             <h1 className="font-black uppercase italic tracking-tighter text-[18px] leading-none">{seciliIlce || 'İSTANBUL'}</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{seciliIlce ? 'mahalle skorları' : 'bina & bölge analizi'}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{seciliIlce ? t('skor.mahalleAlt') : t('skor.altBaslik')}</p>
           </div>
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-[10px] font-black text-blue-600 uppercase"><MapPin size={11} /> İSTANBUL</div>
         </div>
@@ -170,31 +169,31 @@ function SkorIcerik() {
 
       {!seciliIlce && (
         <div className="max-w-3xl mx-auto px-4 pt-5 flex gap-2">
-          <button onClick={() => setMod('skorlar')} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-[11px] font-black uppercase italic transition-all ${mod === 'skorlar' ? 'border-blue-600 bg-[#e8f3fa] text-blue-600' : 'border-slate-200 text-slate-400'}`}><BarChart2 size={14} /> SKORLAR</button>
-          <button onClick={() => setMod('binalar')} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-[11px] font-black uppercase italic transition-all ${mod === 'binalar' ? 'border-blue-600 bg-[#e8f3fa] text-blue-600' : 'border-slate-200 text-slate-400'}`}><Trophy size={14} /> BİNA SIRALAMASI</button>
+          <button onClick={() => setMod('skorlar')} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-[11px] font-black uppercase italic transition-all ${mod === 'skorlar' ? 'border-blue-600 bg-[#e8f3fa] text-blue-600' : 'border-slate-200 text-slate-400'}`}><BarChart2 size={14} /> {t('skor.skorlar')}</button>
+          <button onClick={() => setMod('binalar')} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-[11px] font-black uppercase italic transition-all ${mod === 'binalar' ? 'border-blue-600 bg-[#e8f3fa] text-blue-600' : 'border-slate-200 text-slate-400'}`}><Trophy size={14} /> {t('skor.binaSiralamasi')}</button>
         </div>
       )}
 
       <main className="max-w-3xl mx-auto px-4 pt-6 space-y-3">
         {loading ? (
-          <div className="py-24 text-center font-black italic uppercase text-slate-200">SKORLAR HESAPLANIYOR...</div>
+          <div className="py-24 text-center font-black italic uppercase text-slate-200">{t('skor.hesaplaniyor')}</div>
         ) : seciliIlce ? (
           mahalleler.length === 0 ? (
-            <div className="py-24 text-center font-black italic uppercase text-slate-300 text-[13px]">Bu ilçede veri yok</div>
+            <div className="py-24 text-center font-black italic uppercase text-slate-300 text-[13px]">{t('skor.ilcedeVeriYok')}</div>
           ) : mahalleler.map((m, i) => (
-            <Satir key={m.mahalle} i={i} baslik={m.mahalle} alt={`${m.binaCount} BİNA · ${m.yorumCount} MÜHÜR`} puan={m.ortalama} binaMini={m.binalar} />
+            <Satir key={m.mahalle} i={i} baslik={m.mahalle} alt={`${m.binaCount} ${t('skor.bina')} · ${m.yorumCount} ${t('skor.muhur')}`} puan={m.ortalama} binaMini={m.binalar} />
           ))
         ) : mod === 'skorlar' ? (
           ilceler.length === 0 ? (
-            <div className="py-24 text-center font-black italic uppercase text-slate-300 text-[13px]">Henüz yeterli veri yok</div>
+            <div className="py-24 text-center font-black italic uppercase text-slate-300 text-[13px]">{t('skor.veriYok')}</div>
           ) : ilceler.map((item, i) => (
-            <Satir key={item.ilce} i={i} baslik={item.ilce} alt={`${item.mahalleCount} MAHALLE · ${item.binaCount} BİNA · ${item.yorumCount} MÜHÜR`} puan={item.ortalama} onClick={() => router.push(`/skor?ilce=${encodeURIComponent(item.ilce)}`)} />
+            <Satir key={item.ilce} i={i} baslik={item.ilce} alt={`${item.mahalleCount} ${t('skor.mahalle')} · ${item.binaCount} ${t('skor.bina')} · ${item.yorumCount} ${t('skor.muhur')}`} puan={item.ortalama} onClick={() => router.push(`/skor?ilce=${encodeURIComponent(item.ilce)}`)} />
           ))
         ) : (
           binalar.length === 0 ? (
-            <div className="py-24 text-center font-black italic uppercase text-slate-300 text-[13px]">Henüz mühürlenmiş bina yok</div>
+            <div className="py-24 text-center font-black italic uppercase text-slate-300 text-[13px]">{t('skor.binaYok')}</div>
           ) : binalar.map((b, i) => (
-            <Satir key={b.ad} i={i} baslik={b.ad} alt={`${b.muhurSayisi} MÜHÜR${b.dogrulanmis > 0 ? ` · ${b.dogrulanmis} SAKİN` : ''}`} puan={b.finalPuan} onClick={() => router.push(`/bina?isim=${encodeURIComponent(b.ad)}`)} />
+            <Satir key={b.ad} i={i} baslik={b.ad} alt={`${b.muhurSayisi} ${t('skor.muhur')}${b.dogrulanmis > 0 ? ` · ${b.dogrulanmis} ${t('skor.sakin')}` : ''}`} puan={b.finalPuan} onClick={() => router.push(`/bina?isim=${encodeURIComponent(b.ad)}`)} />
           ))
         )}
       </main>
