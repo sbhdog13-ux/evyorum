@@ -8,6 +8,7 @@ import Link from "next/link";
 import { db } from '@/app/lib/firebase';
 import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
+import LeafletHarita from '@/app/components/LeafletHarita';
 import Sidebar from '@/app/components/Sidebar';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
@@ -25,6 +26,7 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const [tumBinalar, setTumBinalar] = useState<string[]>([]);
+  const [stats, setStats] = useState({ muhur: 0, bina: 0, ilce: 0 });
   const router = useRouter();
 
   useEffect(() => {
@@ -40,6 +42,8 @@ export default function Home() {
         tumSnap.docs.map(d => trUpper(((d.data().yeni_bina_adi || d.data().bina_adi) || '').toString()).trim())
       )).filter(Boolean) as string[];
       setTumBinalar(unique);
+      const ilceler = new Set(tumSnap.docs.map(d => (d.data() as any).ilce).filter(Boolean));
+      setStats({ muhur: tumSnap.size, bina: unique.length, ilce: ilceler.size });
 
       if (user) {
         const radarRef = collection(db, 'takipler');
@@ -174,13 +178,25 @@ export default function Home() {
               <span className="text-blue-600 italic underline">GERÇEKLERİ</span> ÖĞREN.
             </h1>
             <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-4 shadow-xl">
-              <img src="https://staticmap.openstreetmap.de/staticmap.php?center=41.0082,28.9784&zoom=10&size=900x400&maptype=mapnik" alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e: any) => { e.target.style.display = 'none'; }} />
-              <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md flex flex-col items-center justify-center gap-3 text-white">
+              <div className="absolute inset-0 pointer-events-none"><LeafletHarita binalar={[]} /></div>
+              <div className="absolute inset-0 bg-slate-900/45 backdrop-blur-[3px] flex flex-col items-center justify-center gap-3 text-white">
                 <Map size={30} className="opacity-70" />
                 <div className="font-black uppercase italic text-[17px]">Bina veya adres ara</div>
                 <div className="text-[12px] font-medium opacity-70">Harita üzerinden mühürlenmiş binaları keşfet</div>
                 <button onClick={() => router.push('/harita')} className="mt-2 bg-blue-600 px-8 py-3.5 rounded-2xl font-black uppercase italic text-[13px] tracking-wide hover:bg-white hover:text-blue-600 transition-all shadow-xl">HARİTAYI AÇ →</button>
               </div>
+            </div>
+            <div className="flex bg-[#023E56] rounded-2xl overflow-hidden mb-3">
+              {[[stats.muhur, 'Mühür'], [stats.bina, 'Bina'], [stats.ilce || '—', 'İlçe']].map(([sayi, etiket], i) => (
+                <div key={etiket as string} className={`flex-1 text-center py-3 ${i > 0 ? 'border-l border-white/10' : ''}`}>
+                  <div className="text-white font-black italic text-[16px] leading-none">{sayi}</div>
+                  <div className="text-[10px] text-[#A1CDE9] font-bold mt-1">{etiket}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <Link href="/arama" className="flex-1 flex items-center justify-center gap-2 bg-[#e8f3fa] border border-[#A1CDE9] rounded-2xl py-3 text-[11px] font-black uppercase italic text-blue-600 hover:border-blue-600 transition-all">⚡ Son Eklenen</Link>
+              <Link href="/skor?mod=binalar" className="flex-1 flex items-center justify-center gap-2 bg-[#e8f3fa] border border-[#A1CDE9] rounded-2xl py-3 text-[11px] font-black uppercase italic text-blue-600 hover:border-blue-600 transition-all">📈 En Yüksek Skor</Link>
             </div>
                       </div>
         </section>

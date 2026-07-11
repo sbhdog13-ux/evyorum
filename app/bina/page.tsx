@@ -445,6 +445,16 @@ function BinaDetayIcerik() {
                   <div className="p-5 rounded-3xl text-[13px] font-medium italic border-l-4 bg-white border-blue-600 text-slate-700">
                     "{y.yorum_metni}"
                   </div>
+                  {y.puanlar && Object.keys(y.puanlar).length > 0 && (
+                    <div className="flex gap-2">
+                      {Object.entries(y.puanlar).slice(0, 2).map(([k, v]: any) => (
+                        <div key={k} className="bg-white border border-slate-100 rounded-xl px-2.5 py-1 text-center">
+                          <div className="text-[8px] font-black text-slate-400 uppercase">{k.split(' ')[0]}</div>
+                          <div className="text-[12px] font-black text-blue-600">{v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {!!y.foto_url && (
                     <img src={y.foto_url} alt="Kanıt" className="w-full h-52 object-cover rounded-3xl border border-slate-100" />
                   )}

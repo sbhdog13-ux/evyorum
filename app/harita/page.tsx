@@ -70,6 +70,17 @@ export default function HaritaPage() {
         return false;
       };
 
+      // Tarayıcı konumu — mobil KonumSecim gibi konuma odaklan
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const { latitude: la, longitude: lo } = pos.coords;
+          if (la < 40.55 || la > 41.65 || lo < 27.9 || lo > 29.95) return;
+          const kIcon = L.divIcon({ html: '<div style="width:16px;height:16px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 4px rgba(37,99,235,0.3)"></div>', className: '', iconAnchor: [8, 8] });
+          L.marker([la, lo], { icon: kIcon }).addTo(map);
+          map.setView([la, lo], 15);
+        }, () => {});
+      }
+
       map.on('click', (e: any) => {
         if (!icinde(e.latlng.lat, e.latlng.lng)) return;
         pinKoy(e.latlng.lat, e.latlng.lng);

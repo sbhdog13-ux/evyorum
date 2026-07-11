@@ -134,6 +134,18 @@ function AramaIcerik() {
     }))).filter(Boolean);
   }, [allReviews]);
 
+  const ilcePuanlari = useMemo(() => {
+    const ozet: { [ilce: string]: { toplam: number; sayi: number } } = {};
+    allReviews.forEach((item: any) => {
+      const ilce = item.ilce ? trUpper(item.ilce.toString()).trim() : '';
+      if (!ilce) return;
+      if (!ozet[ilce]) ozet[ilce] = { toplam: 0, sayi: 0 };
+      ozet[ilce].toplam += (item.puan || 0);
+      ozet[ilce].sayi += 1;
+    });
+    return ozet;
+  }, [allReviews]);
+
   const dinamikKriterler = useMemo(() => {
     return Array.from(new Set(allReviews.flatMap(r => {
       const p = typeof r.puanlar === 'string' ? JSON.parse(r.puanlar) : r.puanlar;
@@ -336,7 +348,7 @@ function AramaIcerik() {
                   </div>
                 </div>
               </div>
-              <LeafletHarita binalar={results.map(r => ({ ad: r.ad, koordinat: r.koordinat, finalPuan: r.finalPuan, sayi: r.sayi }))} />
+              <LeafletHarita legend ilcePuanlari={ilcePuanlari} binalar={results.map(r => ({ ad: r.ad, koordinat: r.koordinat, finalPuan: r.finalPuan, sayi: r.sayi }))} />
             </div>
           )}
         </main>
