@@ -18,7 +18,7 @@ export default function LeafletHarita({ binalar = [], ilcePuanlari = {}, legend 
       map.fitBounds(bounds);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
       mapRef.current = map;
-      const ilceRenk = (o: number) => o <= 0 ? '#94a3b8' : o >= 4 ? '#2563eb' : o >= 2.5 ? '#fbbf24' : '#dc2626';
+      const ilceRenk = (o: number) => o <= 0 ? '#94a3b8' : o >= 4 ? '#16a34a' : o >= 2.5 ? '#fbbf24' : '#dc2626';
       fetch('/istanbul.json').then(r => r.json()).then(geo => {
         L.geoJSON(geo, { style: (f: any) => {
           const ilce = (f.properties.name || '').toUpperCase().trim();
@@ -27,7 +27,7 @@ export default function LeafletHarita({ binalar = [], ilcePuanlari = {}, legend 
           return { fillColor: ilceRenk(o), fillOpacity: 0.25, color: '#1e293b', weight: 0.8 };
         } }).addTo(map);
       }).catch(() => {});
-      const renk = (p: number) => p >= 4.5 ? '#2563eb' : p >= 3.5 ? '#06b6d4' : p >= 2.5 ? '#eab308' : p >= 1 ? '#f97316' : '#dc2626';
+      const renk = (p: number) => p >= 4 ? '#16a34a' : p >= 2.5 ? '#eab308' : p >= 1 ? '#f97316' : '#dc2626';
       binalar.forEach(b => {
         if (!b.koordinat) return;
         const [lat, lng] = b.koordinat.split(',').map(v => parseFloat(v.trim()));
@@ -59,7 +59,7 @@ export default function LeafletHarita({ binalar = [], ilcePuanlari = {}, legend 
       {legend && (
         <div className="absolute bottom-6 right-3 z-[1000] bg-black/85 rounded-2xl px-3.5 py-3 space-y-1">
           <div className="text-[8px] font-black italic text-slate-400 tracking-widest">MÜHÜR ANALİZİ</div>
-          {[['#2563eb', '4.0–5.0 MÜKEMMEL'], ['#fbbf24', '2.5–4.0 ORTALAMA'], ['#dc2626', '0.0–2.5 SORUNLU']].map(([r, t]) => (
+          {[['#16a34a', '4.0–5.0 MÜKEMMEL'], ['#fbbf24', '2.5–4.0 ORTALAMA'], ['#dc2626', '0.0–2.5 SORUNLU']].map(([r, t]) => (
             <div key={t} className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{ background: r }} /><span className="text-[8px] font-black text-white">{t}</span></div>
           ))}
         </div>
