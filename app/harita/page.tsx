@@ -21,7 +21,7 @@ export default function HaritaPage() {
   const pinKoy = (lat: number, lng: number, zoomla = false) => {
     const L = window.L;
     if (aktifPinRef.current) mapRef.current.removeLayer(aktifPinRef.current);
-    const icon = L.divIcon({ html: '<div style="width:20px;height:20px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 2px 12px rgba(37,99,235,0.5)"></div>', className: '', iconAnchor: [10, 10] });
+    const icon = L.divIcon({ html: '<div style="width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#dc2626;border:2px solid #fff;box-shadow:-1px 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.9);transform:rotate(45deg)"></div></div>', className: '', iconAnchor: [15, 32] });
     aktifPinRef.current = L.marker([lat, lng], { icon }).addTo(mapRef.current);
     if (zoomla) mapRef.current.setView([lat, lng], 16, { animate: true });
     setAdresYukleniyor(true);
@@ -99,7 +99,7 @@ export default function HaritaPage() {
       });
       Object.entries(binaMap).forEach(([ad, b]: any) => {
         const puan = b.sayi ? (b.top / b.sayi).toFixed(1) : '0';
-        const icon = L.divIcon({ html: `<div style="width:14px;height:14px;border-radius:50%;background:${renk(Number(puan))};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`, className: '', iconAnchor: [7, 7] });
+        const icon = L.divIcon({ html: `<div style="width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${renk(Number(puan))};border:2px solid #fff;box-shadow:-1px 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.9);transform:rotate(45deg)"></div></div>`, className: '', iconAnchor: [12, 26] });
         L.marker([b.lat, b.lng], { icon }).addTo(map)
           .bindPopup(`<div style="padding:10px;min-width:150px;font-family:sans-serif"><div style="font-weight:900;font-style:italic;font-size:13px">${ad}</div><div style="font-size:11px;color:#94a3b8;margin:4px 0 8px">⭐ ${puan} • ${b.sayi} mühür</div><a href="/bina?isim=${encodeURIComponent(ad)}" style="display:block;background:#2563eb;color:#fff;text-align:center;border-radius:10px;padding:7px;font-size:11px;font-weight:900;text-decoration:none">DETAYA GİT →</a></div>`);
       });
