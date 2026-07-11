@@ -21,7 +21,7 @@ export default function HaritaPage() {
   const pinKoy = (lat: number, lng: number, zoomla = false) => {
     const L = window.L;
     if (aktifPinRef.current) mapRef.current.removeLayer(aktifPinRef.current);
-    const icon = L.divIcon({ html: '<div style="width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#dc2626;border:2px solid #fff;box-shadow:-1px 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.9);transform:rotate(45deg)"></div></div>', className: '', iconAnchor: [15, 32] });
+    const icon = L.divIcon({ html: '<div style="width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#16a34a;border:2px solid #fff;box-shadow:-1px 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.9);transform:rotate(45deg)"></div></div>', className: '', iconAnchor: [15, 32] });
     aktifPinRef.current = L.marker([lat, lng], { icon }).addTo(mapRef.current);
     if (zoomla) mapRef.current.setView([lat, lng], 16, { animate: true });
     setAdresYukleniyor(true);
