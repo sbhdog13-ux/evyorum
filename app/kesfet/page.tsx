@@ -52,6 +52,21 @@ export default function Home() {
   }, [user]);
 
   const karuselRef = useRef<HTMLDivElement>(null);
+  const [elleKaydirdi, setElleKaydirdi] = useState(0);
+  const scrollTimer = useRef<any>(null);
+
+  // Elle kaydırma bitince aktif kartı bul ve timer'ı sıfırla (mobil ile aynı davranış)
+  const karuselScroll = () => {
+    clearTimeout(scrollTimer.current);
+    scrollTimer.current = setTimeout(() => {
+      const el = karuselRef.current;
+      if (!el || !el.children.length) return;
+      const kartW = (el.children[0] as HTMLElement).offsetWidth + 16;
+      const idx = Math.min(Math.round(el.scrollLeft / kartW), el.children.length - 1);
+      setCurrentIndex(idx);
+      setElleKaydirdi(v => v + 1);
+    }, 150);
+  };
 
   // Otomatik kayan karusel — mobil ile aynı his (3.5 sn)
   useEffect(() => {
@@ -68,7 +83,7 @@ export default function Home() {
       });
     }, 3500);
     return () => clearInterval(interval);
-  }, [gercekYorumlar.length]);
+  }, [gercekYorumlar.length, elleKaydirdi]);
 
   // Nominatim adres önerileri (mobil ile aynı sistem — Google Places yerine)
   useEffect(() => {
@@ -182,7 +197,7 @@ export default function Home() {
               <span className="text-[11px] font-black text-blue-600 uppercase italic tracking-widest">CANLI AKIŞ</span>
             </div>
           </div>
-          <div ref={karuselRef} className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-4" style={{ scrollbarWidth: 'none' }}>
+          <div ref={karuselRef} onScroll={karuselScroll} className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-4" style={{ scrollbarWidth: 'none' }}>
             {gercekYorumlar.length > 0 ? (
               gercekYorumlar.map((yorum, i) => (
                 <Link key={i} href={`/bina?isim=${encodeURIComponent(yorum.yeni_bina_adi || yorum.bina_adi)}`} className="group snap-start shrink-0 w-[85%] sm:w-[380px] bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-white hover:border-blue-600 transition-all shadow-xl">

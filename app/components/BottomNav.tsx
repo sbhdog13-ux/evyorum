@@ -19,7 +19,7 @@ export default function BottomNav() {
 
   const items = [
     { href: '/kesfet', icon: Search, label: 'Keşfet' },
-    { href: '/arama', icon: Radar, label: 'Radar' },
+    { href: user ? '/profil#radar-detay-bolumu' : '/giris', icon: Radar, label: 'Radar' },
     { href: '/skor', icon: BarChart2, label: 'Skor' },
     { href: '/yorum-yap', icon: MessageSquarePlus, label: 'Mühürle' },
     { href: user ? '/profil' : '/giris', icon: User, label: 'Profil' },
@@ -31,7 +31,7 @@ export default function BottomNav() {
     { icon: Search, label: 'TÜM MÜHÜRLER', href: '/arama' },
     { icon: BarChart2, label: 'İLÇE / MAHALLE SKORLARI', href: '/skor' },
     { icon: Building2, label: 'BİNA OLUŞTUR', href: '/bina-olustur' },
-    { icon: Radar, label: 'RADARIMDAKİLER', href: '/profil' },
+    { icon: Radar, label: 'RADARIMDAKİLER', href: '/profil#radar-detay-bolumu' },
     { icon: MessageSquare, label: 'YORUMLARIM', href: '/profil' },
   ];
 

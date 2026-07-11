@@ -139,6 +139,16 @@ function YorumFormu() {
       const binaKonum = await getDocs(query(collection(db, 'yorumlar'), where('yeni_bina_adi', '==', temizBinaAdi), limit(1)));
       const konum = binaKonum.docs[0]?.data() || {};
 
+      // Bina haritada yoksa konum eklemeyi öner (mobil ile aynı akış)
+      if (!konum.koordinat) {
+        const konumEkle = confirm(`"${temizBinaAdi}" henüz haritaya eklenmemiş. Konumunu eklemek ister misin? (Haritada görünmesi için önerilir)\n\nTamam: Konum ekle · Vazgeç: Konumsuz devam et`);
+        if (konumEkle) {
+          setLoading(false);
+          router.push(`/bina-olustur?binaAdi=${encodeURIComponent(temizBinaAdi)}`);
+          return;
+        }
+      }
+
       await addDoc(collection(db, 'yorumlar'), {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
