@@ -1,4 +1,5 @@
 "use client";
+import { trUpper } from '@/app/lib/utils';
 import React, { useState, Suspense, useEffect } from 'react';
 import { ArrowLeft, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye, MapPin } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -38,7 +39,7 @@ function BinaOlusturForm() {
   useEffect(() => {
     const qBina = searchParams?.get('binaAdi');
     if (qBina) {
-      setFormData(prev => ({ ...prev, bina_adi: decodeURIComponent(qBina).toUpperCase().trim() }));
+      setFormData(prev => ({ ...prev, bina_adi: trUpper(decodeURIComponent(qBina)).trim() }));
     }
     // Haritadan pin ile gelindi (mobil KonumSecim akışının web karşılığı)
     const qKoord = searchParams?.get('koordinat');
@@ -68,12 +69,12 @@ function BinaOlusturForm() {
       if (data && data.address) {
         const a = data.address;
         const fullAddress = data.display_name || '';
-        const district = (a.town || a.city_district || a.district || a.county || '').toUpperCase().replace('İLÇESİ', '').trim();
-        const neighborhood = (a.suburb || a.quarter || a.neighbourhood || '').toUpperCase().replace('MAHALLESİ', '').replace('MAH.', '').trim();
+        const district = trUpper((a.town || a.city_district || a.district || a.county || '')).replace('İLÇESİ', '').trim();
+        const neighborhood = trUpper((a.suburb || a.quarter || a.neighbourhood || '')).replace('MAHALLESİ', '').replace('MAH.', '').trim();
 
         setFormData(prev => ({
           ...prev,
-          acik_adres_ham: fullAddress.toUpperCase(),
+          acik_adres_ham: trUpper(fullAddress),
           ilce: district,
           mahalle: neighborhood,
           foto_url: generateStreetViewUrl(coords)
@@ -88,7 +89,7 @@ function BinaOlusturForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const temizBinaAdi = formData.bina_adi.toUpperCase().trim();
+    const temizBinaAdi = trUpper(formData.bina_adi).trim();
 
     if (!temizBinaAdi || !formData.ilce || !formData.koordinat) {
       return alert("Mühürleme için tüm alanlar dolu olmalıdır!");
@@ -187,7 +188,7 @@ function BinaOlusturForm() {
             <label className="block text-[10px] font-black text-blue-600 uppercase italic mb-3 tracking-widest leading-none text-left">BİNA ADI</label>
             <input
               value={formData.bina_adi}
-              onChange={(e) => setFormData({...formData, bina_adi: e.target.value.toUpperCase()})}
+              onChange={(e) => setFormData({...formData, bina_adi: trUpper(e.target.value)})}
               placeholder="BİNA İSMİNİ GİRİN"
               className="w-full bg-transparent text-2xl md:text-3xl font-black outline-none uppercase italic text-black text-left"
             />
@@ -225,7 +226,7 @@ function BinaOlusturForm() {
             <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest leading-none text-left">AÇIK ADRES</label>
             <textarea
               value={formData.acik_adres_ham}
-              onChange={(e) => setFormData({...formData, acik_adres_ham: e.target.value.toUpperCase()})}
+              onChange={(e) => setFormData({...formData, acik_adres_ham: trUpper(e.target.value)})}
               className="w-full bg-transparent text-sm font-bold outline-none uppercase italic text-black resize-none text-left"
               rows={2}
             />
@@ -234,11 +235,11 @@ function BinaOlusturForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 text-left">
               <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-2 tracking-widest text-left">İLÇE</label>
-              <input value={formData.ilce} onChange={(e) => setFormData({...formData, ilce: e.target.value.toUpperCase()})} className="w-full bg-transparent text-sm font-bold outline-none uppercase italic text-blue-600 text-left" />
+              <input value={formData.ilce} onChange={(e) => setFormData({...formData, ilce: trUpper(e.target.value)})} className="w-full bg-transparent text-sm font-bold outline-none uppercase italic text-blue-600 text-left" />
             </div>
             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 text-left">
               <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-2 tracking-widest text-left">MAHALLE</label>
-              <input value={formData.mahalle} onChange={(e) => setFormData({...formData, mahalle: e.target.value.toUpperCase()})} className="w-full bg-transparent text-sm font-bold outline-none uppercase italic text-black text-left" />
+              <input value={formData.mahalle} onChange={(e) => setFormData({...formData, mahalle: trUpper(e.target.value)})} className="w-full bg-transparent text-sm font-bold outline-none uppercase italic text-black text-left" />
             </div>
           </div>
 

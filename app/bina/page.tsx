@@ -1,4 +1,5 @@
 "use client";
+import { trUpper } from '@/app/lib/utils';
 
 import { useSearchParams } from 'next/navigation';
 import { Star, MapPin, ArrowLeft, Home, Wind, Shield, Users, MessageSquarePlus, Activity, Map as MapIcon, Camera, CheckCircle, AlertTriangle, Heart, Radio, Info, X } from 'lucide-react';
@@ -6,7 +7,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { db } from '@/app/lib/firebase';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
-import GoogleHarita from '@/app/components/GoogleHarita';
 import Link from 'next/link';
 
 function BinaDetayIcerik() {
@@ -41,7 +41,7 @@ function BinaDetayIcerik() {
   }, [koordinat]);
 
   const binaIsmiRaw = searchParams?.get('isim');
-  const binaIsmi = binaIsmiRaw ? decodeURIComponent(String(binaIsmiRaw)).toUpperCase().trim() : null;
+  const binaIsmi = binaIsmiRaw ? trUpper(decodeURIComponent(String(binaIsmiRaw))).trim() : null;
 
   useEffect(() => {
     const verileriGetir = async () => {
@@ -121,7 +121,7 @@ function BinaDetayIcerik() {
             Object.entries(pv).forEach(([kategori, puan]) => {
               const p = Number(puan);
               if (!isNaN(p) && p > 0) {
-                const anahtar = kategori.toUpperCase();
+                const anahtar = trUpper(kategori);
                 kategoriToplamlari[anahtar] = (kategoriToplamlari[anahtar] || 0) + p;
                 kategoriSayaclari[anahtar] = (kategoriSayaclari[anahtar] || 0) + 1;
               }
@@ -318,8 +318,8 @@ function BinaDetayIcerik() {
             <div className="grid grid-cols-2 gap-3 mt-6">
               {[
                 { icon: <Home size={14} />, label: "DURUM", val: "MÜHÜRLENDİ" },
-                { icon: <Wind size={14} />, label: "ISINMA", val: "KOMBİ" },
-                { icon: <Shield size={14} />, label: "GÜVENLİK", val: "SAKİN ONAYLI" },
+                { icon: <MapPin size={14} />, label: "İLÇE", val: konumBilgisi.ilce },
+                { icon: <Shield size={14} />, label: "SAKİN ONAYI", val: dbYorumlar.filter((y: any) => y.baglanti_tipi === 'sakin').length + " SAKİN" },
                 { icon: <Users size={14} />, label: "MÜHÜR", val: dbYorumlar.length + " ADET" }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-100/50">
@@ -431,13 +431,15 @@ function BinaDetayIcerik() {
                           {y.kullanici_adi || "Anonim Sakin"}
                         </h4>
                         <div className="mt-1.5">
-                          <StatuRozeti statu="komsu" />
+                          {y.baglanti_tipi === 'sakin' ? <span className="bg-green-50 border border-green-200 text-green-700 px-2 py-0.5 rounded-md text-[9px] font-black italic">SAKİN ✓</span>
+                            : y.baglanti_tipi === 'eski_sakin' ? <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[9px] font-black italic">ESKİ SAKİN</span>
+                            : <span className="bg-slate-100 text-slate-400 px-2 py-0.5 rounded-md text-[9px] font-black italic">ZİYARETÇİ</span>}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-100">
                       <Star size={12} fill="#2563eb" className="text-blue-600" />
-                      <span className="font-black text-[13px] text-blue-600">{y.puan || 5}</span>
+                      <span className="font-black text-[13px] text-blue-600">{y.puan ?? '—'}</span>
                     </div>
                   </div>
                   <div className="p-5 rounded-3xl text-[13px] font-medium italic border-l-4 bg-white border-blue-600 text-slate-700">

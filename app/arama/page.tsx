@@ -1,4 +1,5 @@
 "use client";
+import { trUpper } from '@/app/lib/utils';
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Search, Home, MapPin, Star, MessageSquare, ArrowRight, X, SlidersHorizontal, ChevronRight, Map as MapIcon, List, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -35,11 +36,11 @@ function AramaIcerik() {
   }, []);
 
   const gruplaVeFiltrele = (data: any[], search: string, activeFilters: any) => {
-    const searchStr = search.toUpperCase();
+    const searchStr = trUpper(search);
     const gruplar: { [key: string]: any } = {};
     
     data.forEach(item => {
-      const isim = (item.yeni_bina_adi || item.bina_adi)?.toString().toUpperCase().trim() || "";
+      const isim = trUpper((item.yeni_bina_adi || item.bina_adi)?.toString()).trim() || "";
       if (!isim) return;
 
       if (!gruplar[isim]) {
@@ -58,8 +59,8 @@ function AramaIcerik() {
       }
 
       // Önce yapısal alanlar (mobil şeması), sonra acik_adres fallback
-      if (item.ilce) gruplar[isim].ilce = item.ilce.toString().toUpperCase().trim();
-      if (item.mahalle) gruplar[isim].mahalle = item.mahalle.toString().toUpperCase().trim();
+      if (item.ilce) gruplar[isim].ilce = trUpper(item.ilce.toString()).trim();
+      if (item.mahalle) gruplar[isim].mahalle = trUpper(item.mahalle.toString()).trim();
       if (item.koordinat?.lat && item.koordinat?.lng) {
         gruplar[isim].koordinat = `${item.koordinat.lat}, ${item.koordinat.lng}`;
       }
@@ -68,7 +69,7 @@ function AramaIcerik() {
         const yerBilgisi = parcalar[0]?.split(' ');
         if (!item.ilce && yerBilgisi && yerBilgisi.length > 2) {
           gruplar[isim].mahalle = yerBilgisi[0] || gruplar[isim].mahalle;
-          gruplar[isim].ilce = yerBilgisi[2]?.split('/')[0].toUpperCase() || gruplar[isim].ilce;
+          gruplar[isim].ilce = trUpper(yerBilgisi[2]?.split('/')[0]) || gruplar[isim].ilce;
         }
         if (!gruplar[isim].koordinat) {
           const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
@@ -92,7 +93,7 @@ function AramaIcerik() {
           if (item.is_verified) gruplar[isim].dogrulanmisSayisi += 1;
         }
         Object.keys(p).forEach(k => {
-          gruplar[isim].kategoriler[k.toUpperCase()] = true;
+          gruplar[isim].kategoriler[trUpper(k)] = true;
         });
       }
     });
@@ -109,6 +110,7 @@ function AramaIcerik() {
       return aramaUyumu && ilceUyumu && puanUyumu && kategoriUyumu;
     });
 
+    finalResults.sort((a: any, b: any) => b.finalPuan - a.finalPuan);
     setResults(finalResults);
   };
 
@@ -124,9 +126,9 @@ function AramaIcerik() {
 
   const ilceListesi = useMemo(() => {
     return Array.from(new Set(allReviews.map(r => {
-      if (r.ilce) return r.ilce.toString().toUpperCase().trim();
+      if (r.ilce) return trUpper(r.ilce.toString()).trim();
       if (r.acik_adres && r.acik_adres.includes('|')) {
-        return r.acik_adres.split('|')[0].split(' ')[2]?.split('/')[0].toUpperCase();
+        return trUpper(r.acik_adres.split('|')[0].split(' ')[2]?.split('/')[0]);
       }
       return null;
     }))).filter(Boolean);
@@ -135,7 +137,7 @@ function AramaIcerik() {
   const dinamikKriterler = useMemo(() => {
     return Array.from(new Set(allReviews.flatMap(r => {
       const p = typeof r.puanlar === 'string' ? JSON.parse(r.puanlar) : r.puanlar;
-      return p ? Object.keys(p).map(k => k.toUpperCase()) : [];
+      return p ? Object.keys(p).map(k => trUpper(k)) : [];
     })));
   }, [allReviews]);
 

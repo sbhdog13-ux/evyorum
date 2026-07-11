@@ -1,4 +1,5 @@
 "use client";
+import { trUpper } from '@/app/lib/utils';
 import { useState, useEffect, useMemo, Suspense } from 'react';
 import { ArrowLeft, MapPin, BarChart2, Trophy, Building2, ChevronRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -42,20 +43,20 @@ function SkorIcerik() {
   }, []);
 
   const ilceOku = (d: any): string => {
-    if (d.ilce?.trim()) return d.ilce.toUpperCase().trim();
+    if (d.ilce?.trim()) return trUpper(d.ilce).trim();
     if (d.acik_adres) {
       const ilk = (d.acik_adres.split('|')[0] || '').trim();
       const kisim = ilk.includes(' MAH. ') ? ilk.split(' MAH. ')[1] : ilk;
       const ilce = kisim.split('/')[0].replace('İSTANBUL', '').trim();
-      if (ilce) return ilce.toUpperCase();
+      if (ilce) return trUpper(ilce);
     }
     return '';
   };
   const mahalleOku = (d: any): string => {
-    if (d.mahalle?.trim()) return d.mahalle.toUpperCase().trim();
+    if (d.mahalle?.trim()) return trUpper(d.mahalle).trim();
     if (d.acik_adres) {
       const ilk = (d.acik_adres.split('|')[0] || '').trim();
-      if (ilk.includes(' MAH. ')) return ilk.split(' MAH. ')[0].trim().toUpperCase();
+      if (ilk.includes(' MAH. ')) return trUpper(ilk.split(' MAH. ')[0].trim());
     }
     return '';
   };
@@ -63,7 +64,7 @@ function SkorIcerik() {
   const binaMap = useMemo(() => {
     const map: { [b: string]: { ilce: string; mahalle: string; puanlar: number[]; muhurSayisi: number; dogrulanmis: number; katToplam: { [k: string]: { t: number; s: number } } } } = {};
     allDocs.forEach((d: any) => {
-      const bina = (d.yeni_bina_adi || d.bina_adi || '').toUpperCase().trim();
+      const bina = trUpper((d.yeni_bina_adi || d.bina_adi || '')).trim();
       if (!bina) return;
       if (!map[bina]) map[bina] = { ilce: '', mahalle: '', puanlar: [], muhurSayisi: 0, dogrulanmis: 0, katToplam: {} };
       if (!map[bina].ilce) { const i = ilceOku(d); if (i) map[bina].ilce = i; }
@@ -87,7 +88,7 @@ function SkorIcerik() {
     return Object.entries(binaMap)
       .map(([ad, val]) => {
         const kategoriOrt: { [k: string]: number } = {};
-        Object.entries(val.katToplam).forEach(([k, v]) => { kategoriOrt[k.toUpperCase()] = Number((v.t / v.s).toFixed(1)); });
+        Object.entries(val.katToplam).forEach(([k, v]) => { kategoriOrt[trUpper(k)] = Number((v.t / v.s).toFixed(1)); });
         const katOrt = Object.values(kategoriOrt);
         const finalPuan = katOrt.length > 0 ? Number((katOrt.reduce((a, v) => a + v, 0) / katOrt.length).toFixed(1)) : 0;
         return { ad, finalPuan, muhurSayisi: val.muhurSayisi, dogrulanmis: val.dogrulanmis, kategoriOrt };
@@ -97,7 +98,7 @@ function SkorIcerik() {
   }, [binaMap, filtreler]);
 
   const tumKategoriler = useMemo(() => Array.from(new Set(
-    allDocs.flatMap((d: any) => d.puanlar ? Object.keys(d.puanlar).map(k => k.toUpperCase()) : [])
+    allDocs.flatMap((d: any) => d.puanlar ? Object.keys(d.puanlar).map(k => trUpper(k)) : [])
   )).sort(), [allDocs]);
 
   const { ilceler, mahalleler } = useMemo(() => {
@@ -110,7 +111,7 @@ function SkorIcerik() {
       ilceMap[val.ilce].puanlar.push(avg);
       if (val.mahalle) ilceMap[val.ilce].mahalleler.add(val.mahalle);
       ilceMap[val.ilce].binalar.add(bina);
-      if (seciliIlce && val.ilce === seciliIlce.toUpperCase()) {
+      if (seciliIlce && val.ilce === trUpper(seciliIlce)) {
         const m = val.mahalle || 'BELİRSİZ';
         if (!mahalleMap[m]) mahalleMap[m] = { puanlar: [], binalar: [] };
         mahalleMap[m].puanlar.push(avg);

@@ -1,4 +1,5 @@
 "use client";
+import { trUpper } from '@/app/lib/utils';
 
 import { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Star, ShieldCheck, Loader2, AlertCircle, Radio, MessageSquarePlus, Map, Radar, Users, MessageSquare, ShieldCheck as ShieldIcon, LogOut } from "lucide-react";
@@ -36,7 +37,7 @@ export default function Home() {
       // Tüm benzersiz bina adları — arama önerileri için (mobil ile aynı)
       const tumSnap = await getDocs(collection(db, 'yorumlar'));
       const unique = Array.from(new Set(
-        tumSnap.docs.map(d => ((d.data().yeni_bina_adi || d.data().bina_adi) as string | undefined)?.toUpperCase().trim())
+        tumSnap.docs.map(d => trUpper(((d.data().yeni_bina_adi || d.data().bina_adi) || '').toString()).trim())
       )).filter(Boolean) as string[];
       setTumBinalar(unique);
 
@@ -86,18 +87,18 @@ export default function Home() {
   }, [searchTerm]);
 
   const eslesenBinalar = searchTerm.length >= 2
-    ? tumBinalar.filter(b => b.includes(searchTerm.toUpperCase())).slice(0, 4)
+    ? tumBinalar.filter(b => b.includes(trUpper(searchTerm))).slice(0, 4)
     : [];
 
   const handleSelection = async (mainText: string, secondaryText: string) => {
     setIsSearching(true);
     const yorumlarRef = collection(db, 'yorumlar');
-    const q = query(yorumlarRef, where('yeni_bina_adi', '==', mainText.toUpperCase()));
+    const q = query(yorumlarRef, where('yeni_bina_adi', '==', trUpper(mainText)));
     const snap = await getDocs(q);
     if (!snap.empty) {
-      router.push(`/bina?isim=${encodeURIComponent(mainText.toUpperCase())}`);
+      router.push(`/bina?isim=${encodeURIComponent(trUpper(mainText))}`);
     } else {
-      setPendingSelection({ name: mainText.toUpperCase(), city: secondaryText });
+      setPendingSelection({ name: trUpper(mainText), city: secondaryText });
       setShowConfirmModal(true);
     }
     setIsSearching(false);

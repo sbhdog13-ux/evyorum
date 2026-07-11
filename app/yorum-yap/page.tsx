@@ -1,4 +1,5 @@
 "use client";
+import { trUpper } from '@/app/lib/utils';
 import React, { useState, useEffect, Suspense } from 'react';
 import { Home, Camera, PlusCircle, CheckCircle2, UserCircle, UserX, Building2, UserCheck, History, Eye } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -51,7 +52,7 @@ function YorumFormu() {
     const binalariGetir = async () => {
       const snap = await getDocs(collection(db, 'yorumlar'));
       const uniqueNames = Array.from(new Set(
-        snap.docs.map(d => ((d.data().yeni_bina_adi || d.data().bina_adi) as string | undefined)?.toUpperCase().trim())
+        snap.docs.map(d => trUpper(((d.data().yeni_bina_adi || d.data().bina_adi) || '').toString()).trim())
       )).filter(Boolean) as string[];
       setKayitliBinalar(uniqueNames);
     };
@@ -61,12 +62,12 @@ function YorumFormu() {
   useEffect(() => {
     const queryBina = searchParams.get('binaAdi');
     if (queryBina) {
-      setBinaAdi(decodeURIComponent(queryBina).toUpperCase().trim());
+      setBinaAdi(trUpper(decodeURIComponent(queryBina)).trim());
     }
   }, [searchParams]);
 
   const handleBinaYazimi = (val: string) => {
-    const uppercaseVal = val.toUpperCase();
+    const uppercaseVal = trUpper(val);
     setBinaAdi(uppercaseVal);
     if (uppercaseVal.length > 0) {
       setFiltrelenmişBinalar(kayitliBinalar.filter(b => b.includes(uppercaseVal)));
@@ -77,7 +78,7 @@ function YorumFormu() {
   };
 
   const binaSec = (isim: string) => {
-    setBinaAdi(isim.toUpperCase().trim());
+    setBinaAdi(trUpper(isim).trim());
     setShowDropdown(false);
   };
 
@@ -95,13 +96,13 @@ function YorumFormu() {
 
   const addNewCategory = () => {
     if (!newCatName) return;
-    setCategories([...categories, { id: Date.now(), label: newCatName.toUpperCase(), score: 3 }]);
+    setCategories([...categories, { id: Date.now(), label: trUpper(newCatName), score: 3 }]);
     setNewCatName("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const temizBinaAdi = binaAdi.toUpperCase().trim();
+    const temizBinaAdi = trUpper(binaAdi).trim();
     if (!temizBinaAdi || !yorum.trim()) return alert("Bina adı ve deneyim metni zorunludur!");
     if (!user && !isAnonymous) {
       alert("Yorum yapmak için giriş yapman gerekiyor!");
@@ -202,8 +203,16 @@ function YorumFormu() {
                   className="w-full p-6 bg-transparent font-black text-2xl uppercase italic outline-none placeholder:text-slate-200 text-left"
                 />
               </div>
-              {showDropdown && filtrelenmişBinalar.length > 0 && (
+              {showDropdown && (filtrelenmişBinalar.length > 0 || binaAdi.length >= 2) && (
                 <div className="absolute z-50 w-full mt-2 bg-white border-2 border-black rounded-[2rem] shadow-2xl overflow-hidden text-left">
+                  {filtrelenmişBinalar.length === 0 && binaAdi.length >= 2 && (
+                    <button type="button"
+                      onClick={() => { setShowDropdown(false); router.push(`/bina-olustur?binaAdi=${encodeURIComponent(binaAdi)}`); }}
+                      className="w-full p-5 font-black italic uppercase text-[14px] bg-[#023E56] text-white flex justify-between items-center text-left">
+                      "{binaAdi}" — YENİ BİNA OLUŞTUR
+                      <Building2 size={18} className="text-blue-400" />
+                    </button>
+                  )}
                   {filtrelenmişBinalar.map((b, idx) => (
                     <div 
                       key={idx} 
@@ -321,7 +330,7 @@ function YorumFormu() {
                   })}
                 </div>
                 <div className="flex items-center gap-2 max-w-sm">
-                  <input value={yeniRedFlag} onChange={e => setYeniRedFlag(e.target.value.toUpperCase())}
+                  <input value={yeniRedFlag} onChange={e => setYeniRedFlag(trUpper(e.target.value))}
                     placeholder="SORUN EKLE..." className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
                   <button type="button" onClick={() => { const t = yeniRedFlag.trim(); if (t && !redFlags.includes(t)) setRedFlags(p => [...p, t]); setYeniRedFlag(''); }}
                     className="bg-red-600 text-white p-3 rounded-2xl"><PlusCircle size={16} /></button>
@@ -343,7 +352,7 @@ function YorumFormu() {
                   })}
                 </div>
                 <div className="flex items-center gap-2 max-w-sm">
-                  <input value={yeniGreenFlag} onChange={e => setYeniGreenFlag(e.target.value.toUpperCase())}
+                  <input value={yeniGreenFlag} onChange={e => setYeniGreenFlag(trUpper(e.target.value))}
                     placeholder="ARTI EKLE..." className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
                   <button type="button" onClick={() => { const t = yeniGreenFlag.trim(); if (t && !greenFlags.includes(t)) setGreenFlags(p => [...p, t]); setYeniGreenFlag(''); }}
                     className="bg-green-600 text-white p-3 rounded-2xl"><PlusCircle size={16} /></button>
