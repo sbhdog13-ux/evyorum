@@ -5,20 +5,24 @@ import { Map, Search, BarChart2, Building2, Radio, MessageSquare, LogOut, Shield
 import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useLang } from '@/app/lib/i18n';
+import { useState } from 'react';
 
 // Mobildeki hamburger menünün (Drawer) web karşılığı — aynı sıra, aynı öğeler
 export default function Sidebar() {
   const { user } = useAuth();
+  const { dil, setDil, t } = useLang();
+  const [dilAcik, setDilAcik] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   const items = [
-    { icon: Map, label: 'BİNALARI KEŞFET', href: '/kesfet' },
-    { icon: Search, label: 'TÜM MÜHÜRLER', href: '/arama' },
-    { icon: BarChart2, label: 'İLÇE / MAHALLE SKORLARI', href: '/skor', highlight: true },
-    { icon: Building2, label: 'BİNA OLUŞTUR', href: '/bina-olustur' },
-    { icon: Radio, label: 'RADARIMDAKİLER', href: '/profil' },
-    { icon: MessageSquare, label: 'YORUMLARIM', href: '/profil' },
+    { icon: Map, label: t('menu.kesfet'), href: '/kesfet' },
+    { icon: Search, label: t('menu.muhurler'), href: '/arama' },
+    { icon: BarChart2, label: t('menu.skorlar'), href: '/skor', highlight: true },
+    { icon: Building2, label: t('menu.binaOlustur'), href: '/bina-olustur' },
+    { icon: Radio, label: t('menu.radar'), href: '/profil' },
+    { icon: MessageSquare, label: t('menu.yorumlarim'), href: '/profil' },
   ];
 
   const initial = user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || 'U';
@@ -56,9 +60,22 @@ export default function Sidebar() {
             <Link href="/profil" className="text-[10px] font-black text-blue-600 tracking-widest">PROFİLİM</Link>
           </div>
         </div>
+        <button onClick={() => setDilAcik(v => !v)} className="w-full flex items-center gap-3 px-6 py-3 hover:bg-slate-50 transition-colors">
+          <span>🌐</span>
+          <span className="flex-1 text-left text-[12px] font-black uppercase tracking-wide">DİL / LANGUAGE</span>
+          <span className="text-[11px] font-black text-blue-600">{dil.toUpperCase()} ▾</span>
+        </button>
+        {dilAcik && (
+          <div className="mx-6 mb-2 bg-slate-50 rounded-xl overflow-hidden">
+            {[['tr', '🇹🇷 Türkçe'], ['en', '🇬🇧 English']].map(([d, ad]) => (
+              <button key={d} onClick={() => { setDil(d); setDilAcik(false); }}
+                className={`w-full px-4 py-2.5 text-left text-[12px] font-black ${dil === d ? 'bg-[#e8f3fa] text-blue-600' : 'text-slate-600'}`}>{ad}</button>
+            ))}
+          </div>
+        )}
         <button onClick={async () => { await signOut(auth); router.push('/'); }} className="w-full flex items-center gap-3 px-6 py-3 text-red-500 hover:bg-red-50 transition-colors">
           <LogOut size={18} />
-          <span className="text-[13px] font-black uppercase tracking-widest">ÇIKIŞ YAP</span>
+          <span className="text-[13px] font-black uppercase tracking-widest">{t('menu.cikis')}</span>
         </button>
         <div className="mx-6 mt-1.5 flex items-center gap-2 bg-slate-50 rounded-2xl px-4 py-2.5">
           <ShieldCheck size={14} className="text-slate-400" />

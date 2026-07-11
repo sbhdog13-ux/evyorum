@@ -14,7 +14,8 @@ export default function BottomNav() {
   const router = useRouter();
   const { user } = useAuth();
   const [menuAcik, setMenuAcik] = useState(false);
-  const { t } = useLang();
+  const { dil, setDil, t } = useLang();
+  const [dilAcik, setDilAcik] = useState(false);
 
   // Açılış (tanıtım) sayfasında alt menü gösterilmez
   if (pathname === '/') return null;
@@ -58,6 +59,19 @@ export default function BottomNav() {
                 );
               })}
             </nav>
+            <button onClick={() => setDilAcik(v => !v)} className="flex items-center gap-3 px-6 py-4 border-t border-slate-100">
+              <span>🌐</span>
+              <span className="flex-1 text-left text-[12px] font-black uppercase tracking-wide">DİL / LANGUAGE</span>
+              <span className="text-[11px] font-black text-blue-600">{dil.toUpperCase()} ▾</span>
+            </button>
+            {dilAcik && (
+              <div className="mx-6 mb-2 bg-slate-50 rounded-xl overflow-hidden">
+                {[['tr', '🇹🇷 Türkçe'], ['en', '🇬🇧 English']].map(([d, ad]) => (
+                  <button key={d} onClick={() => { setDil(d); setDilAcik(false); }}
+                    className={`w-full px-4 py-2.5 text-left text-[12px] font-black ${dil === d ? 'bg-[#e8f3fa] text-blue-600' : 'text-slate-600'}`}>{ad}</button>
+                ))}
+              </div>
+            )}
             {user && (
               <button onClick={async () => { setMenuAcik(false); await signOut(auth); router.push('/'); }}
                 className="flex items-center gap-3 px-6 py-5 text-red-500 border-t border-slate-100 mb-20">
