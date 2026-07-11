@@ -9,9 +9,11 @@ import { collection, getDocs, addDoc, serverTimestamp, query, where, limit } fro
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { takipcilariBildir } from '@/app/lib/notifications';
+import { useLang } from '@/app/lib/i18n';
 
 function YorumFormu() {
   const router = useRouter();
+  const { t } = useLang();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [binaAdi, setBinaAdi] = useState("");
@@ -195,10 +197,10 @@ function YorumFormu() {
 
         <main className="text-left">
           <h1 className="text-[35px] md:text-[50px] font-black uppercase italic leading-[0.9] tracking-tighter mb-4 text-left">
-            BİNAYI <span className="text-blue-600">MÜHÜRLE.</span>
+            {t('muhurle.baslik1')} <span className="text-blue-600">{t('muhurle.baslik2')}</span>
           </h1>
           <p className="text-slate-400 font-bold uppercase italic text-[12px] mb-12 tracking-tight text-left">
-            Gerçekleri paylaş, geleceği şeffaflaştır.
+            {t('muhurle.alt')}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-10 text-left">
@@ -209,7 +211,7 @@ function YorumFormu() {
                   value={binaAdi} 
                   onChange={(e) => handleBinaYazimi(e.target.value)} 
                   onFocus={() => setShowDropdown(true)}
-                  placeholder="MÜHÜRLEYECEĞİN BİNAYI SEÇ..." 
+                  placeholder={t('muhurle.binaSec')} 
                   className="w-full p-6 bg-transparent font-black text-2xl uppercase italic outline-none placeholder:text-slate-200 text-left"
                 />
               </div>
@@ -219,7 +221,7 @@ function YorumFormu() {
                     <button type="button"
                       onClick={() => { setShowDropdown(false); router.push(`/bina-olustur?binaAdi=${encodeURIComponent(binaAdi)}`); }}
                       className="w-full p-5 font-black italic uppercase text-[14px] bg-[#023E56] text-white flex justify-between items-center text-left">
-                      "{binaAdi}" — YENİ BİNA OLUŞTUR
+                      "{binaAdi}" — {t('muhurle.yeniOlustur')}
                       <Building2 size={18} className="text-blue-400" />
                     </button>
                   )}
@@ -238,12 +240,12 @@ function YorumFormu() {
             </section>
 
             <section className="space-y-4 text-left">
-              <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2 text-left">İSTİHBARAT KAYNAĞI / BAĞLANTIN</label>
+              <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2 text-left">{t('muhurle.kaynak')}</label>
               <div className="grid grid-cols-3 gap-4 text-left">
                 {[
-                  { id: 'sakin', label: 'SAKİNİM', icon: UserCheck, desc: '%100 Etki' },
-                  { id: 'eski_sakin', label: 'ESKİ SAKİN', icon: History, desc: '%70 Etki' },
-                  { id: 'ziyaretci', label: 'ZİYARETÇİ', icon: Eye, desc: '%30 Etki' }
+                  { id: 'sakin', label: t('muhurle.sakinim'), icon: UserCheck, desc: `%100 ${t('muhurle.etki')}` },
+                  { id: 'eski_sakin', label: t('muhurle.eskiSakin'), icon: History, desc: `%70 ${t('muhurle.etki')}` },
+                  { id: 'ziyaretci', label: t('muhurle.ziyaretci'), icon: Eye, desc: `%30 ${t('muhurle.etki')}` }
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -284,7 +286,7 @@ function YorumFormu() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch text-left">
               <div className="flex flex-col gap-3 bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 justify-center text-left">
-                <label className="text-[10px] font-black uppercase italic text-blue-600 tracking-widest pl-1 text-left">KRİTER EKLE</label>
+                <label className="text-[10px] font-black uppercase italic text-blue-600 tracking-widest pl-1 text-left">{t('muhurle.kriterEkle')}</label>
                 <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200 text-left">
                   <input 
                     value={newCatName} 
@@ -309,12 +311,12 @@ function YorumFormu() {
                       <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-blue-600 shadow-md text-left">
                         <img src={previewUrl} className="w-full h-full object-cover" alt="önizleme" />
                       </div>
-                      <span className="font-black text-[10px] uppercase italic text-blue-600 text-left">KANIT EKLENDİ</span>
+                      <span className="font-black text-[10px] uppercase italic text-blue-600 text-left">{t('muhurle.kanitEklendi')}</span>
                     </div>
                   ) : (
                     <>
                       <Camera size={32} className="text-slate-300 group-hover:text-blue-600 transition-colors text-left" />
-                      <span className="font-black text-[10px] uppercase italic tracking-widest text-slate-300 group-hover:text-blue-600 text-left">KANIT YÜKLE</span>
+                      <span className="font-black text-[10px] uppercase italic tracking-widest text-slate-300 group-hover:text-blue-600 text-left">{t('muhurle.kanit')}</span>
                     </>
                   )}
                 </div>
@@ -323,10 +325,10 @@ function YorumFormu() {
 
             {/* HIZLI İŞARETLER — mobil ile aynı */}
             <section className="space-y-6 text-left">
-              <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2">HIZLI İŞARETLER</label>
+              <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2">{t('muhurle.isaretler')}</label>
 
               <div className="space-y-3">
-                <span className="text-[10px] font-black uppercase italic text-red-500 pl-2 block">SORUNLAR (Kırmızı)</span>
+                <span className="text-[10px] font-black uppercase italic text-red-500 pl-2 block">{t('muhurle.sorunlar')}</span>
                 <div className="flex flex-wrap gap-2">
                   {[...RED_PRESET, ...redFlags.filter(f => !RED_PRESET.includes(f))].map(f => {
                     const aktif = redFlags.includes(f);
@@ -341,14 +343,14 @@ function YorumFormu() {
                 </div>
                 <div className="flex items-center gap-2 max-w-sm">
                   <input value={yeniRedFlag} onChange={e => setYeniRedFlag(trUpper(e.target.value))}
-                    placeholder="SORUN EKLE..." className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
+                    placeholder={t('muhurle.sorunEkle')} className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
                   <button type="button" onClick={() => { const t = yeniRedFlag.trim(); if (t && !redFlags.includes(t)) setRedFlags(p => [...p, t]); setYeniRedFlag(''); }}
                     className="bg-red-600 text-white p-3 rounded-2xl"><PlusCircle size={16} /></button>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <span className="text-[10px] font-black uppercase italic text-green-600 pl-2 block">ARTILAR (Yeşil)</span>
+                <span className="text-[10px] font-black uppercase italic text-green-600 pl-2 block">{t('muhurle.artilar')}</span>
                 <div className="flex flex-wrap gap-2">
                   {[...GREEN_PRESET, ...greenFlags.filter(f => !GREEN_PRESET.includes(f))].map(f => {
                     const aktif = greenFlags.includes(f);
@@ -363,7 +365,7 @@ function YorumFormu() {
                 </div>
                 <div className="flex items-center gap-2 max-w-sm">
                   <input value={yeniGreenFlag} onChange={e => setYeniGreenFlag(trUpper(e.target.value))}
-                    placeholder="ARTI EKLE..." className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
+                    placeholder={t('muhurle.artiEkle')} className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
                   <button type="button" onClick={() => { const t = yeniGreenFlag.trim(); if (t && !greenFlags.includes(t)) setGreenFlags(p => [...p, t]); setYeniGreenFlag(''); }}
                     className="bg-green-600 text-white p-3 rounded-2xl"><PlusCircle size={16} /></button>
                 </div>
@@ -371,13 +373,13 @@ function YorumFormu() {
             </section>
 
             <div className="space-y-4 text-left">
-              <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2 text-left">DETAYLI DENEYİM</label>
+              <label className="text-[11px] font-black uppercase italic text-slate-400 tracking-widest pl-2 text-left">{t('muhurle.deneyim')}</label>
               <textarea 
                 value={yorum} 
                 onChange={(e) => setYorum(e.target.value)}
                 rows={5} 
                 className="w-full p-8 bg-white rounded-[2.5rem] border-2 border-slate-100 font-bold outline-none text-black focus:border-blue-600 transition-all text-lg italic shadow-sm text-left" 
-                placeholder="Burada ne yaşadın? Gerçekleri dök..."
+                placeholder={t('muhurle.deneyimPh')}
               />
             </div>
 
@@ -391,10 +393,10 @@ function YorumFormu() {
                   {isAnonymous ? <UserX size={24} /> : <UserCircle size={24} />}
                   <div className="flex flex-col items-start text-left">
                     <span className="font-black uppercase italic text-sm text-left">
-                      {isAnonymous ? 'ANONİM SAKIN' : (user?.displayName || user?.email?.split('@')[0] || 'KULLANICI')}
+                      {isAnonymous ? t('muhurle.anonim') : (user?.displayName || user?.email?.split('@')[0] || 'KULLANICI')}
                     </span>
                     <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter text-left">
-                      {isAnonymous ? 'Kimlik Gizli' : 'Kimlik Görünür'}
+                      {isAnonymous ? t('muhurle.kimlikGizli') : t('muhurle.kimlikGorunur')}
                     </span>
                   </div>
                 </div>
@@ -407,7 +409,7 @@ function YorumFormu() {
                 type="submit" disabled={loading}
                 className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-2xl uppercase italic hover:bg-[#023E56] transition-all flex items-center justify-center gap-4 shadow-2xl active:scale-95 text-left"
               >
-                {loading ? "MÜHÜRLENİYOR..." : <>MÜHÜRÜ BAS! <CheckCircle2 size={28} /></>}
+                {loading ? t('muhurle.gonderiliyor') : <>{t('muhurle.gonder')} <CheckCircle2 size={28} /></>}
               </button>
             </div>
           </form>

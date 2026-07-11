@@ -7,9 +7,11 @@ import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import LeafletHarita from '@/app/components/LeafletHarita';
+import { useLang } from '@/app/lib/i18n';
 
 function AramaIcerik() {
   const router = useRouter();
+  const { t } = useLang();
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [allReviews, setAllReviews] = useState<any[]>([]);
@@ -159,25 +161,25 @@ function AramaIcerik() {
       {/* SOL FİLTRE PANELİ */}
       <div className={`fixed inset-y-0 left-0 w-80 bg-[#023E56] z-[110] transform transition-transform duration-500 ease-in-out shadow-[20px_0px_60px_rgba(0,0,0,0.5)] p-8 ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex justify-between items-center mb-12">
-          <h2 className="text-blue-600 font-black italic text-2xl tracking-tighter uppercase">FİLTRE ODASI</h2>
+          <h2 className="text-blue-600 font-black italic text-2xl tracking-tighter uppercase">{t('arama.filtreOdasi')}</h2>
           <button onClick={() => setIsFilterOpen(false)} className="text-white hover:rotate-90 transition-all"><X size={24}/></button>
         </div>
 
         <div className="space-y-10">
           <div>
-            <label className="text-slate-500 font-black italic text-[10px] uppercase tracking-[0.2em] mb-4 block">BÖLGE SEÇİMİ</label>
+            <label className="text-slate-500 font-black italic text-[10px] uppercase tracking-[0.2em] mb-4 block">{t('arama.bolge')}</label>
             <select 
               value={filters.ilce}
               onChange={(e) => handleFilterChange({...filters, ilce: e.target.value})}
               className="w-full bg-transparent border-b-2 border-slate-800 text-white font-bold py-2 outline-none focus:border-blue-600 transition-colors uppercase text-sm"
             >
-              <option value="" className="bg-[#023E56]">TÜM İLÇELER</option>
+              <option value="" className="bg-[#023E56]">{t('arama.tumIlceler')}</option>
               {ilceListesi.map((ilce: any) => <option key={ilce} value={ilce} className="bg-[#023E56]">{ilce}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="text-slate-500 font-black italic text-[10px] uppercase tracking-[0.2em] mb-4 block">MİNİMUM PUAN: {filters.minPuan}+</label>
+            <label className="text-slate-500 font-black italic text-[10px] uppercase tracking-[0.2em] mb-4 block">{t('arama.minPuan')}: {filters.minPuan}+</label>
             <input 
               type="range" min="0" max="5" step="1"
               value={filters.minPuan}
@@ -218,13 +220,13 @@ function AramaIcerik() {
           onClick={() => setViewMode('list')}
           className={`flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase italic transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}
         >
-          <List size={16} /> LİSTE
+          <List size={16} /> {t('arama.liste')}
         </button>
         <button 
           onClick={() => setViewMode('map')}
           className={`flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase italic transition-all ${viewMode === 'map' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}
         >
-          <MapIcon size={16} /> HARİTA
+          <MapIcon size={16} /> {t('arama.harita')}
         </button>
       </div>
 
@@ -244,7 +246,7 @@ function AramaIcerik() {
         <main className="pb-32">
           <div className="mb-8 md:mb-16">
             <h1 className="text-[28px] md:text-[70px] font-black uppercase italic leading-[1] md:leading-[0.8] mb-5 md:mb-8 tracking-tighter">
-              {viewMode === 'list' ? 'MEVCUT' : 'BÖLGESEL'} <span className="text-blue-600">{viewMode === 'list' ? 'MÜHÜRLER.' : 'İSTİHBARAT.'}</span>
+              {viewMode === 'list' ? t('arama.baslik1') : t('arama.baslik2')} <span className="text-blue-600">{viewMode === 'list' ? t('arama.baslik1b') : t('arama.baslik2b')}</span>
             </h1>
             
             <div className="flex flex-row gap-3 md:gap-4 items-stretch">
@@ -261,7 +263,7 @@ function AramaIcerik() {
                   <input 
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
-                    placeholder="BİNA, İLÇE VEYA MAHALLE ARA..."
+                    placeholder={t('arama.placeholder')}
                     className="w-full p-6 bg-transparent font-black text-2xl uppercase italic outline-none"
                   />
                 </div>
@@ -312,7 +314,7 @@ function AramaIcerik() {
               ) : (
                 <div className="col-span-full py-20 px-10 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[3.5rem] text-center">
                   <p className="text-2xl font-black uppercase italic text-slate-300 mb-6 text-left">KRİTERLERE UYGUN MÜHÜR BULUNAMADI.</p>
-                  <button onClick={() => {setFilters({ilce: "", minPuan: 0, kategori: ""}); handleSearch("");}} className="bg-blue-600 text-white px-10 py-5 rounded-full font-black uppercase italic text-lg hover:bg-[#023E56] transition-all shadow-xl">FİLTRELERİ SIFIRLA</button>
+                  <button onClick={() => {setFilters({ilce: "", minPuan: 0, kategori: ""}); handleSearch("");}} className="bg-blue-600 text-white px-10 py-5 rounded-full font-black uppercase italic text-lg hover:bg-[#023E56] transition-all shadow-xl">{t('arama.sifirla')}</button>
                 </div>
               )}
             </div>
