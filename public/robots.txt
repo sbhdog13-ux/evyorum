@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /profil
+Disallow: /yorum-yap
+Disallow: /bina-olustur
+
+Sitemap: https://bulevini.com/sitemap.xml
