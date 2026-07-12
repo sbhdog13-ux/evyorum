@@ -5,8 +5,21 @@ import { LangProvider } from "@/app/lib/i18n";
 import BottomNav from "@/app/components/BottomNav";
 
 export const metadata: Metadata = {
-  title: "Bulevini | Evi Tutmadan Önce Gerçekleri Öğren",
-  description: "Kiracılar için şeffaf bina yorumları",
+  metadataBase: new URL("https://bulevini.com"),
+  title: "Bulevini | Evini Tutmadan Önce Gerçekleri Öğren — İstanbul Bina Yorumları",
+  description: "İstanbul'daki binaların gerçek sakin yorumları: ısınma, deprem dayanıklılığı, komşuluk, yönetim puanları; çevre analizi ve harita üzerinde bina karneleri. Kiralamadan önce binayı tanı.",
+  keywords: ["bina yorumları", "apartman yorumları", "kiralık daire İstanbul", "mahalle yorumları", "bina puanı", "ev tutmadan önce", "kiracı deneyimi"],
+  alternates: { canonical: "https://bulevini.com" },
+  openGraph: {
+    title: "Bulevini — İstanbul'un Bina Hafızası",
+    description: "Kiralamadan önce binanın karnesini gör: gerçek sakin yorumları, çevre analizi, harita üzerinde bina puanları.",
+    url: "https://bulevini.com",
+    siteName: "Bulevini",
+    locale: "tr_TR",
+    type: "website",
+    images: [{ url: "/icons/icon-512.png", width: 512, height: 512, alt: "Bulevini" }],
+  },
+  twitter: { card: "summary", title: "Bulevini — İstanbul'un Bina Hafızası", description: "Kiralamadan önce binanın karnesini gör.", images: ["/icons/icon-512.png"] },
   manifest: "/manifest.json",
   themeColor: "#2563eb",
   appleWebApp: {

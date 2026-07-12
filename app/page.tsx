@@ -64,6 +64,85 @@ export default function AcilisSayfasi() {
         ))}
       </section>
 
+
+      {/* Nasıl çalışır — SEO içerik bölümü */}
+      <section className="max-w-5xl mx-auto px-6 pb-16">
+        <h2 className="font-black italic uppercase tracking-tighter text-[26px] mb-6 border-l-4 border-blue-600 pl-4">{t('seo.nasilBaslik')}</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[[t('seo.adim1b'), t('seo.adim1')], [t('seo.adim2b'), t('seo.adim2')], [t('seo.adim3b'), t('seo.adim3')]].map(([b, m]) => (
+            <div key={b} className="bg-[#e8f3fa] border border-[#A1CDE9] rounded-[2rem] p-7">
+              <h3 className="font-black italic text-[17px] text-[#023E56] mb-2">{b}</h3>
+              <p className="text-[14px] leading-relaxed text-slate-600">{m}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Neden Bulevini */}
+      <section className="max-w-5xl mx-auto px-6 pb-16">
+        <h2 className="font-black italic uppercase tracking-tighter text-[26px] mb-6 border-l-4 border-blue-600 pl-4">{t('seo.nedenBaslik')}</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[[t('seo.neden1b'), t('seo.neden1')], [t('seo.neden2b'), t('seo.neden2')], [t('seo.neden3b'), t('seo.neden3')]].map(([b, m]) => (
+            <div key={b} className="bg-[#023E56] rounded-[2rem] p-7 text-white">
+              <h3 className="font-black italic text-[17px] mb-2">{b}</h3>
+              <p className="text-[14px] leading-relaxed text-[#A1CDE9]">{m}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SSS */}
+      <section className="max-w-3xl mx-auto px-6 pb-16">
+        <h2 className="font-black italic uppercase tracking-tighter text-[26px] mb-6 border-l-4 border-blue-600 pl-4">{t('seo.sssBaslik')}</h2>
+        <div className="space-y-3">
+          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
+            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Bulevini nedir?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
+            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Bulevini, İstanbul'daki binaların gerçek sakin deneyimlerini bir araya getiren şeffaf bina yorum platformudur. Kiralamadan veya satın almadan önce binanın karnesini görürsün.</p>
+          </details>
+          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
+            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Bina yorumları güvenilir mi?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
+            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Yorumlar bağlantı tipine göre ağırlıklandırılır: mevcut sakinin puanı en yüksek etkiye sahiptir; eski sakin ve ziyaretçi yorumları daha düşük ağırlıkla hesaba katılır. Kanıt fotoğrafı da eklenebilir.</p>
+          </details>
+          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
+            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Yorum yazmak için kimliğim görünür mü?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
+            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Hayır, istersen tamamen anonim paylaşabilirsin. Kimliğin hiçbir zaman ev sahibi veya üçüncü kişilerle paylaşılmaz.</p>
+          </details>
+          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
+            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Mühür nedir?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
+            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Mühür, bir binada yaşamış birinin o bina hakkında bıraktığı puanlı deneyim kaydıdır: ısınma, deprem dayanıklılığı, komşuluk, yönetim gibi kategorilerde.</p>
+          </details>
+          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
+            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Hangi şehirlerde çalışıyor?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
+            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Şu an İstanbul'un tüm ilçelerinde derinlemesine çalışıyoruz: her bina gerçek adres ve koordinatla haritada.</p>
+          </details>
+          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
+            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Ücretli mi?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
+            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Hayır, Bulevini tamamen ücretsizdir.</p>
+          </details>
+        </div>
+      </section>
+
+      {/* İlçe linkleri — yerel SEO */}
+      <section className="max-w-5xl mx-auto px-6 pb-20">
+        <h2 className="font-black italic uppercase tracking-tighter text-[20px] mb-5 border-l-4 border-blue-600 pl-4">{t('seo.ilceBaslik')}</h2>
+        <div className="flex flex-wrap gap-2.5">
+          <Link href="/skor?ilce=KADIKÖY" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">KADIKÖY</Link>
+          <Link href="/skor?ilce=BEŞİKTAŞ" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">BEŞİKTAŞ</Link>
+          <Link href="/skor?ilce=ŞİŞLİ" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">ŞİŞLİ</Link>
+          <Link href="/skor?ilce=ÜSKÜDAR" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">ÜSKÜDAR</Link>
+          <Link href="/skor?ilce=MALTEPE" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">MALTEPE</Link>
+          <Link href="/skor?ilce=SARIYER" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">SARIYER</Link>
+          <Link href="/skor?ilce=PENDİK" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">PENDİK</Link>
+          <Link href="/skor?ilce=KARTAL" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">KARTAL</Link>
+          <Link href="/skor?ilce=BAKIRKÖY" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">BAKIRKÖY</Link>
+          <Link href="/skor?ilce=ATAŞEHİR" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">ATAŞEHİR</Link>
+        </div>
+      </section>
+
+      {/* Yapılandırılmış veri */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Bulevini nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Bulevini, İstanbul'daki binaların gerçek sakin deneyimlerini bir araya getiren şeffaf bina yorum platformudur. Kiralamadan veya satın almadan önce binanın karnesini görürsün."}}, {"@type": "Question", "name": "Bina yorumları güvenilir mi?", "acceptedAnswer": {"@type": "Answer", "text": "Yorumlar bağlantı tipine göre ağırlıklandırılır: mevcut sakinin puanı en yüksek etkiye sahiptir; eski sakin ve ziyaretçi yorumları daha düşük ağırlıkla hesaba katılır. Kanıt fotoğrafı da eklenebilir."}}, {"@type": "Question", "name": "Yorum yazmak için kimliğim görünür mü?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, istersen tamamen anonim paylaşabilirsin. Kimliğin hiçbir zaman ev sahibi veya üçüncü kişilerle paylaşılmaz."}}, {"@type": "Question", "name": "Mühür nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Mühür, bir binada yaşamış birinin o bina hakkında bıraktığı puanlı deneyim kaydıdır: ısınma, deprem dayanıklılığı, komşuluk, yönetim gibi kategorilerde."}}, {"@type": "Question", "name": "Hangi şehirlerde çalışıyor?", "acceptedAnswer": {"@type": "Answer", "text": "Şu an İstanbul'un tüm ilçelerinde derinlemesine çalışıyoruz: her bina gerçek adres ve koordinatla haritada."}}, {"@type": "Question", "name": "Ücretli mi?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, Bulevini tamamen ücretsizdir."}}]}) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "WebSite", "name": "Bulevini", "url": "https://bulevini.com", "description": "İstanbul bina ve mahalle yorumları — kiralamadan önce binanın karnesini gör."}) }} />
+
       <footer className="border-t border-slate-100 py-8">
         <div className="max-w-5xl mx-auto px-6 flex flex-wrap gap-3 items-center justify-between text-[13px] text-slate-400">
           <span>© 2026 Bulevini — Türkiye'nin en şeffaf bina platformu</span>

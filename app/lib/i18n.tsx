@@ -68,6 +68,13 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'dogrula.gerekli': 'Mühür basabilmek için önce e-postanı doğrulaman gerekiyor.',
     'dogrula.tekrar': 'DOĞRULAMA MAİLİNİ TEKRAR GÖNDER', 'dogrula.kontrolEt': 'DOĞRULADIM, KONTROL ET',
     'dogrula.baslik': 'E-POSTANI DOĞRULA', 'dogrula.hala': 'Henüz doğrulanmamış görünüyor. Maildeki bağlantıya tıkladıktan sonra tekrar dene.',
+    'seo.nasilBaslik': 'Nasıl çalışır?', 'seo.adim1b': '1. Ara', 'seo.adim1': 'Bina adı, sokak ya da harita üzerinden merak ettiğin binayı bul.',
+    'seo.adim2b': '2. Karneyi gör', 'seo.adim2': 'Isınma, deprem dayanıklılığı, komşuluk, yönetim puanlarını ve gerçek sakin yorumlarını incele.',
+    'seo.adim3b': '3. Mühürle', 'seo.adim3': 'Kendi deneyimini paylaş — bir sonraki kiracının hayatını kolaylaştır.',
+    'seo.nedenBaslik': 'Neden Bulevini?', 'seo.neden1b': 'İstanbul’un bina hafızası', 'seo.neden1': 'Genel değil, derin: her bina gerçek adres ve koordinatla haritada. İlçe ilçe, mahalle mahalle skorlar.',
+    'seo.neden2b': 'Çevre analizi', 'seo.neden2': 'Sadece bina değil; en yakın hastane, okul, market ve toplu taşıma mesafeleriyle tam resim.',
+    'seo.neden3b': 'Şeffaf karne sistemi', 'seo.neden3': 'Tek puan değil; kategori kategori karne, sorun ve artı işaretleri, kanıt fotoğrafları.',
+    'seo.sssBaslik': 'Sık sorulan sorular', 'seo.ilceBaslik': 'İlçe skorlarını keşfet',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -134,6 +141,13 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'dogrula.gerekli': 'You need to verify your email before sealing.',
     'dogrula.tekrar': 'RESEND VERIFICATION EMAIL', 'dogrula.kontrolEt': 'I VERIFIED, CHECK AGAIN',
     'dogrula.baslik': 'VERIFY YOUR EMAIL', 'dogrula.hala': 'Still not verified. Click the link in the email, then try again.',
+    'seo.nasilBaslik': 'How it works', 'seo.adim1b': '1. Search', 'seo.adim1': 'Find the building you wonder about by name, street or on the map.',
+    'seo.adim2b': '2. See the report card', 'seo.adim2': 'Check heating, earthquake safety, neighbours and management scores plus real resident reviews.',
+    'seo.adim3b': '3. Seal it', 'seo.adim3': 'Share your own experience — make the next tenant’s life easier.',
+    'seo.nedenBaslik': 'Why Bulevini?', 'seo.neden1b': 'Istanbul’s building memory', 'seo.neden1': 'Deep, not shallow: every building on the map with a real address and coordinates. Scores district by district.',
+    'seo.neden2b': 'Surroundings analysis', 'seo.neden2': 'Not just the building; the full picture with distances to the nearest hospital, school, market and transit.',
+    'seo.neden3b': 'Transparent report cards', 'seo.neden3': 'Not a single score; category-by-category report cards, issue and perk flags, proof photos.',
+    'seo.sssBaslik': 'Frequently asked questions', 'seo.ilceBaslik': 'Explore district scores',
   },
 };
 
