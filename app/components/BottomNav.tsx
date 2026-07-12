@@ -92,7 +92,7 @@ export default function BottomNav() {
           {items.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all">
+              <Link key={item.label} href={item.href} className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all">
                 <item.icon size={22} className={isActive ? 'text-blue-600' : 'text-slate-400'} strokeWidth={isActive ? 2.5 : 1.8} />
                 <span className={`text-[10px] font-black italic uppercase tracking-tight ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
                   {item.label}

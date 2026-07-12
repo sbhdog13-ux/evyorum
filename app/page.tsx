@@ -78,16 +78,43 @@ export default function AcilisSayfasi() {
         </div>
       </section>
 
-      {/* Neden Bulevini */}
-      <section className="max-w-5xl mx-auto px-6 pb-16">
-        <h2 className="font-black italic uppercase tracking-tighter text-[26px] mb-6 border-l-4 border-blue-600 pl-4">{t('seo.nedenBaslik')}</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {[[t('seo.neden1b'), t('seo.neden1')], [t('seo.neden2b'), t('seo.neden2')], [t('seo.neden3b'), t('seo.neden3')]].map(([b, m]) => (
-            <div key={b} className="bg-[#023E56] rounded-[2rem] p-7 text-white">
-              <h3 className="font-black italic text-[17px] mb-2">{b}</h3>
-              <p className="text-[14px] leading-relaxed text-[#A1CDE9]">{m}</p>
+      {/* Bulevini Nedir — kimlik bölümü */}
+      <section className="max-w-3xl mx-auto px-6 pb-16">
+        <div className="text-[11px] font-black italic uppercase tracking-[2px] text-slate-400">{t('nedir.etiket')}</div>
+        <h2 className="font-black italic uppercase tracking-tighter text-[30px] leading-[1.1] mt-2">
+          {t('nedir.baslik1')}<br /><span className="text-[#023E56]">{t('nedir.baslik2')}</span>
+        </h2>
+        <p className="text-[14px] leading-relaxed text-slate-600 mt-5">{t('nedir.p1')}</p>
+        <p className="text-[14px] leading-relaxed text-slate-600 mt-3">{t('nedir.p2')}</p>
+        <div className="bg-[#023E56] rounded-[2rem] p-7 mt-5">
+          <p className="text-[14px] leading-relaxed text-[#e0f2fe]">{t('nedir.p3')}</p>
+          <p className="text-[14px] leading-relaxed text-[#e0f2fe] mt-3">{t('nedir.p4a')}<b className="text-white">{t('nedir.p4b')}</b></p>
+        </div>
+
+        <h3 className="font-black italic uppercase tracking-tighter text-[18px] mt-9">{t('nedir.sorunBaslik')}</h3>
+        <div className="grid gap-3 md:grid-cols-2 mt-4">
+          {[[t('nedir.s1b'), t('nedir.s1')], [t('nedir.s2b'), t('nedir.s2')], [t('nedir.s3b'), t('nedir.s3')], [t('nedir.s4b'), t('nedir.s4')]].map(([b, m]) => (
+            <div key={b} className="border border-slate-200 rounded-2xl p-5">
+              <div className="text-[12px] font-black italic text-[#023E56]">{b}</div>
+              <p className="text-[12px] leading-relaxed text-slate-500 mt-2">{m}</p>
             </div>
           ))}
+        </div>
+
+        <h3 className="font-black italic uppercase tracking-tighter text-[18px] mt-9">{t('nedir.degilBaslik')}</h3>
+        <div className="space-y-2.5 mt-3">
+          {[[t('nedir.d1b'), t('nedir.d1')], [t('nedir.d2b'), t('nedir.d2')], [t('nedir.d3b'), t('nedir.d3')]].map(([b, m]) => (
+            <div key={b} className="flex gap-2.5 items-baseline text-[13px] leading-relaxed text-slate-600">
+              <span className="text-red-600 font-black">✕</span>
+              <span><b className="text-black">{b}</b> — {m}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-10 pt-7 border-t border-slate-100">
+          <div className="font-black italic uppercase tracking-tighter text-[20px]">{t('nedir.kapanis1')}</div>
+          <div className="font-black italic uppercase tracking-tighter text-[20px] text-[#023E56]">{t('nedir.kapanis2')}</div>
+          <Link href="/giris" className="inline-block bg-[#023E56] text-white text-[12px] font-black italic tracking-widest px-7 py-4 rounded-2xl mt-5">{t('nedir.cta')}</Link>
         </div>
       </section>
 
