@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { LogIn, ArrowRight, UserPlus, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -33,6 +33,8 @@ export default function GirisKayitSayfasi() {
       } else {
         const result = await createUserWithEmailAndPassword(auth, email, sifre);
         await updateProfile(result.user, { displayName: isim });
+        sendEmailVerification(result.user).catch(() => {});
+        alert(t('dogrula.gonderildi'));
       }
       router.push('/');
     } catch (err: any) {

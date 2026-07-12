@@ -64,6 +64,10 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'olustur.fotoBekle': 'Adres Çekilince Fotoğraf Gelecek', 'olustur.haritaBekle': 'Harita Bekleniyor',
     'olustur.binaAdi': 'BİNA ADI', 'olustur.binaAdiPh': 'BİNA İSMİNİ GİRİN', 'olustur.acikAdres': 'AÇIK ADRES', 'olustur.ilce': 'İLÇE', 'olustur.mahalle': 'MAHALLE',
     'olustur.gonder': 'BİNAYI MÜHÜRLE',
+    'dogrula.gonderildi': 'Doğrulama bağlantısı e-postana gönderildi. Gelen kutunu (ve spam klasörünü) kontrol et.',
+    'dogrula.gerekli': 'Mühür basabilmek için önce e-postanı doğrulaman gerekiyor.',
+    'dogrula.tekrar': 'DOĞRULAMA MAİLİNİ TEKRAR GÖNDER', 'dogrula.kontrolEt': 'DOĞRULADIM, KONTROL ET',
+    'dogrula.baslik': 'E-POSTANI DOĞRULA', 'dogrula.hala': 'Henüz doğrulanmamış görünüyor. Maildeki bağlantıya tıkladıktan sonra tekrar dene.',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -126,6 +130,10 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'olustur.fotoBekle': 'Photo appears after fetching the address', 'olustur.haritaBekle': 'Waiting for the map',
     'olustur.binaAdi': 'BUILDING NAME', 'olustur.binaAdiPh': 'ENTER THE BUILDING NAME', 'olustur.acikAdres': 'FULL ADDRESS', 'olustur.ilce': 'DISTRICT', 'olustur.mahalle': 'NEIGHBOURHOOD',
     'olustur.gonder': 'SEAL THE BUILDING',
+    'dogrula.gonderildi': 'A verification link was sent to your email. Check your inbox (and spam folder).',
+    'dogrula.gerekli': 'You need to verify your email before sealing.',
+    'dogrula.tekrar': 'RESEND VERIFICATION EMAIL', 'dogrula.kontrolEt': 'I VERIFIED, CHECK AGAIN',
+    'dogrula.baslik': 'VERIFY YOUR EMAIL', 'dogrula.hala': 'Still not verified. Click the link in the email, then try again.',
   },
 };
 

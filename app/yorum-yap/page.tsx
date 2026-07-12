@@ -10,6 +10,7 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'fire
 import { useAuth } from '@/app/contexts/AuthContext';
 import { takipcilariBildir } from '@/app/lib/notifications';
 import { useLang } from '@/app/lib/i18n';
+import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 
 function YorumFormu() {
   const router = useRouter();
@@ -180,6 +181,7 @@ function YorumFormu() {
     }
   };
 
+  if (!authLoading && user && !user.emailVerified) return <DogrulamaKapisi />;
   if (authLoading) return <div className="min-h-screen flex items-center justify-center font-black italic uppercase text-slate-200">Yükleniyor...</div>;
 
   return (

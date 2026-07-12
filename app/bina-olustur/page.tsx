@@ -8,6 +8,7 @@ import { db } from '@/app/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
+import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
@@ -136,6 +137,7 @@ function BinaOlusturForm() {
     }
   };
 
+  if (!authLoading && user && !user.emailVerified) return <DogrulamaKapisi />;
   if (authLoading) return <div className="min-h-screen flex items-center justify-center font-black italic uppercase text-slate-200">Yükleniyor...</div>;
 
   return (
