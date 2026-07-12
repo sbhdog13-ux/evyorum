@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useLang } from '@/app/lib/i18n';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
@@ -14,6 +15,7 @@ function BinaOlusturForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -142,10 +144,10 @@ function BinaOlusturForm() {
         
         <header className="p-6 border-b border-slate-50 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-10 text-left">
           <Link href="/arama" className="text-slate-400 hover:text-black transition-all flex items-center gap-2 font-black italic uppercase text-xs text-left">
-            <ArrowLeft size={16} /> GERİ DÖN
+            <ArrowLeft size={16} /> {t('olustur.geri')}
           </Link>
           <div className="flex items-center gap-2 font-bold text-blue-600 italic text-left">
-            <MapPin size={20} /> BULEVİNİ <span className="text-[9px] bg-blue-600 text-white px-2 py-0.5 rounded-full ml-1 uppercase tracking-tighter">MÜHÜR ODASI</span>
+            <MapPin size={20} /> BULEVİNİ <span className="text-[9px] bg-blue-600 text-white px-2 py-0.5 rounded-full ml-1 uppercase tracking-tighter">{t('olustur.oda')}</span>
           </div>
         </header>
 
@@ -155,18 +157,18 @@ function BinaOlusturForm() {
               {formData.foto_url ? (
                 <img src={formData.foto_url} alt="Bina" onError={(e: any) => { e.currentTarget.style.display = "none"; }} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px] p-4 text-center">Adres Çekilince Fotoğraf Gelecek</div>
+                <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px] p-4 text-center">{t('olustur.fotoBekle')}</div>
               )}
               <div className="absolute top-2 left-2 bg-[#023E56]/50 text-white p-2 rounded-full"><Camera size={14} /></div>
             </div>
 
             <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] bg-slate-50 text-left">
-              {formData.koordinat ? <iframe title="Konum" className="w-full h-full border-0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(formData.koordinat.split(',')[1]) - 0.004},${parseFloat(formData.koordinat.split(',')[0]) - 0.004},${parseFloat(formData.koordinat.split(',')[1]) + 0.004},${parseFloat(formData.koordinat.split(',')[0]) + 0.004}&layer=mapnik&marker=${formData.koordinat.split(',')[0].trim()},${formData.koordinat.split(',')[1].trim()}`} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px]">Harita Bekleniyor</div>}
+              {formData.koordinat ? <iframe title="Konum" className="w-full h-full border-0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(formData.koordinat.split(',')[1]) - 0.004},${parseFloat(formData.koordinat.split(',')[0]) - 0.004},${parseFloat(formData.koordinat.split(',')[1]) + 0.004},${parseFloat(formData.koordinat.split(',')[0]) + 0.004}&layer=mapnik&marker=${formData.koordinat.split(',')[0].trim()},${formData.koordinat.split(',')[1].trim()}`} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px]">{t('olustur.haritaBekle')}</div>}
             </div>
           </div>
 
           <div className="bg-[#023E56] p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden text-left">
-            <label className="block text-[10px] font-black text-blue-400 uppercase italic mb-3 tracking-[0.3em] text-left">KONUM KOORDİNATLARI</label>
+            <label className="block text-[10px] font-black text-blue-400 uppercase italic mb-3 tracking-[0.3em] text-left">{t('olustur.koordinat')}</label>
             <div className="flex flex-col md:flex-row gap-4 items-center relative z-10 text-left">
               <input
                 value={formData.koordinat}
@@ -185,22 +187,22 @@ function BinaOlusturForm() {
           </div>
 
           <div className="bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-[#A1CDE9] shadow-inner text-left">
-            <label className="block text-[10px] font-black text-blue-600 uppercase italic mb-3 tracking-widest leading-none text-left">BİNA ADI</label>
+            <label className="block text-[10px] font-black text-blue-600 uppercase italic mb-3 tracking-widest leading-none text-left">{t('olustur.binaAdi')}</label>
             <input
               value={formData.bina_adi}
               onChange={(e) => setFormData({...formData, bina_adi: trUpper(e.target.value)})}
-              placeholder="BİNA İSMİNİ GİRİN"
+              placeholder={t('olustur.binaAdiPh')}
               className="w-full bg-transparent text-2xl md:text-3xl font-black outline-none uppercase italic text-black text-left"
             />
           </div>
 
           <section className="space-y-4 text-left">
-            <label className="text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest pl-2 text-left">İSTİHBARAT KAYNAĞI / BAĞLANTIN</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest pl-2 text-left">{t('muhurle.kaynak')}</label>
             <div className="grid grid-cols-3 gap-3 text-left">
               {[
-                { id: 'sakin', label: 'SAKİNİM', icon: UserCheck, desc: '%100 Güç' },
-                { id: 'eski_sakin', label: 'ESKİ SAKİN', icon: History, desc: '%70 Güç' },
-                { id: 'ziyaretci', label: 'ZİYARETÇİ', icon: Eye, desc: '%30 Güç' }
+                { id: 'sakin', label: t('muhurle.sakinim'), icon: UserCheck, desc: `%100 ${t('muhurle.etki')}` },
+                { id: 'eski_sakin', label: t('muhurle.eskiSakin'), icon: History, desc: `%70 ${t('muhurle.etki')}` },
+                { id: 'ziyaretci', label: t('muhurle.ziyaretci'), icon: Eye, desc: `%30 ${t('muhurle.etki')}` }
               ].map((item) => (
                 <button
                   key={item.id}
@@ -223,7 +225,7 @@ function BinaOlusturForm() {
           </section>
 
           <div className="bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-slate-100 text-left">
-            <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest leading-none text-left">AÇIK ADRES</label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest leading-none text-left">{t('olustur.acikAdres')}</label>
             <textarea
               value={formData.acik_adres_ham}
               onChange={(e) => setFormData({...formData, acik_adres_ham: trUpper(e.target.value)})}
@@ -234,11 +236,11 @@ function BinaOlusturForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 text-left">
-              <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-2 tracking-widest text-left">İLÇE</label>
+              <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-2 tracking-widest text-left">{t('olustur.ilce')}</label>
               <input value={formData.ilce} onChange={(e) => setFormData({...formData, ilce: trUpper(e.target.value)})} className="w-full bg-transparent text-sm font-bold outline-none uppercase italic text-blue-600 text-left" />
             </div>
             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 text-left">
-              <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-2 tracking-widest text-left">MAHALLE</label>
+              <label className="block text-[10px] font-black text-slate-400 uppercase italic mb-2 tracking-widest text-left">{t('olustur.mahalle')}</label>
               <input value={formData.mahalle} onChange={(e) => setFormData({...formData, mahalle: trUpper(e.target.value)})} className="w-full bg-transparent text-sm font-bold outline-none uppercase italic text-black text-left" />
             </div>
           </div>
@@ -248,7 +250,7 @@ function BinaOlusturForm() {
               <div className="flex items-center gap-3 text-left">
                 {isAnonymous ? <UserX size={24} /> : <UserCircle size={24} />}
                 <span className="font-black uppercase italic text-sm text-left">
-                  {isAnonymous ? 'ANONİM SAKİN' : (user?.displayName || user?.email?.split('@')[0] || 'KULLANICI')}
+                  {isAnonymous ? t('muhurle.anonim') : (user?.displayName || user?.email?.split('@')[0] || 'KULLANICI')}
                 </span>
               </div>
             </button>

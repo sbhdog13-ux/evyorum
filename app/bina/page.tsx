@@ -8,9 +8,11 @@ import { db } from '@/app/lib/firebase';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
+import { useLang } from '@/app/lib/i18n';
 
 function BinaDetayIcerik() {
   const searchParams = useSearchParams();
+  const { t } = useLang();
   const { user } = useAuth();
 
   const [dbYorumlar, setDbYorumlar] = useState<any[]>([]);
@@ -203,7 +205,7 @@ function BinaDetayIcerik() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white p-6">
         <div className="text-center">
-          <h2 className="font-black italic uppercase text-slate-200 text-2xl mb-4">BİNA BULUNAMADI</h2>
+          <h2 className="font-black italic uppercase text-slate-200 text-2xl mb-4">{t('bina.bulunamadi')}</h2>
           <Link href="/arama" className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm uppercase italic">ARAMAYA DÖN</Link>
         </div>
       </div>
@@ -215,7 +217,7 @@ function BinaDetayIcerik() {
       <header className="p-4 border-b border-slate-50 sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <Link href="/arama" className="flex items-center gap-2 text-slate-400 hover:text-black transition-all text-[12px] font-bold uppercase tracking-tight italic">
-            <ArrowLeft size={14} /> <span className="hidden md:inline">Aramaya Dön</span>
+            <ArrowLeft size={14} /> <span className="hidden md:inline">{t('bina.aramayaDon')}</span>
           </Link>
           
           <div className="flex items-center gap-3">
@@ -226,7 +228,7 @@ function BinaDetayIcerik() {
                 className={`flex items-center gap-2 px-3 md:px-6 py-2.5 md:py-3 rounded-full text-[10px] md:text-[11px] font-black uppercase italic transition-all duration-300 border-2 ${isFollowing ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-slate-400 border-slate-100 hover:border-blue-600 hover:text-blue-600'}`}
               >
                 <Radio size={14} className={isFollowing ? 'animate-pulse' : ''} />
-                <span className="hidden sm:inline">{isFollowing ? 'RADARIMDA' : 'RADARIMA AL'}</span>
+                <span className="hidden sm:inline">{isFollowing ? t('bina.radarimda') : t('bina.radaraAl')}</span>
               </button>
               <button onClick={() => setShowInfo(!showInfo)} className="p-3 bg-slate-50 text-slate-400 rounded-full hover:bg-[#e8f3fa] hover:text-blue-600 transition-all">
                 <Info size={14} />
@@ -237,7 +239,7 @@ function BinaDetayIcerik() {
               href={`/yorum-yap?binaAdi=${encodeURIComponent(binaIsmi || "")}`}
               className="bg-blue-600 text-white px-6 py-3 rounded-full text-[11px] font-black uppercase italic hover:bg-[#023E56] transition-all shadow-xl shadow-blue-100 flex items-center gap-2"
             >
-              <MessageSquarePlus size={14} /> <span className="hidden sm:inline">DENEYİMİNİ PAYLAŞ</span><span className="sm:hidden">PAYLAŞ</span>
+              <MessageSquarePlus size={14} /> <span className="hidden sm:inline">{t('bina.paylas')}</span><span className="sm:hidden">{t('bina.paylasKisa')}</span>
             </Link>
           </div>
         </div>
@@ -247,11 +249,11 @@ function BinaDetayIcerik() {
         {showInfo && (
           <div className="absolute top-4 right-4 z-[100] bg-[#023E56] text-white p-6 rounded-[2rem] shadow-2xl max-w-xs border border-blue-600/50 animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-start mb-2">
-              <h4 className="text-[11px] font-black italic uppercase text-blue-400 tracking-widest">RADAR İSTİHBARATI</h4>
+              <h4 className="text-[11px] font-black italic uppercase text-blue-400 tracking-widest">{t('bina.radarInfo')}</h4>
               <button onClick={() => setShowInfo(false)} className="text-slate-500 hover:text-white"><X size={16} /></button>
             </div>
             <p className="text-[12px] font-medium italic leading-relaxed text-slate-300">
-              Bu binayı radarına aldığında, binaya basılan her yeni mühür anında senin paneline istihbarat olarak düşer.
+              {t('bina.radarInfoText')}
             </p>
           </div>
         )}
@@ -278,18 +280,18 @@ function BinaDetayIcerik() {
                 <div className="flex gap-8">
                   <div className="text-center">
                     <div className="text-[28px] font-black italic">{dbYorumlar.length}</div>
-                    <div className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-1">MÜHÜR</div>
+                    <div className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-1">{t('bina.muhur')}</div>
                   </div>
                   <div className="text-center border-l border-slate-200 pl-8">
                     <div className="text-[28px] font-black italic">{sakinSayisi}</div>
-                    <div className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-1">SAKİN</div>
+                    <div className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-1">{t('bina.sakin')}</div>
                   </div>
                 </div>
               </div>
               {(sorun > 0 || arti > 0) && (
                 <div className="flex gap-3 mt-5">
-                  {sorun > 0 && <span className="bg-white border border-red-200 text-red-600 rounded-xl px-4 py-1.5 text-[11px] font-black uppercase italic">🚩 {sorun} SORUN</span>}
-                  {arti > 0 && <span className="bg-white border border-green-200 text-green-700 rounded-xl px-4 py-1.5 text-[11px] font-black uppercase italic">✅ {arti} ARTI</span>}
+                  {sorun > 0 && <span className="bg-white border border-red-200 text-red-600 rounded-xl px-4 py-1.5 text-[11px] font-black uppercase italic">🚩 {sorun} {t('bina.sorun')}</span>}
+                  {arti > 0 && <span className="bg-white border border-green-200 text-green-700 rounded-xl px-4 py-1.5 text-[11px] font-black uppercase italic">✅ {arti} {t('bina.arti')}</span>}
                 </div>
               )}
             </div>
@@ -317,10 +319,10 @@ function BinaDetayIcerik() {
             </div>
             <div className="grid grid-cols-2 gap-3 mt-6">
               {[
-                { icon: <Home size={14} />, label: "DURUM", val: "MÜHÜRLENDİ" },
-                { icon: <MapPin size={14} />, label: "İLÇE", val: konumBilgisi.ilce },
-                { icon: <Shield size={14} />, label: "SAKİN ONAYI", val: dbYorumlar.filter((y: any) => y.baglanti_tipi === 'sakin').length + " SAKİN" },
-                { icon: <Users size={14} />, label: "MÜHÜR", val: dbYorumlar.length + " ADET" }
+                { icon: <Home size={14} />, label: t('bina.durum'), val: t('bina.muhurlendi') },
+                { icon: <MapPin size={14} />, label: t('bina.ilce'), val: konumBilgisi.ilce },
+                { icon: <Shield size={14} />, label: t('bina.sakinOnayi'), val: dbYorumlar.filter((y: any) => y.baglanti_tipi === 'sakin').length  + " " + t('bina.sakin') },
+                { icon: <Users size={14} />, label: t('bina.muhur'), val: dbYorumlar.length + ' ' + t('bina.adet') }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-100/50">
                   <div className="text-blue-600">{item.icon}</div>
@@ -336,7 +338,7 @@ function BinaDetayIcerik() {
 
         <div className="mb-12 text-left">
           <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-4 border-l-4 border-blue-600 pl-3 flex items-center gap-2">
-            <MapIcon size={18} className="text-blue-600" /> KONUM
+            <MapIcon size={18} className="text-blue-600" /> {t('bina.konum')}
           </h2>
           <div className="w-full h-80 rounded-[2.5rem] overflow-hidden border border-slate-100">
             {(() => {
@@ -355,13 +357,13 @@ function BinaDetayIcerik() {
 
         {poilar.length > 0 && (
           <div className="mb-12 text-left">
-            <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-4 border-l-4 border-blue-600 pl-3">Konum &amp; Çevre Analizi</h2>
+            <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-4 border-l-4 border-blue-600 pl-3">{t('bina.cevre')}</h2>
             <div className="flex flex-wrap gap-2 mb-4">
               {[
-                { id: 'saglik', emoji: '🏥', etiket: 'SAĞLIK' },
-                { id: 'egitim', emoji: '🎓', etiket: 'EĞİTİM' },
-                { id: 'ulasim', emoji: '🚌', etiket: 'ULAŞIM' },
-                { id: 'market', emoji: '🛒', etiket: 'MARKET' },
+                { id: 'saglik', emoji: '🏥', etiket: t('bina.saglik') },
+                { id: 'egitim', emoji: '🎓', etiket: t('bina.egitim') },
+                { id: 'ulasim', emoji: '🚌', etiket: t('bina.ulasim') },
+                { id: 'market', emoji: '🛒', etiket: t('bina.market') },
               ].map(kat => {
                 const aktif = aktifKat.includes(kat.id);
                 const sayi = poilar.filter(p => p.tur === kat.id).length;
@@ -389,7 +391,7 @@ function BinaDetayIcerik() {
         )}
 
         <div className="mb-12 text-left">
-          <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">Bina Karnesi</h2>
+          <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">{t('bina.karne')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {dinamikKarne.length > 0 ? dinamikKarne.map((rate, i) => (
               <div key={i} className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center gap-2 text-center transition-all hover:shadow-md">
@@ -406,14 +408,14 @@ function BinaDetayIcerik() {
               </div>
             )) : (
               <div className="col-span-4 py-14 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-100 flex items-center justify-center text-slate-300 font-black italic uppercase text-[11px] text-center w-full">
-                BU BİNANIN HENÜZ KARNESİ OLUŞMAMIŞ
+                {t('bina.karneYok')}
               </div>
             )}
           </div>
         </div>
 
         <div className="space-y-4 pb-10 text-left">
-          <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">Sakin Deneyimleri</h2>
+          <h2 className="text-[15px] font-black italic uppercase tracking-tighter mb-6 border-l-4 border-blue-600 pl-3">{t('bina.deneyimler')}</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {dbYorumlar.filter((y: any) =>
               !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0))
@@ -431,9 +433,9 @@ function BinaDetayIcerik() {
                           {y.kullanici_adi || "Anonim Sakin"}
                         </h4>
                         <div className="mt-1.5">
-                          {y.baglanti_tipi === 'sakin' ? <span className="bg-green-50 border border-green-200 text-green-700 px-2 py-0.5 rounded-md text-[9px] font-black italic">SAKİN ✓</span>
-                            : y.baglanti_tipi === 'eski_sakin' ? <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[9px] font-black italic">ESKİ SAKİN</span>
-                            : <span className="bg-slate-100 text-slate-400 px-2 py-0.5 rounded-md text-[9px] font-black italic">ZİYARETÇİ</span>}
+                          {y.baglanti_tipi === 'sakin' ? <span className="bg-green-50 border border-green-200 text-green-700 px-2 py-0.5 rounded-md text-[9px] font-black italic">{t('bina.sakinRozet')}</span>
+                            : y.baglanti_tipi === 'eski_sakin' ? <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[9px] font-black italic">{t('bina.eskiSakinRozet')}</span>
+                            : <span className="bg-slate-100 text-slate-400 px-2 py-0.5 rounded-md text-[9px] font-black italic">{t('bina.ziyaretciRozet')}</span>}
                         </div>
                       </div>
                     </div>

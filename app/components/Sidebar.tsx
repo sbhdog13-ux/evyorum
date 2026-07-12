@@ -57,7 +57,7 @@ export default function Sidebar() {
           <div className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center font-black italic text-white">{initial}</div>
           <div className="min-w-0">
             <div className="text-[13px] font-black italic uppercase tracking-tight truncate">{displayName}</div>
-            <Link href="/profil" className="text-[10px] font-black text-blue-600 tracking-widest">PROFİLİM</Link>
+            <Link href="/profil" className="text-[10px] font-black text-blue-600 tracking-widest">{t('ortak.profilim')}</Link>
           </div>
         </div>
         <button onClick={() => setDilAcik(v => !v)} className="w-full flex items-center gap-3 px-6 py-3 hover:bg-slate-50 transition-colors">
@@ -79,7 +79,7 @@ export default function Sidebar() {
         </button>
         <div className="mx-6 mt-1.5 flex items-center gap-2 bg-slate-50 rounded-2xl px-4 py-2.5">
           <ShieldCheck size={14} className="text-slate-400" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">GÜVENLİ ERİŞİM</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">{t('ortak.guvenli')}</span>
         </div>
       </div>
     </aside>

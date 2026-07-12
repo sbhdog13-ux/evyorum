@@ -11,10 +11,12 @@ import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'fire
 import { useAuth } from '@/app/contexts/AuthContext';
 import Sidebar from '@/app/components/Sidebar';
 import ProfilKimlik from '@/app/components/ProfilKimlik';
+import { useLang } from '@/app/lib/i18n';
 
 function ProfilIcerik() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLang();
   const [canliDeneyimler, setCanliDeneyimler] = useState<any[]>([]);
   const [radarBinalar, setRadarBinalar] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,9 +55,9 @@ function ProfilIcerik() {
 
   const getRutbeDetay = (r: string) => {
     switch (r) {
-      case 'muhtar': return { label: 'MUHTAR', color: 'text-amber-400', border: 'border-amber-400/30', bg: 'bg-[#023E56]/60', icon: <Trophy size={22} /> };
-      case 'bolge_sakini': return { label: 'BÖLGE SAKİNİ', color: 'text-white', border: 'border-blue-500/30', bg: 'bg-blue-600/60', icon: <CheckCircle size={22} /> };
-      default: return { label: 'KOMŞU', color: 'text-slate-400', border: 'border-slate-800/50', bg: 'bg-slate-900/60', icon: <Medal size={22} /> };
+      case 'muhtar': return { label: t('profil.muhtar'), color: 'text-amber-400', border: 'border-amber-400/30', bg: 'bg-[#023E56]/60', icon: <Trophy size={22} /> };
+      case 'bolge_sakini': return { label: t('profil.bolgeSakini'), color: 'text-white', border: 'border-blue-500/30', bg: 'bg-blue-600/60', icon: <CheckCircle size={22} /> };
+      default: return { label: t('profil.komsu'), color: 'text-slate-400', border: 'border-slate-800/50', bg: 'bg-slate-900/60', icon: <Medal size={22} /> };
     }
   };
 
@@ -88,11 +90,11 @@ function ProfilIcerik() {
             <Link href="/" className="p-3 bg-white/60 rounded-2xl shadow-sm border border-white hover:bg-blue-600 hover:text-white transition-all backdrop-blur-md text-black">
               <ArrowLeft size={20} />
             </Link>
-            <h1 className="text-[16px] md:text-[24px] tracking-tighter border-l-[6px] md:border-l-[10px] border-blue-600 pl-5 text-black">KARAKTER PANELİ</h1>
+            <h1 className="text-[16px] md:text-[24px] tracking-tighter border-l-[6px] md:border-l-[10px] border-blue-600 pl-5 text-black">{t('profil.panel')}</h1>
           </div>
           <div className="bg-white/50 px-5 py-2.5 rounded-2xl border border-white/50 backdrop-blur-md shadow-sm flex items-center gap-3">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-[10px] tracking-widest text-slate-600">{rutbe.label} AKTİF</span>
+            <span className="text-[10px] tracking-widest text-slate-600">{rutbe.label} {t('profil.aktif')}</span>
           </div>
         </header>
 
@@ -102,20 +104,20 @@ function ProfilIcerik() {
               <div className="flex justify-between items-start mb-6 text-black">
                 <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg"><LocateFixed size={24} /></div>
                 <div className="text-right">
-                  <span className="text-[9px] font-black text-slate-400 uppercase italic">Toplam Mühür</span>
+                  <span className="text-[9px] font-black text-slate-400 uppercase italic">{t('profil.toplamMuhur')}</span>
                   <h4 className="text-[32px] font-black italic text-black mt-1">{muhurSayisi}</h4>
                 </div>
               </div>
               <div className="h-2.5 bg-[#023E56]/5 rounded-full overflow-hidden border border-white mb-3">
                 <div className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.min((muhurSayisi / 15) * 100, 100)}%` }} />
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase italic">{muhurSayisi} / 15 MUHTAR MÜHÜRÜ</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase italic">{muhurSayisi} / 15 {t('profil.muhtarMuhru')}</span>
             </section>
 
             <section className="bg-[#023E56] text-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden">
               <div className="relative z-10">
                 <div className="flex justify-between items-center mb-6">
-                  <span className="text-[10px] font-black italic uppercase text-amber-400 tracking-widest">PUAN</span>
+                  <span className="text-[10px] font-black italic uppercase text-amber-400 tracking-widest">{t('profil.puan')}</span>
                   <Trophy className="text-amber-400" size={20} />
                 </div>
                 <span className="text-[42px] font-black italic tracking-tighter leading-none block">{muhurSayisi * 100}</span>
@@ -125,19 +127,19 @@ function ProfilIcerik() {
 
             <button onClick={() => document.getElementById('radar-detay-bolumu')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white shadow-xl flex flex-col justify-between group hover:border-blue-600 transition-all text-left">
               <div className="flex justify-between items-center mb-4 text-black">
-                <span className="text-[10px] font-black text-slate-400 uppercase italic">Radar Odası</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase italic">{t('profil.radarOdasi')}</span>
                 <Radio size={20} className="text-blue-600 animate-pulse" />
               </div>
               <div>
                 <span className="text-[42px] font-black italic tracking-tighter leading-none block text-black">{radarBinalar.length}</span>
-                <span className="text-[10px] font-black text-blue-600 uppercase italic tracking-widest mt-2 block">TAKİPTEKİ BİNA</span>
+                <span className="text-[10px] font-black text-blue-600 uppercase italic tracking-widest mt-2 block">{t('profil.takipteki')}</span>
               </div>
-              <div className="text-[9px] font-black text-slate-400 uppercase italic mt-4 underline group-hover:text-blue-600 transition-colors">Detaylara Git</div>
+              <div className="text-[9px] font-black text-slate-400 uppercase italic mt-4 underline group-hover:text-blue-600 transition-colors">{t('profil.detaylara')}</div>
             </button>
           </div>
 
           <section className="bg-white/60 backdrop-blur-2xl p-6 md:p-12 rounded-[2rem] md:rounded-[4rem] border border-white shadow-2xl text-black">
-            <h3 className="text-[14px] font-black italic uppercase tracking-widest mb-12 border-l-4 border-blue-600 pl-5 text-black">KOLEKSİYONUM VE ROZETLERİM</h3>
+            <h3 className="text-[14px] font-black italic uppercase tracking-widest mb-12 border-l-4 border-blue-600 pl-5 text-black">{t('profil.rozetler')}</h3>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-4 md:gap-10">
               {rozetler.map((rozet) => (
                 <div key={rozet.id} className={`flex flex-col items-center gap-4 transition-all ${rozet.active ? 'opacity-100' : 'opacity-20 grayscale'}`}>
@@ -164,7 +166,7 @@ function ProfilIcerik() {
 
           <section id="radar-detay-bolumu" className="scroll-mt-32 space-y-10">
             <h3 className="text-[16px] font-black italic uppercase tracking-widest text-slate-400 flex items-center gap-4 px-4">
-              <Radar size={22} className="text-blue-600" /> Radarımdaki Binalar
+              <Radar size={22} className="text-blue-600" /> {t('profil.radarBinalar')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {radarBinalar.length > 0 ? radarBinalar.map((bina) => (
@@ -175,12 +177,12 @@ function ProfilIcerik() {
                   </div>
                   <h4 className="text-[18px] font-black uppercase italic tracking-tighter mb-2 group-hover:text-blue-600 line-clamp-1">{bina.bina_adi}</h4>
                   <Link href={`/arama?query=${encodeURIComponent(bina.bina_adi)}`} className="mt-8 w-full py-4 bg-white/40 border border-white rounded-2xl flex items-center justify-center gap-2 text-[11px] font-black uppercase italic text-slate-500 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                    Binaya Git →
+                    {t('profil.binayaGit')}
                   </Link>
                 </div>
               )) : (
                 <div className="col-span-full py-20 bg-[#023E56]/5 border-2 border-dashed border-black/10 rounded-[4rem] text-center opacity-30">
-                  <p className="text-black font-black italic uppercase text-[12px] tracking-widest">Takipte bina yok.</p>
+                  <p className="text-black font-black italic uppercase text-[12px] tracking-widest">{t('profil.takipYok')}</p>
                 </div>
               )}
             </div>
@@ -188,7 +190,7 @@ function ProfilIcerik() {
 
           <section className="space-y-10 pb-20 text-black font-black italic uppercase">
             <h3 className="text-[16px] tracking-widest text-slate-400 flex items-center gap-4 px-4">
-              <MessageSquare size={20} className="text-blue-600" /> Deneyim Arşivi
+              <MessageSquare size={20} className="text-blue-600" /> {t('profil.arsiv')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {gosterilecekDeneyimler.map((deneyim) => (
@@ -204,14 +206,14 @@ function ProfilIcerik() {
                     <p className="text-[17px] font-medium text-slate-700 italic leading-relaxed">"{deneyim.yorum_metni}"</p>
                   </div>
                   <div className="flex items-center gap-3 text-[12px] font-black text-blue-600 bg-[#dcecf7]/50 px-6 py-3 rounded-2xl border border-[#A1CDE9] uppercase">
-                    <Star size={16} fill="currentColor" /> {deneyim.puan}/5 PUAN
+                    <Star size={16} fill="currentColor" /> {deneyim.puan}/5 {t('profil.puanBirim')}
                   </div>
                 </div>
               ))}
             </div>
             {!showAll && canliDeneyimler.length > 3 && (
               <button onClick={() => setShowAll(true)} className="w-full py-12 bg-white/40 backdrop-blur-xl border-4 border-dashed border-slate-200 rounded-[4rem] text-slate-400 font-black italic uppercase text-[15px] tracking-widest hover:border-blue-600 hover:text-blue-600 transition-all flex items-center justify-center gap-4 group">
-                TÜM ARŞİVİ AÇ ({canliDeneyimler.length - 3})
+                {t('profil.tumArsiv')} ({canliDeneyimler.length - 3})
                 <ChevronDown size={24} className="group-hover:translate-y-2 transition-transform" />
               </button>
             )}
