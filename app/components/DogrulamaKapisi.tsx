@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { sendEmailVerification, reload } from 'firebase/auth';
-import { auth } from '@/app/lib/firebase';
+import { auth } from '@/app/lib/firebase-auth';
 import { useLang } from '@/app/lib/i18n';
 import { MailWarning } from 'lucide-react';
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from 'firebase/auth';
-import { auth } from '@/app/lib/firebase';
+import { auth } from '@/app/lib/firebase-auth';
 import { LogIn, ArrowRight, UserPlus, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';

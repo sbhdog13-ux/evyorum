@@ -12,7 +12,7 @@ import LeafletHarita from '@/app/components/LeafletHarita';
 import { useLang } from '@/app/lib/i18n';
 import Sidebar from '@/app/components/Sidebar';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/app/lib/firebase';
+import { auth } from '@/app/lib/firebase-auth';
 
 export default function Home() {
   const { user } = useAuth();

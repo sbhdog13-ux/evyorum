@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Map, Search, BarChart2, Building2, Radio, MessageSquare, LogOut, ShieldCheck } from 'lucide-react';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/app/lib/firebase';
+import { auth } from '@/app/lib/firebase-auth';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
 import { useState } from 'react';

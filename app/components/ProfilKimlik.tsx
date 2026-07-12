@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/app/lib/firebase';
+import { auth } from '@/app/lib/firebase-auth';
+import { db } from '@/app/lib/firebase';
 
 // Mobildeki Avatar + isim düzenleme sisteminin web karşılığı
 export type AvatarSecim = { tip: 'preset'; id: string } | { tip: 'ozel'; renk: string; desen: 'dolu' | 'cizgili' | 'noktali' };
