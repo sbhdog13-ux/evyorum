@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -9,11 +9,19 @@ export default function AcilisSayfasi() {
   const { user, loading } = useAuth() as any;
   const router = useRouter();
   const { t } = useLang();
+  const [muhtemelGirisli, setMuhtemelGirisli] = useState(false);
+
+  // Daha önce giriş yapmış tarayıcıda açılış flaşını atla
+  useEffect(() => {
+    try { if (localStorage.getItem('bulevini_girisli') === '1') { setMuhtemelGirisli(true); router.replace('/kesfet'); } } catch {}
+  }, []);
 
   // Giriş yapmış kullanıcı doğrudan uygulamaya geçer
   useEffect(() => {
     if (!loading && user) router.replace('/kesfet');
   }, [user, loading]);
+
+  if (muhtemelGirisli) return <div className="min-h-screen bg-white" />;
 
   return (
     <div className="min-h-screen bg-white text-[#0f172a] font-sans">

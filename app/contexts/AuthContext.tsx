@@ -17,6 +17,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      try { localStorage.setItem('bulevini_girisli', user ? '1' : '0'); } catch {}
       setUser(user);
       setLoading(false);
     });

@@ -29,9 +29,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
+          id="gfont"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
           rel="stylesheet"
+          media="print"
         />
+        <script dangerouslySetInnerHTML={{ __html: "(function(){var l=document.getElementById('gfont');if(!l)return;function f(){l.media='all'}if(l.sheet){f()}else{l.addEventListener('load',f)}})();" }} />
       </head>
       <body style={{ fontFamily: "'Inter', sans-serif" }}>
         <LangProvider>
