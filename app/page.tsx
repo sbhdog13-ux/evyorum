@@ -122,30 +122,12 @@ export default function AcilisSayfasi() {
       <section className="max-w-3xl mx-auto px-6 pb-16">
         <h2 className="font-black italic uppercase tracking-tighter text-[26px] mb-6 border-l-4 border-blue-600 pl-4">{t('seo.sssBaslik')}</h2>
         <div className="space-y-3">
-          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
-            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Bulevini nedir?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
-            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız bir platformdur. Bir binayla yolu kesişmiş herkes deneyimini mühürler; bu kayıtlar birikir ve binanın karnesine dönüşür. Evini tutmadan önce o karneye bakarsın. Şu an İstanbul'da hizmet veriyor.</p>
-          </details>
-          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
-            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Bina yorumları güvenilir mi?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
-            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Yorumlar bağlantı tipine göre ağırlıklandırılır: mevcut sakinin puanı en yüksek etkiye sahiptir; eski sakin ve ziyaretçi yorumları daha düşük ağırlıkla hesaba katılır. Kanıt fotoğrafı da eklenebilir.</p>
-          </details>
-          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
-            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Yorum yazmak için kimliğim görünür mü?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
-            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Hayır, istersen tamamen anonim paylaşabilirsin. Kimliğin hiçbir zaman ev sahibi veya üçüncü kişilerle paylaşılmaz.</p>
-          </details>
-          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
-            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Mühür nedir?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
-            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Mühür, bir binada yaşamış birinin o bina hakkında bıraktığı puanlı deneyim kaydıdır: ısınma, deprem dayanıklılığı, komşuluk, yönetim gibi kategorilerde.</p>
-          </details>
-          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
-            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Hangi şehirlerde çalışıyor?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
-            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Şu an İstanbul'un tüm ilçelerinde derinlemesine çalışıyoruz: her bina gerçek adres ve koordinatla haritada.</p>
-          </details>
-          <details className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
-            <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">Ücretli mi?<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
-            <p className="mt-3 text-[14px] leading-relaxed text-slate-500">Hayır, Bulevini tamamen ücretsizdir.</p>
-          </details>
+          {[1, 2, 3, 4, 5, 6].map(n => (
+            <details key={n} className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
+              <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">{t(`sss.s${n}`)}<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
+              <p className="mt-3 text-[14px] leading-relaxed text-slate-500">{t(`sss.c${n}`)}</p>
+            </details>
+          ))}
         </div>
       </section>
 
@@ -172,8 +154,8 @@ export default function AcilisSayfasi() {
 
       <footer className="border-t border-slate-100 py-8">
         <div className="max-w-5xl mx-auto px-6 flex flex-wrap gap-3 items-center justify-between text-[13px] text-slate-400">
-          <span>© 2026 Bulevini — Türkiye'nin en şeffaf bina platformu</span>
-          <span><Link href="/gizlilik" className="underline">Gizlilik Politikası &amp; KVKK</Link> · <a href="mailto:sbhdog13@gmail.com" className="underline">İletişim</a></span>
+          <span>{t('footer.telif')}</span>
+          <span><Link href="/gizlilik" className="underline">{t('footer.gizlilik')}</Link> · <a href="mailto:sbhdog13@gmail.com" className="underline">{t('footer.iletisim')}</a></span>
         </div>
       </footer>
     </div>

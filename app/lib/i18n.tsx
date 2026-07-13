@@ -92,6 +92,21 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'nedir.d2b': 'Emlak sitesi değiliz', 'nedir.d2': 'ev satmayız, ilan almayız, komisyon almayız. Satışta çıkarımız olmadığı için gerçeği yumuşatmayız.',
     'nedir.d3b': 'Forum değiliz', 'nedir.d3': 'sohbet değil, kayıt tutarız: puan, kategori, kanıt, sakin onayı.',
     'nedir.kapanis1': "BUGÜN İSTANBUL'DAYIZ.", 'nedir.kapanis2': 'YARIN, SOKAĞINDA.', 'nedir.cta': 'SEN DE MÜHRÜNÜ BAS →',
+    'sss.s1': 'Bulevini nedir?', 'sss.c1': "Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız bir platformdur. Bir binayla yolu kesişmiş herkes deneyimini mühürler; bu kayıtlar birikir ve binanın karnesine dönüşür. Evini tutmadan önce o karneye bakarsın. Şu an İstanbul'da hizmet veriyor.",
+    'sss.s2': 'Bina yorumları güvenilir mi?', 'sss.c2': 'Yorumlar bağlantı tipine göre ağırlıklandırılır: mevcut sakinin puanı en yüksek etkiye sahiptir; eski sakin ve ziyaretçi yorumları daha düşük ağırlıkla hesaba katılır. Kanıt fotoğrafı da eklenebilir.',
+    'sss.s3': 'Yorum yazmak için kimliğim görünür mü?', 'sss.c3': 'Hayır, istersen tamamen anonim paylaşabilirsin. Kimliğin hiçbir zaman ev sahibi veya üçüncü kişilerle paylaşılmaz.',
+    'sss.s4': 'Mühür nedir?', 'sss.c4': 'Mühür, bir binada yaşamış birinin o bina hakkında bıraktığı puanlı deneyim kaydıdır: ısınma, deprem dayanıklılığı, komşuluk, yönetim gibi kategorilerde.',
+    'sss.s5': 'Hangi şehirlerde çalışıyor?', 'sss.c5': "Şu an İstanbul'un tüm ilçelerinde derinlemesine çalışıyoruz: her bina gerçek adres ve koordinatla haritada.",
+    'sss.s6': 'Ücretli mi?', 'sss.c6': 'Hayır, Bulevini tamamen ücretsizdir.',
+    'footer.telif': "© 2026 Bulevini — Türkiye'nin en şeffaf bina platformu",
+    'footer.gizlilik': 'Gizlilik Politikası & KVKK', 'footer.iletisim': 'İletişim',
+    'giris.hataKvkk': 'Devam etmek için KVKK metnini kabul etmelisin.',
+    'giris.hataGiris': 'E-posta veya şifre hatalı.', 'giris.hataKayitli': 'Bu e-posta zaten kayıtlı.',
+    'giris.hataSifre': 'Şifre en az 6 karakter olmalı.', 'giris.hataGenel': 'Bir hata oluştu, tekrar dene.',
+    'giris.kvkkLink': 'KVKK Aydınlatma Metni ve Kullanım Koşulları', 'giris.kvkkSon': "'nı okudum, kabul ediyorum.",
+    'giris.isimPh': 'ÖRN: AYŞE YILMAZ',
+    'profil.av1': 'KLASİK', 'profil.av2': 'GİZEMLİ', 'profil.av3': 'NEON', 'profil.av4': 'DOĞA', 'profil.av5': 'ENERJİK',
+    'profil.desen1': 'DÜZGÜN', 'profil.desen2': 'ÇİZGİLİ', 'profil.desen3': 'NOKTALI',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -182,6 +197,21 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'nedir.d2b': 'Not a real estate site', 'nedir.d2': "we don't sell homes, run listings, or take commissions. With no stake in the sale, we don't soften the truth.",
     'nedir.d3b': 'Not a forum', 'nedir.d3': 'not chatter but records: scores, categories, evidence, resident verification.',
     'nedir.kapanis1': "TODAY, WE'RE IN ISTANBUL.", 'nedir.kapanis2': 'TOMORROW, ON YOUR STREET.', 'nedir.cta': 'STAMP YOUR SEAL →',
+    'sss.s1': 'What is Bulevini?', 'sss.c1': "Bulevini is an independent platform that keeps the shared memory of buildings, built from real resident experiences. Everyone whose path has crossed a building seals their experience; these records accumulate and become the building's report card. You check that card before renting. Currently serving Istanbul.",
+    'sss.s2': 'Are building reviews reliable?', 'sss.c2': 'Reviews are weighted by connection type: a current resident has the highest impact; former residents and visitors count with lower weight. Evidence photos can also be attached.',
+    'sss.s3': 'Is my identity visible when I write a review?', 'sss.c3': 'No — you can share completely anonymously. Your identity is never shared with landlords or third parties.',
+    'sss.s4': 'What is a Seal?', 'sss.c4': 'A Seal is a scored experience record left by someone who lived in a building: heating, earthquake resilience, neighbors, management and more.',
+    'sss.s5': 'Which cities are covered?', 'sss.c5': 'We currently cover all districts of Istanbul in depth: every building on the map with a real address and coordinates.',
+    'sss.s6': 'Is it paid?', 'sss.c6': 'No, Bulevini is completely free.',
+    'footer.telif': "© 2026 Bulevini — Turkey's most transparent building platform",
+    'footer.gizlilik': 'Privacy Policy & GDPR/KVKK', 'footer.iletisim': 'Contact',
+    'giris.hataKvkk': 'You must accept the privacy notice to continue.',
+    'giris.hataGiris': 'Incorrect e-mail or password.', 'giris.hataKayitli': 'This e-mail is already registered.',
+    'giris.hataSifre': 'Password must be at least 6 characters.', 'giris.hataGenel': 'Something went wrong, try again.',
+    'giris.kvkkLink': 'Privacy Notice and Terms of Use', 'giris.kvkkSon': ' — I have read and accept.',
+    'giris.isimPh': 'E.G. JANE DOE',
+    'profil.av1': 'CLASSIC', 'profil.av2': 'MYSTIC', 'profil.av3': 'NEON', 'profil.av4': 'NATURE', 'profil.av5': 'ENERGETIC',
+    'profil.desen1': 'SOLID', 'profil.desen2': 'STRIPED', 'profil.desen3': 'DOTTED',
   },
 };
 
@@ -194,6 +224,8 @@ export function LangProvider({ children }: { children: ReactNode }) {
     if (kayitli) setDilState(kayitli);
     else if (navigator.language && !navigator.language.startsWith('tr')) setDilState('en');
   }, []);
+  // Sayfanın dil etiketi de değişsin — yoksa tarayıcı EN metinleri Türkçe kuralla büyütüp "İT" yazar
+  useEffect(() => { document.documentElement.lang = dil; }, [dil]);
   const setDil = (d: string) => { setDilState(d); localStorage.setItem('bulevini_dil', d); };
   const t = (k: string) => SOZLUK[dil]?.[k] ?? SOZLUK.tr[k] ?? k;
   return <LangContext.Provider value={{ dil, setDil, t }}>{children}</LangContext.Provider>;

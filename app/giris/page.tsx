@@ -22,7 +22,7 @@ export default function GirisKayitSayfasi() {
     e.preventDefault();
     setHata('');
     if (mode === 'kayit' && !kvkkOnay) {
-      setHata('Devam etmek için KVKK metnini kabul etmelisin.');
+      setHata(t('giris.hataKvkk'));
       return;
     }
     setLoading(true);
@@ -38,10 +38,10 @@ export default function GirisKayitSayfasi() {
       }
       router.push('/');
     } catch (err: any) {
-      if (err.code === 'auth/invalid-credential') setHata('E-posta veya şifre hatalı.');
-      else if (err.code === 'auth/email-already-in-use') setHata('Bu e-posta zaten kayıtlı.');
-      else if (err.code === 'auth/weak-password') setHata('Şifre en az 6 karakter olmalı.');
-      else setHata('Bir hata oluştu, tekrar dene.');
+      if (err.code === 'auth/invalid-credential') setHata(t('giris.hataGiris'));
+      else if (err.code === 'auth/email-already-in-use') setHata(t('giris.hataKayitli'));
+      else if (err.code === 'auth/weak-password') setHata(t('giris.hataSifre'));
+      else setHata(t('giris.hataGenel'));
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function GirisKayitSayfasi() {
                 required
                 value={isim}
                 onChange={(e) => setIsim(e.target.value)}
-                placeholder="ÖRN: SALTUK BUĞRA"
+                placeholder={t('giris.isimPh')}
                 className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all uppercase"
               />
             </div>
@@ -116,7 +116,7 @@ export default function GirisKayitSayfasi() {
                 className="mt-0.5 w-5 h-5 accent-blue-600"
               />
               <span className="text-[11px] font-bold text-slate-500 leading-relaxed">
-                <a href="/gizlilik" target="_blank" className="text-blue-600 underline">KVKK Aydınlatma Metni ve Kullanım Koşulları</a>'nı okudum, kabul ediyorum.
+                <a href="/gizlilik" target="_blank" className="text-blue-600 underline">{t('giris.kvkkLink')}</a>{t('giris.kvkkSon')}
               </span>
             </label>
           )}

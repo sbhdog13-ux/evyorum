@@ -7,4 +7,5 @@
   <url><loc>https://bulevini.com/harita</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://bulevini.com/giris</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
   <url><loc>https://bulevini.com/gizlilik</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://bulevini.com/nedir</loc></url>
 </urlset>
