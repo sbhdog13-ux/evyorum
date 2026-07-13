@@ -1,4 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+
+export const viewport: Viewport = {
+  themeColor: "#023E56",
+};
 import "./globals.css";
 import { AuthProvider } from "@/app/contexts/AuthContext";
 import { LangProvider } from "@/app/lib/i18n";
@@ -21,7 +25,6 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", title: "Bulevini — Binaların Ortak Hafızası", description: "Binanı, yaşamış olandan öğren. Evini tutmadan önce binanın karnesine bak.", images: ["/og-image.png"] },
   manifest: "/manifest.json",
-  themeColor: "#023E56",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
