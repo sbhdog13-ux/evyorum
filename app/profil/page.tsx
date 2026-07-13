@@ -12,6 +12,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Sidebar from '@/app/components/Sidebar';
 import ProfilKimlik from '@/app/components/ProfilKimlik';
 import { useLang } from '@/app/lib/i18n';
+import { puanHesapla, rutbeBul, ROZETLER, RUTBELER } from '@/app/lib/seviye';
 
 function ProfilIcerik() {
   const router = useRouter();
@@ -51,29 +52,22 @@ function ProfilIcerik() {
   };
 
   const muhurSayisi = canliDeneyimler.length;
-  const statu = muhurSayisi >= 15 ? 'muhtar' : muhurSayisi >= 5 ? 'bolge_sakini' : 'komsu';
-
-  const getRutbeDetay = (r: string) => {
-    switch (r) {
-      case 'muhtar': return { label: t('profil.muhtar'), color: 'text-amber-400', border: 'border-amber-400/30', bg: 'bg-[#023E56]/60', icon: <Trophy size={22} /> };
-      case 'bolge_sakini': return { label: t('profil.bolgeSakini'), color: 'text-white', border: 'border-blue-500/30', bg: 'bg-blue-600/60', icon: <CheckCircle size={22} /> };
-      default: return { label: t('profil.komsu'), color: 'text-slate-400', border: 'border-slate-800/50', bg: 'bg-slate-900/60', icon: <Medal size={22} /> };
-    }
+  const { toplam: puan, dokum } = puanHesapla(canliDeneyimler, radarBinalar.length);
+  const { rutbe, indeks: rutbeIndeks, sonraki, ilerleme } = rutbeBul(puan);
+  const rozetVeri = {
+    muhur: muhurSayisi,
+    kanitli: canliDeneyimler.filter(y => y.foto_url).length,
+    detayli: canliDeneyimler.filter(y => (y.yorum_metni || '').length >= 200).length,
+    radar: radarBinalar.length,
+    gpsli: canliDeneyimler.filter(y => y.gps_onay).length,
+    faydali: canliDeneyimler.reduce((a, y) => a + (y.faydali_sayisi || 0), 0),
+    faturaOnayli: false,
   };
-
-  const rutbe = getRutbeDetay(statu);
   const gosterilecekDeneyimler = showAll ? canliDeneyimler : canliDeneyimler.slice(0, 3);
   const [adSoyad, setAdSoyad] = useState('');
   const displayName = adSoyad || user?.displayName || user?.email?.split('@')[0] || 'Kullanıcı';
   const initials = displayName[0]?.toUpperCase() || 'U';
 
-  const rozetler = [
-    { id: 1, name: "Mahalle Ustası", tier: 2, icon: <Zap size={20} />, active: muhurSayisi >= 10 },
-    { id: 2, name: "Güvenli Kaynak", tier: 2, icon: <ShieldCheck size={20} />, active: true },
-    { id: 3, name: "Detaylı Anlatım", tier: 1, icon: <MessageSquare size={20} />, active: true },
-    { id: 4, name: "Fatura Onaylı", tier: 3, icon: <ShieldIcon size={20} />, active: false },
-    { id: 5, name: "Faydalı Yorum", tier: 1, icon: <Activity size={20} />, active: true },
-  ];
 
   if (loading) return <div className="min-h-screen flex items-center justify-center font-black italic uppercase text-slate-200">Yükleniyor...</div>;
 
@@ -94,73 +88,94 @@ function ProfilIcerik() {
           </div>
           <div className="bg-white/50 px-5 py-2.5 rounded-2xl border border-white/50 backdrop-blur-md shadow-sm flex items-center gap-3">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-[10px] tracking-widest text-slate-600">{rutbe.label} {t('profil.aktif')}</span>
+            <span className="text-[10px] tracking-widest text-slate-600">{t(rutbe.ad)} {t('profil.aktif')}</span>
           </div>
         </header>
 
         <div className="max-w-6xl mx-auto px-4 md:px-10 pt-8 md:pt-12 pb-24 space-y-10">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <section className="bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white shadow-xl hover:-translate-y-1 transition-all">
-              <div className="flex justify-between items-start mb-6 text-black">
-                <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg"><LocateFixed size={24} /></div>
+          {/* ——— MAHALLE KARİYERİ: lacivert oyun kartı ——— */}
+          <section className="bg-[#023E56] text-white p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden">
+            <div className="absolute top-[-20%] right-[-5%] w-72 h-72 bg-amber-400/10 blur-[80px] rounded-full" />
+            <div className="absolute bottom-[-30%] left-[10%] w-80 h-80 bg-blue-400/10 blur-[90px] rounded-full" />
+            <div className="relative z-10">
+              <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+                <div className="[&_.text-slate-400]:text-[#A1CDE9] [&_h4]:text-white [&_div]:text-white">
+                  <ProfilKimlik displayName={displayName} onIsimGuncellendi={setAdSoyad} />
+                </div>
+                <div className="flex-1" />
                 <div className="text-right">
-                  <span className="text-[9px] font-black text-slate-400 uppercase italic">{t('profil.toplamMuhur')}</span>
-                  <h4 className="text-[32px] font-black italic text-black mt-1">{muhurSayisi}</h4>
+                  <div className="text-[10px] font-black italic uppercase tracking-widest text-amber-400 flex items-center gap-2 justify-end"><Trophy size={16} /> {t('profil.puan')}</div>
+                  <div className="text-[46px] font-black italic tracking-tighter leading-none">{puan.toLocaleString('tr-TR')}</div>
                 </div>
               </div>
-              <div className="h-2.5 bg-[#023E56]/5 rounded-full overflow-hidden border border-white mb-3">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.min((muhurSayisi / 15) * 100, 100)}%` }} />
-              </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase italic">{muhurSayisi} / 15 {t('profil.muhtarMuhru')}</span>
-            </section>
 
-            <section className="bg-[#023E56] text-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden">
-              <div className="relative z-10">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-[10px] font-black italic uppercase text-amber-400 tracking-widest">{t('profil.puan')}</span>
-                  <Trophy className="text-amber-400" size={20} />
-                </div>
-                <span className="text-[42px] font-black italic tracking-tighter leading-none block">{muhurSayisi * 100}</span>
-              </div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/10 blur-[50px] rounded-full" />
-            </section>
-
-            <button onClick={() => document.getElementById('radar-detay-bolumu')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white shadow-xl flex flex-col justify-between group hover:border-blue-600 transition-all text-left">
-              <div className="flex justify-between items-center mb-4 text-black">
-                <span className="text-[10px] font-black text-slate-400 uppercase italic">{t('profil.radarOdasi')}</span>
-                <Radio size={20} className="text-blue-600 animate-pulse" />
-              </div>
-              <div>
-                <span className="text-[42px] font-black italic tracking-tighter leading-none block text-black">{radarBinalar.length}</span>
-                <span className="text-[10px] font-black text-blue-600 uppercase italic tracking-widest mt-2 block">{t('profil.takipteki')}</span>
-              </div>
-              <div className="text-[9px] font-black text-slate-400 uppercase italic mt-4 underline group-hover:text-blue-600 transition-colors">{t('profil.detaylara')}</div>
-            </button>
-          </div>
-
-          <section className="bg-white/60 backdrop-blur-2xl p-6 md:p-12 rounded-[2rem] md:rounded-[4rem] border border-white shadow-2xl text-black">
-            <h3 className="text-[14px] font-black italic uppercase tracking-widest mb-12 border-l-4 border-blue-600 pl-5 text-black">{t('profil.rozetler')}</h3>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-4 md:gap-10">
-              {rozetler.map((rozet) => (
-                <div key={rozet.id} className={`flex flex-col items-center gap-4 transition-all ${rozet.active ? 'opacity-100' : 'opacity-20 grayscale'}`}>
-                  <div className={`w-24 h-24 rounded-[2.5rem] flex items-center justify-center border-4 transition-all duration-500 ${rozet.active ? 'bg-white border-blue-600 text-blue-600 shadow-xl scale-110' : 'bg-[#023E56]/5 border-black/5 text-slate-300'}`}>
-                    {rozet.active ? rozet.icon : <Lock size={26} />}
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                {RUTBELER.map((r, i) => (
+                  <div key={r.ad} className={`px-4 py-2 rounded-xl text-[10px] font-black italic uppercase tracking-wide border ${i === rutbeIndeks ? 'bg-amber-400 text-[#023E56] border-amber-400 scale-110 shadow-lg' : i < rutbeIndeks ? 'bg-white/15 text-white border-white/20' : 'bg-white/5 text-white/35 border-white/10'}`}>
+                    {t(r.ad)}
                   </div>
-                  <div className="text-center">
-                    <span className="text-[11px] font-black italic uppercase tracking-tighter block text-black leading-tight">{rozet.name}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">TIER {rozet.tier}</span>
-                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6">
+                <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-amber-400 to-amber-300 rounded-full transition-all duration-700" style={{ width: `${ilerleme}%` }} />
                 </div>
-              ))}
+                <div className="mt-2 flex justify-between text-[10px] font-black italic uppercase tracking-widest">
+                  <span className="text-[#A1CDE9]">{sonraki ? `${t('seviye.sonrakiRutbe')}: ${t(sonraki.ad)} — ${(sonraki.esik - puan).toLocaleString('tr-TR')} ${t('seviye.puanKaldi')}` : t('seviye.zirve')}</span>
+                  <span className="text-white/60">{ilerleme}%</span>
+                </div>
+              </div>
+
+              <div className="mt-8 grid grid-cols-3 gap-3">
+                <div className="bg-white/10 rounded-2xl p-4 text-center">
+                  <div className="text-[26px] font-black italic leading-none">{muhurSayisi}</div>
+                  <div className="text-[9px] font-black uppercase italic text-[#A1CDE9] mt-1.5 tracking-widest">{t('profil.toplamMuhur')}</div>
+                </div>
+                <button onClick={() => document.getElementById('radar-detay-bolumu')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white/10 rounded-2xl p-4 text-center hover:bg-white/20 transition-all">
+                  <div className="text-[26px] font-black italic leading-none">{radarBinalar.length}<span className="text-[13px] text-[#A1CDE9]"> / {rutbe.radarHakki === -1 ? '∞' : rutbe.radarHakki}</span></div>
+                  <div className="text-[9px] font-black uppercase italic text-[#A1CDE9] mt-1.5 tracking-widest">{t('seviye.radarHakki')}</div>
+                </button>
+                <div className="bg-white/10 rounded-2xl p-4 text-center">
+                  <div className="text-[26px] font-black italic leading-none">{rozetVeri.faydali}</div>
+                  <div className="text-[9px] font-black uppercase italic text-[#A1CDE9] mt-1.5 tracking-widest">{t('seviye.d.faydali')}</div>
+                </div>
+              </div>
+
+              <details className="mt-6 group">
+                <summary className="cursor-pointer list-none text-[10px] font-black italic uppercase tracking-widest text-[#A1CDE9] flex items-center gap-2">
+                  {t('seviye.puanDokumu')} <ChevronDown size={14} className="group-open:rotate-180 transition-transform" />
+                </summary>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {Object.entries(dokum).filter(([, v]) => v > 0).map(([k, v]) => (
+                    <div key={k} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-[#A1CDE9] uppercase">{t(`seviye.d.${k}`)}</span>
+                      <span className="text-[13px] font-black italic text-amber-300">+{v.toLocaleString('tr-TR')}</span>
+                    </div>
+                  ))}
+                </div>
+              </details>
             </div>
           </section>
 
-          <section className={`p-6 md:p-12 rounded-[2rem] md:rounded-[4rem] border shadow-2xl relative overflow-hidden transition-all duration-700 backdrop-blur-2xl ${statu === 'muhtar' ? 'bg-[#023E56]/90 text-white border-amber-400/50' : 'bg-white text-black border-slate-200'}`}>
-            <div className="flex flex-col md:flex-row gap-12 items-center">
-              <ProfilKimlik displayName={displayName} onIsimGuncellendi={setAdSoyad} />
-              <div className={`inline-flex items-center gap-3 px-8 py-3 rounded-2xl text-[12px] font-black italic uppercase border ${rutbe.bg} ${rutbe.color} ${rutbe.border}`}>
-                {rutbe.icon} {rutbe.label}
-              </div>
+          {/* ——— ROZETLER: gerçek şartlara bağlı ——— */}
+          <section className="bg-[#e8f3fa] p-6 md:p-12 rounded-[2rem] md:rounded-[4rem] border border-[#A1CDE9]/40 text-black">
+            <h3 className="text-[14px] font-black italic uppercase tracking-widest mb-10 border-l-4 border-[#023E56] pl-5 text-[#023E56]">{t('profil.rozetler')}</h3>
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6">
+              {ROZETLER.map((rozet) => {
+                const aktif = !rozet.yakinda && rozet.kosul(rozetVeri);
+                return (
+                  <div key={rozet.id} className={`flex flex-col items-center gap-3 transition-all ${aktif ? '' : 'opacity-35'}`}>
+                    <div className={`w-16 h-16 md:w-20 md:h-20 rounded-[1.6rem] flex items-center justify-center border-[3px] ${aktif ? 'bg-white border-[#023E56] text-[#023E56] shadow-lg' : 'bg-white/50 border-slate-200 text-slate-300'}`}>
+                      {aktif ? <Award size={26} /> : <Lock size={22} />}
+                    </div>
+                    <div className="text-center">
+                      <span className="text-[10px] font-black italic uppercase tracking-tighter block leading-tight">{t(rozet.ad)}</span>
+                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{rozet.yakinda ? t('seviye.yakinda') : `${t('seviye.kademe')} ${rozet.kademe}`}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
 

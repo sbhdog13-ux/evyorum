@@ -5,15 +5,31 @@ import { useSearchParams } from 'next/navigation';
 import { Star, MapPin, ArrowLeft, Home, Wind, Shield, Users, MessageSquarePlus, Activity, Map as MapIcon, Camera, CheckCircle, AlertTriangle, Heart, Radio, Info, X } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
 import { db } from '@/app/lib/firebase';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
+import { puanHesapla, radarHakki } from '@/app/lib/seviye';
 
 function BinaDetayIcerik() {
   const searchParams = useSearchParams();
   const { t } = useLang();
   const { user } = useAuth();
+  const [oyVerilenler, setOyVerilenler] = useState<{ [id: string]: 'faydali' | 'faydasiz' }>({});
+  const kapiDurumu = !user ? 'giris' : !user.emailVerified ? 'dogrula' : null; // blur kapısı
+
+  const oyVer = async (yorumId: string, tip: 'faydali' | 'faydasiz') => {
+    if (kapiDurumu === 'giris') { window.location.href = '/giris'; return; }
+    if (kapiDurumu || oyVerilenler[yorumId]) return;
+    setOyVerilenler(prev => ({ ...prev, [yorumId]: tip }));
+    try {
+      await updateDoc(doc(db, 'yorumlar', yorumId), {
+        faydali_sayisi: increment(tip === 'faydali' ? 1 : 0),
+        faydasiz_sayisi: increment(tip === 'faydasiz' ? 1 : 0),
+        [`oylar.${user!.uid}`]: tip,
+      });
+    } catch { setOyVerilenler(prev => { const y = { ...prev }; delete y[yorumId]; return y; }); }
+  };
 
   const [dbYorumlar, setDbYorumlar] = useState<any[]>([]);
   const [dinamikKarne, setDinamikKarne] = useState<any[]>([]);
@@ -155,6 +171,18 @@ function BinaDetayIcerik() {
         setIsFollowing(false);
         setRadarDocId(null);
       } else {
+        // Rütbeye göre radar kotası — sunucu kuralı gelene kadar arayüz denetimi
+        const [takipSnap, yorumSnap] = await Promise.all([
+          getDocs(query(collection(db, 'takipler'), where('kullanici_id', '==', user.uid))),
+          getDocs(query(collection(db, 'yorumlar'), where('kullanici_id', '==', user.uid))),
+        ]);
+        const { toplam } = puanHesapla(yorumSnap.docs.map(d => d.data()), takipSnap.size);
+        const hak = radarHakki(toplam);
+        if (hak !== -1 && takipSnap.size >= hak) {
+          alert(t('seviye.radarDolu'));
+          setFollowingLoading(false);
+          return;
+        }
         const newDoc = await addDoc(collection(db, 'takipler'), {
           kullanici_id: user.uid,
           kullanici_adi: user.displayName || user.email,
@@ -420,9 +448,17 @@ function BinaDetayIcerik() {
             {dbYorumlar.filter((y: any) =>
               !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0))
             ).map((y: any, i) => {
-              const isMuhtar = false;
+              const bulanik = !!kapiDurumu && i >= 1; // ilk deneyim herkese açık — SEO + tadımlık
               return (
-                <div key={i} className="p-6 rounded-[2.5rem] border transition-all flex flex-col gap-4 text-left bg-[#dcecf7]/30 border-[#A1CDE9] shadow-sm">
+                <div key={i} className="relative p-6 rounded-[2.5rem] border transition-all flex flex-col gap-4 text-left bg-[#dcecf7]/30 border-[#A1CDE9] shadow-sm overflow-hidden">
+                  {bulanik && (
+                    <div className="absolute inset-0 z-20 backdrop-blur-[7px] bg-white/40 flex flex-col items-center justify-center gap-3 p-6 text-center">
+                      <p className="text-[12px] font-black italic uppercase text-[#023E56]">{kapiDurumu === 'giris' ? t('kapi.girisYap') : t('kapi.dogrula')}</p>
+                      {kapiDurumu === 'giris' && (
+                        <Link href="/giris" className="bg-[#023E56] text-white text-[10px] font-black italic uppercase tracking-widest px-5 py-3 rounded-xl">{t('kapi.girisBtn')}</Link>
+                      )}
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-[12px] font-black uppercase italic bg-blue-600 text-white">
@@ -432,7 +468,8 @@ function BinaDetayIcerik() {
                         <h4 className="text-[12px] font-black uppercase italic tracking-tighter leading-none text-blue-600">
                           {y.kullanici_adi || "Anonim Sakin"}
                         </h4>
-                        <div className="mt-1.5">
+                        <div className="mt-1.5 flex items-center gap-1.5">
+                          {y.gps_onay && <span className="bg-[#e8f3fa] border border-[#A1CDE9] text-[#023E56] px-2 py-0.5 rounded-md text-[9px] font-black italic">📍 {t('yorum.gpsOnayli')}</span>}
                           {y.baglanti_tipi === 'sakin' ? <span className="bg-green-50 border border-green-200 text-green-700 px-2 py-0.5 rounded-md text-[9px] font-black italic">{t('bina.sakinRozet')}</span>
                             : y.baglanti_tipi === 'eski_sakin' ? <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[9px] font-black italic">{t('bina.eskiSakinRozet')}</span>
                             : <span className="bg-slate-100 text-slate-400 px-2 py-0.5 rounded-md text-[9px] font-black italic">{t('bina.ziyaretciRozet')}</span>}
@@ -468,6 +505,18 @@ function BinaDetayIcerik() {
                       {(y.green_flags || []).map((f: string) => (
                         <span key={f} className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-3 py-1 text-[10px] font-black uppercase italic">✅ {f}</span>
                       ))}
+                    </div>
+                  )}
+                  {!bulanik && y.id && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <button onClick={() => oyVer(y.id, 'faydali')} disabled={!!oyVerilenler[y.id] || y.oylar?.[user?.uid || '']}
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black italic uppercase border transition-all ${(oyVerilenler[y.id] === 'faydali' || y.oylar?.[user?.uid || ''] === 'faydali') ? 'bg-green-600 text-white border-green-600' : 'bg-white border-slate-200 text-slate-500 hover:border-green-600 hover:text-green-700'}`}>
+                        👍 {t('yorum.faydali')} {(y.faydali_sayisi || 0) + (oyVerilenler[y.id] === 'faydali' && !y.oylar?.[user?.uid || ''] ? 1 : 0) > 0 ? (y.faydali_sayisi || 0) + (oyVerilenler[y.id] === 'faydali' && !y.oylar?.[user?.uid || ''] ? 1 : 0) : ''}
+                      </button>
+                      <button onClick={() => oyVer(y.id, 'faydasiz')} disabled={!!oyVerilenler[y.id] || y.oylar?.[user?.uid || '']}
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black italic uppercase border transition-all ${(oyVerilenler[y.id] === 'faydasiz' || y.oylar?.[user?.uid || ''] === 'faydasiz') ? 'bg-slate-600 text-white border-slate-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400'}`}>
+                        👎 {t('yorum.faydasiz')}
+                      </button>
                     </div>
                   )}
                 </div>

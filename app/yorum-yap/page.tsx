@@ -152,6 +152,21 @@ function YorumFormu() {
         }
       }
 
+      // GPS güven sinyali: kullanıcı bina yakınındaysa (150 m) mühre "konumdan onaylı" işareti
+      let gps_onay = false;
+      if (konum.koordinat?.lat && navigator.geolocation) {
+        try {
+          const poz: any = await new Promise((res, rej) =>
+            navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000, maximumAge: 60000 }));
+          const R = 6371000, d2r = Math.PI / 180;
+          const dLat = (poz.coords.latitude - konum.koordinat.lat) * d2r;
+          const dLng = (poz.coords.longitude - konum.koordinat.lng) * d2r;
+          const a = Math.sin(dLat/2)**2 + Math.cos(konum.koordinat.lat*d2r) * Math.cos(poz.coords.latitude*d2r) * Math.sin(dLng/2)**2;
+          const mesafe = 2 * R * Math.asin(Math.sqrt(a));
+          gps_onay = mesafe <= 150;
+        } catch {} // izin yok/zaman aşımı — sorun değil, sinyal opsiyonel
+      }
+
       await addDoc(collection(db, 'yorumlar'), {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
@@ -166,6 +181,8 @@ function YorumFormu() {
         puanlar: puanlarVerisi,
         baglanti_tipi: baglantiTipi,
         foto_url,
+        gps_onay,
+        faydali_sayisi: 0,
         red_flags: redFlags,
         green_flags: greenFlags,
         created_at: serverTimestamp()
