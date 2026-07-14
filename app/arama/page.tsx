@@ -161,7 +161,7 @@ function AramaIcerik() {
       <Sidebar />
       
       {/* SOL FİLTRE PANELİ */}
-      <div className={`fixed inset-y-0 left-0 w-80 bg-[#023E56] z-[110] transform transition-transform duration-500 ease-in-out shadow-[20px_0px_60px_rgba(0,0,0,0.5)] p-8 ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-y-0 left-0 w-80 bg-[#023E56] z-[600] transform transition-transform duration-500 ease-in-out shadow-[20px_0px_60px_rgba(0,0,0,0.5)] p-8 ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex justify-between items-center mb-12">
           <h2 className="text-blue-600 font-black italic text-2xl tracking-tighter uppercase">{t('arama.filtreOdasi')}</h2>
           <button onClick={() => setIsFilterOpen(false)} className="text-white hover:rotate-90 transition-all"><X size={24}/></button>
@@ -214,7 +214,7 @@ function AramaIcerik() {
         </button>
       </div>
 
-      {isFilterOpen && <div onClick={() => setIsFilterOpen(false)} className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[100] transition-opacity" />}
+      {isFilterOpen && <div onClick={() => setIsFilterOpen(false)} className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[590] transition-opacity" />}
 
       {/* LİSTE / HARİTA GEÇİŞ BUTONU */}
       <div className="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 z-[490] flex bg-[#023E56] p-1.5 md:p-2 rounded-full shadow-2xl border-2 border-white/10 md:scale-125">
@@ -234,7 +234,7 @@ function AramaIcerik() {
 
       <div className="max-w-6xl mx-auto p-4 md:p-8">
         <header className="mb-8 md:mb-16 flex justify-between items-center border-b border-slate-100 pb-5 md:pb-8">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 lg:hidden">
             <img src="/logo.png" alt="Bulevini" className="h-10 md:h-12" />
           </Link>
           <button 
