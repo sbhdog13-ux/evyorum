@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 declare global { interface Window { L: any } }
 
 // Bina Oluştur içine gömülü "dokun-seç" haritası — /harita sayfasının küçük kardeşi
-export default function KonumSecici({ koordinat, onSec }: { koordinat?: string; onSec: (lat: number, lng: number) => void }) {
+export default function KonumSecici({ koordinat, onSec, salt = false }: { koordinat?: string; onSec: (lat: number, lng: number) => void; salt?: boolean }) {
   const mapRef = useRef<any>(null);
   const pinRef = useRef<any>(null);
   const divRef = useRef<HTMLDivElement>(null);
@@ -25,8 +25,8 @@ export default function KonumSecici({ koordinat, onSec }: { koordinat?: string; 
       if (!divRef.current || mapRef.current) return;
       const L = window.L;
       const bounds = L.latLngBounds(L.latLng(40.55, 27.9), L.latLng(41.65, 29.95));
-      const map = L.map(divRef.current, { minZoom: 9, maxZoom: 17, maxBounds: bounds, maxBoundsViscosity: 1.0, zoomControl: false });
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      const map = L.map(divRef.current, { minZoom: 9, maxZoom: 17, maxBounds: bounds, maxBoundsViscosity: 1.0, zoomControl: false, dragging: !salt, scrollWheelZoom: !salt, touchZoom: !salt, doubleClickZoom: !salt });
+      if (!salt) L.control.zoom({ position: 'bottomright' }).addTo(map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
       mapRef.current = map;
       // Mevcut koordinat varsa oraya odaklan, yoksa İstanbul geneli
@@ -37,11 +37,15 @@ export default function KonumSecici({ koordinat, onSec }: { koordinat?: string; 
       } else {
         map.fitBounds(bounds);
       }
-      map.on('click', (e: any) => {
+      if (!salt) map.on('click', (e: any) => {
         const { lat, lng } = e.latlng;
         pinKoy(lat, lng);
         onSecRef.current(lat, lng);
       });
+      // İlçe sınırları — keşfet haritasıyla aynı görünüm
+      fetch('/istanbul.json').then(r => r.json()).then(geo => {
+        if (geo && mapRef.current) L.geoJSON(geo, { style: { fillColor: '#94a3b8', fillOpacity: 0.12, color: '#1e293b', weight: 0.8 } }).addTo(mapRef.current);
+      }).catch(() => {});
     };
 
     if (window.L) { kur(); return; }

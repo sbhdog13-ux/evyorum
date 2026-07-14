@@ -123,6 +123,7 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kapi.baslik': 'Devamı sana kilitli değil — sadece bir adım uzakta', 'kapi.girisYap': 'Deneyimlerin tamamını görmek için giriş yap.',
     'kapi.dogrula': 'Deneyimlerin tamamını görmek için e-postanı doğrula.', 'kapi.girisBtn': 'GİRİŞ YAP / KAYIT OL',
     'olustur.haritaDokun': 'HARİTAYA DOKUN, KONUMU SEÇ',
+    'olustur.konumSec': 'HARİTADAN KONUM SEÇ', 'olustur.konumDegistir': 'KONUMU DEĞİŞTİR', 'olustur.konumKullan': 'KONUMU KULLAN',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -244,6 +245,7 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kapi.baslik': "The rest isn't locked — it's one step away", 'kapi.girisYap': 'Sign in to see all experiences.',
     'kapi.dogrula': 'Verify your e-mail to see all experiences.', 'kapi.girisBtn': 'SIGN IN / SIGN UP',
     'olustur.haritaDokun': 'TAP THE MAP TO PICK LOCATION',
+    'olustur.konumSec': 'PICK LOCATION ON MAP', 'olustur.konumDegistir': 'CHANGE LOCATION', 'olustur.konumKullan': 'USE THIS LOCATION',
   },
 };
 

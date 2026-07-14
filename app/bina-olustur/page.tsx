@@ -1,7 +1,7 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
 import React, { useState, Suspense, useEffect } from 'react';
-import { ArrowLeft, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye, MapPin } from 'lucide-react';
+import { ArrowLeft, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye, MapPin, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
@@ -21,6 +21,7 @@ function BinaOlusturForm() {
   const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
+  const [haritaAcik, setHaritaAcik] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [baglantiTipi, setBaglantiTipi] = useState<'sakin' | 'eski_sakin' | 'ziyaretci'>('sakin');
 
@@ -157,47 +158,62 @@ function BinaOlusturForm() {
         </header>
 
         <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-8 text-left">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+          {/* Büyük harita önizleme — tıklayınca tam ekran seçici açılır */}
+          <button type="button" onClick={() => setHaritaAcik(true)}
+            className="w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[280px] md:h-[340px] bg-slate-50 relative block group">
+            <div className="absolute inset-0 pointer-events-none">
+              <KonumSecici koordinat={formData.koordinat} onSec={() => {}} salt />
+            </div>
+            <div className="absolute inset-0 z-[500] bg-[#023E56]/0 group-hover:bg-[#023E56]/10 transition-all flex items-center justify-center">
+              <span className="bg-[#023E56] text-white px-6 py-3.5 rounded-2xl text-[11px] font-black italic uppercase tracking-widest shadow-2xl flex items-center gap-2">
+                <MapPin size={15} /> {formData.koordinat ? t('olustur.konumDegistir') : t('olustur.konumSec')}
+              </span>
+            </div>
+            {formData.koordinat && (
+              <div className="absolute bottom-3 left-3 z-[500] bg-white/90 text-[#023E56] px-3.5 py-2 rounded-xl text-[10px] font-black italic pointer-events-none">
+                📍 {formData.koordinat}
+              </div>
+            )}
+          </button>
+
+          {formData.foto_url && (
             <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] relative bg-slate-100 text-left">
-              {formData.foto_url ? (
-                <img src={formData.foto_url} alt="Bina" onError={(e: any) => { e.currentTarget.style.display = "none"; }} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px] p-4 text-center">{t('olustur.fotoBekle')}</div>
-              )}
+              <img src={formData.foto_url} alt="Bina" onError={(e: any) => { e.currentTarget.style.display = "none"; }} className="w-full h-full object-cover" />
               <div className="absolute top-2 left-2 bg-[#023E56]/50 text-white p-2 rounded-full"><Camera size={14} /></div>
             </div>
+          )}
 
-            <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] bg-slate-50 text-left relative">
-              <KonumSecici
-                koordinat={formData.koordinat}
-                onSec={(lat, lng) => {
-                  const koord = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                  setFormData(prev => ({ ...prev, koordinat: koord }));
-                  adresiGetir(koord);
-                }}
-              />
-              <div className="absolute top-2 left-2 z-[500] bg-[#023E56]/80 text-white px-3 py-1.5 rounded-full text-[9px] font-black italic uppercase pointer-events-none">{t('olustur.haritaDokun')}</div>
+          {/* Tam ekran konum seçici — keşfet haritasıyla aynı deneyim */}
+          {haritaAcik && (
+            <div className="fixed inset-0 z-[700] bg-white flex flex-col">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white z-[710]">
+                <div className="font-black italic uppercase text-[14px] tracking-tighter flex items-center gap-2 text-[#023E56]">
+                  <MapPin size={18} /> {t('olustur.haritaDokun')}
+                </div>
+                <button type="button" onClick={() => setHaritaAcik(false)} className="p-2.5 bg-slate-100 rounded-xl"><X size={18} /></button>
+              </div>
+              <div className="flex-1 relative">
+                <KonumSecici
+                  koordinat={formData.koordinat}
+                  onSec={(lat, lng) => {
+                    const koord = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    setFormData(prev => ({ ...prev, koordinat: koord }));
+                    adresiGetir(koord);
+                  }}
+                />
+              </div>
+              <div className="px-5 py-4 border-t border-slate-100 bg-white flex items-center justify-between gap-4 z-[710]">
+                <div className="text-[11px] font-black italic text-slate-500 uppercase min-w-0 truncate">
+                  {addressLoading ? t('harita.adresAliniyor') : formData.koordinat ? `📍 ${formData.ilce}${formData.mahalle ? ' / ' + formData.mahalle : ''}` : t('harita.alt')}
+                </div>
+                <button type="button" disabled={!formData.koordinat}
+                  onClick={() => setHaritaAcik(false)}
+                  className={`px-7 py-4 rounded-2xl text-[11px] font-black italic uppercase tracking-widest shadow-xl shrink-0 ${formData.koordinat ? 'bg-[#023E56] text-white' : 'bg-slate-100 text-slate-300'}`}>
+                  {t('olustur.konumKullan')} →
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className="bg-[#023E56] p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden text-left">
-            <label className="block text-[10px] font-black text-blue-400 uppercase italic mb-3 tracking-[0.3em] text-left">{t('olustur.koordinat')}</label>
-            <div className="flex flex-col md:flex-row gap-4 items-center relative z-10 text-left">
-              <input
-                value={formData.koordinat}
-                onChange={(e) => setFormData({...formData, koordinat: e.target.value})}
-                placeholder="ÖRN: 41.0253, 29.1175"
-                className="w-full bg-transparent text-white text-2xl font-black outline-none tracking-tighter text-left"
-              />
-              <button
-                type="button"
-                onClick={() => adresiGetir(formData.koordinat)}
-                className="bg-blue-600 text-white px-6 py-4 rounded-2xl font-black text-[11px] uppercase italic hover:bg-white hover:text-blue-600 transition-all active:scale-95 shadow-xl text-left"
-              >
-                {addressLoading ? "SİSTEM TARANIYOR..." : <><Wand2 size={16}/> ADRES ÇEK</>}
-              </button>
-            </div>
-          </div>
+          )}
 
           <div className="bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-[#A1CDE9] shadow-inner text-left">
             <label className="block text-[10px] font-black text-blue-600 uppercase italic mb-3 tracking-widest leading-none text-left">{t('olustur.binaAdi')}</label>
