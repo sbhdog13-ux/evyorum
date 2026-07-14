@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Star, MapPin, ArrowLeft, Home, Wind, Shield, Users, MessageSquarePlus, Activity, Map as MapIcon, Camera, CheckCircle, AlertTriangle, Heart, Radio, Info, X } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
 import { db } from '@/app/lib/firebase';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp, increment, writeBatch, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
@@ -19,18 +19,39 @@ function BinaDetayIcerik() {
   const [oyVerilenler, setOyVerilenler] = useState<{ [id: string]: 'faydali' | 'faydasiz' }>({});
   const kapiDurumu = !user ? 'giris' : !user.emailVerified ? 'dogrula' : null; // blur kapısı
 
+  // Gizli oy: oy belgesi alt koleksiyonda (kim oyladı görünmez), sayaç yorumda (herkes görür)
   const oyVer = async (yorumId: string, tip: 'faydali' | 'faydasiz') => {
     if (kapiDurumu === 'giris') { window.location.href = '/giris'; return; }
     if (kapiDurumu || oyVerilenler[yorumId]) return;
     setOyVerilenler(prev => ({ ...prev, [yorumId]: tip }));
     try {
-      await updateDoc(doc(db, 'yorumlar', yorumId), {
+      const paket = writeBatch(db);
+      paket.set(doc(db, 'yorumlar', yorumId, 'oylar', user!.uid), { tip, created_at: serverTimestamp() });
+      paket.update(doc(db, 'yorumlar', yorumId), {
         faydali_sayisi: increment(tip === 'faydali' ? 1 : 0),
         faydasiz_sayisi: increment(tip === 'faydasiz' ? 1 : 0),
-        [`oylar.${user!.uid}`]: tip,
       });
+      await paket.commit();
+      setDbYorumlar(prev => prev.map((y: any) => y.id === yorumId
+        ? { ...y, [tip === 'faydali' ? 'faydali_sayisi' : 'faydasiz_sayisi']: (y[tip === 'faydali' ? 'faydali_sayisi' : 'faydasiz_sayisi'] || 0) + 1 }
+        : y));
     } catch { setOyVerilenler(prev => { const y = { ...prev }; delete y[yorumId]; return y; }); }
   };
+
+  const sayacYaz = (n: number) => n > 99 ? '99+' : n > 0 ? String(n) : '';
+
+  const sikayetEt = async (yorumId: string) => {
+    if (!user) { window.location.href = '/giris'; return; }
+    if (!confirm(t('yorum.sikayetSor'))) return;
+    try {
+      await addDoc(collection(db, 'sikayetler'), {
+        yorum_id: yorumId, bina_adi: binaIsmi, kullanici_id: user.uid, created_at: serverTimestamp(),
+      });
+      alert(t('yorum.sikayetTesekkur'));
+    } catch { alert(t('giris.hataGenel')); }
+  };
+
+
 
   const [dbYorumlar, setDbYorumlar] = useState<any[]>([]);
   const [dinamikKarne, setDinamikKarne] = useState<any[]>([]);
@@ -159,6 +180,21 @@ function BinaDetayIcerik() {
     };
     verileriGetir();
   }, [binaIsmi, user]);
+
+  // Kendi oylarımı yükle (buton durumları — yalnız kendi oy belgelerim okunabilir)
+  useEffect(() => {
+    if (!user || dbYorumlar.length === 0) return;
+    Promise.all(dbYorumlar.filter((y: any) => y.id).map(async (y: any) => {
+      try {
+        const oy = await getDoc(doc(db, 'yorumlar', y.id, 'oylar', user.uid));
+        return oy.exists() ? [y.id, oy.data().tip] as [string, any] : null;
+      } catch { return null; }
+    })).then(sonuclar => {
+      const m: { [k: string]: 'faydali' | 'faydasiz' } = {};
+      sonuclar.forEach(x => { if (x) m[x[0]] = x[1]; });
+      if (Object.keys(m).length) setOyVerilenler(prev => ({ ...m, ...prev }));
+    });
+  }, [user, dbYorumlar.length]);
 
   const toggleRadar = async () => {
     if (!user) {
@@ -510,14 +546,19 @@ function BinaDetayIcerik() {
                     </div>
                   )}
                   {!bulanik && y.id && (
-                    <div className="flex items-center gap-2 pt-1">
-                      <button onClick={() => oyVer(y.id, 'faydali')} disabled={!!oyVerilenler[y.id] || y.oylar?.[user?.uid || '']}
-                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black italic uppercase border transition-all ${(oyVerilenler[y.id] === 'faydali' || y.oylar?.[user?.uid || ''] === 'faydali') ? 'bg-green-600 text-white border-green-600' : 'bg-white border-slate-200 text-slate-500 hover:border-green-600 hover:text-green-700'}`}>
-                        👍 {t('yorum.faydali')} {(y.faydali_sayisi || 0) + (oyVerilenler[y.id] === 'faydali' && !y.oylar?.[user?.uid || ''] ? 1 : 0) > 0 ? (y.faydali_sayisi || 0) + (oyVerilenler[y.id] === 'faydali' && !y.oylar?.[user?.uid || ''] ? 1 : 0) : ''}
+                    <div className="flex items-center gap-2 pt-1 flex-wrap">
+                      <button onClick={() => oyVer(y.id, 'faydali')} disabled={!!oyVerilenler[y.id]}
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black italic uppercase border transition-all ${oyVerilenler[y.id] === 'faydali' ? 'bg-green-600 text-white border-green-600' : 'bg-white border-slate-200 text-slate-500 hover:border-green-600 hover:text-green-700'}`}>
+                        👍 {t('yorum.faydali')} {sayacYaz(y.faydali_sayisi || 0)}
                       </button>
-                      <button onClick={() => oyVer(y.id, 'faydasiz')} disabled={!!oyVerilenler[y.id] || y.oylar?.[user?.uid || '']}
-                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black italic uppercase border transition-all ${(oyVerilenler[y.id] === 'faydasiz' || y.oylar?.[user?.uid || ''] === 'faydasiz') ? 'bg-slate-600 text-white border-slate-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400'}`}>
-                        👎 {t('yorum.faydasiz')}
+                      <button onClick={() => oyVer(y.id, 'faydasiz')} disabled={!!oyVerilenler[y.id]}
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black italic uppercase border transition-all ${oyVerilenler[y.id] === 'faydasiz' ? 'bg-slate-600 text-white border-slate-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400'}`}>
+                        👎 {t('yorum.faydasiz')} {sayacYaz(y.faydasiz_sayisi || 0)}
+                      </button>
+                      <div className="flex-1" />
+                      <button onClick={() => sikayetEt(y.id)}
+                        className="px-3 py-2 rounded-xl text-[10px] font-black italic uppercase text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                        🚩 {t('yorum.sikayet')}
                       </button>
                     </div>
                   )}

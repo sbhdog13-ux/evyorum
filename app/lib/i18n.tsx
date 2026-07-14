@@ -124,6 +124,9 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kapi.dogrula': 'Deneyimlerin tamamını görmek için e-postanı doğrula.', 'kapi.girisBtn': 'GİRİŞ YAP / KAYIT OL',
     'olustur.haritaDokun': 'HARİTAYA DOKUN, KONUMU SEÇ',
     'olustur.konumSec': 'HARİTADAN KONUM SEÇ', 'olustur.konumDegistir': 'KONUMU DEĞİŞTİR', 'olustur.konumKullan': 'KONUMU KULLAN',
+    'yorum.sikayet': 'ŞİKAYET ET', 'yorum.sikayetSor': 'Bu deneyimi şikayet etmek istediğine emin misin? Ekibimiz inceleyecek.',
+    'yorum.sikayetTesekkur': 'Şikayetin alındı, inceleyeceğiz. Teşekkürler!',
+    'yorum.kufurUyari': 'Deneyimin küfür/hakaret içeriyor gibi görünüyor. Gerçekleri sert ama saygılı anlatabilirsin — metni düzenleyip tekrar dene.',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -246,6 +249,9 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kapi.dogrula': 'Verify your e-mail to see all experiences.', 'kapi.girisBtn': 'SIGN IN / SIGN UP',
     'olustur.haritaDokun': 'TAP THE MAP TO PICK LOCATION',
     'olustur.konumSec': 'PICK LOCATION ON MAP', 'olustur.konumDegistir': 'CHANGE LOCATION', 'olustur.konumKullan': 'USE THIS LOCATION',
+    'yorum.sikayet': 'REPORT', 'yorum.sikayetSor': 'Report this experience? Our team will review it.',
+    'yorum.sikayetTesekkur': 'Report received — we will review it. Thanks!',
+    'yorum.kufurUyari': 'Your experience seems to contain profanity. Be blunt but respectful — please edit and try again.',
   },
 };
 

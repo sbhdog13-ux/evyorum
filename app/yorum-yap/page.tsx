@@ -11,6 +11,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { takipcilariBildir } from '@/app/lib/notifications';
 import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
+import { kufurVarMi } from '@/app/lib/kufur';
 import Sidebar from '@/app/components/Sidebar';
 
 function YorumFormu() {
@@ -108,6 +109,7 @@ function YorumFormu() {
     e.preventDefault();
     const temizBinaAdi = trUpper(binaAdi).trim();
     if (!temizBinaAdi || !yorum.trim()) return alert("Bina adı ve deneyim metni zorunludur!");
+    if (kufurVarMi(yorum)) return alert(t('yorum.kufurUyari'));
     if (!user && !isAnonymous) {
       alert("Yorum yapmak için giriş yapman gerekiyor!");
       router.push('/giris');
