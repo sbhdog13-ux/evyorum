@@ -1,6 +1,6 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
-import React, { useState, Suspense, useEffect } from 'react';
+import React, { useState, Suspense, useEffect, useRef } from 'react';
 import { ArrowLeft, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye, MapPin, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -22,6 +22,21 @@ function BinaOlusturForm() {
   const [loading, setLoading] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
   const [haritaAcik, setHaritaAcik] = useState(false);
+  const [aramaMetni, setAramaMetni] = useState('');
+  const [aramaSonuclar, setAramaSonuclar] = useState<any[]>([]);
+  const aramaTimer = useRef<any>(null);
+
+  const haritadaAra = (m: string) => {
+    setAramaMetni(m);
+    clearTimeout(aramaTimer.current);
+    if (!m.trim()) { setAramaSonuclar([]); return; }
+    aramaTimer.current = setTimeout(async () => {
+      try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(m + ' İstanbul')}&format=json&limit=5&bounded=1&viewbox=27.9,41.65,29.95,40.55&accept-language=tr`);
+        setAramaSonuclar(await r.json() || []);
+      } catch { setAramaSonuclar([]); }
+    }, 400);
+  };
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [baglantiTipi, setBaglantiTipi] = useState<'sakin' | 'eski_sakin' | 'ziyaretci'>('sakin');
 
@@ -191,6 +206,31 @@ function BinaOlusturForm() {
                   <MapPin size={18} /> {t('olustur.haritaDokun')}
                 </div>
                 <button type="button" onClick={() => setHaritaAcik(false)} className="p-2.5 bg-slate-100 rounded-xl"><X size={18} /></button>
+              </div>
+              <div className="px-5 py-3 border-b border-slate-100 bg-white z-[710] relative">
+                <input
+                  value={aramaMetni}
+                  onChange={(e) => haritadaAra(e.target.value)}
+                  placeholder={t('harita.ara')}
+                  className="w-full h-12 bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 text-[13px] font-black italic outline-none focus:border-[#023E56]"
+                />
+                {aramaSonuclar.length > 0 && (
+                  <div className="absolute left-5 right-5 top-[64px] bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden z-[720]">
+                    {aramaSonuclar.map((sonuc: any) => (
+                      <button key={sonuc.place_id} type="button"
+                        onClick={() => {
+                          const koord = `${parseFloat(sonuc.lat).toFixed(6)}, ${parseFloat(sonuc.lon).toFixed(6)}`;
+                          setFormData(prev => ({ ...prev, koordinat: koord }));
+                          adresiGetir(koord);
+                          setAramaSonuclar([]);
+                          setAramaMetni('');
+                        }}
+                        className="w-full text-left px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-[#e8f3fa] transition-colors">
+                        <span className="text-[12px] font-bold text-slate-600 line-clamp-1">📍 {sonuc.display_name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex-1 relative">
                 <KonumSecici
