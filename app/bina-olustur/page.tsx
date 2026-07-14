@@ -10,6 +10,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import Sidebar from '@/app/components/Sidebar';
+import KonumSecici from '@/app/components/KonumSecici';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
@@ -166,8 +167,16 @@ function BinaOlusturForm() {
               <div className="absolute top-2 left-2 bg-[#023E56]/50 text-white p-2 rounded-full"><Camera size={14} /></div>
             </div>
 
-            <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] bg-slate-50 text-left">
-              {formData.koordinat ? <iframe title="Konum" className="w-full h-full border-0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(formData.koordinat.split(',')[1]) - 0.004},${parseFloat(formData.koordinat.split(',')[0]) - 0.004},${parseFloat(formData.koordinat.split(',')[1]) + 0.004},${parseFloat(formData.koordinat.split(',')[0]) + 0.004}&layer=mapnik&marker=${formData.koordinat.split(',')[0].trim()},${formData.koordinat.split(',')[1].trim()}`} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic uppercase text-[10px]">{t('olustur.haritaBekle')}</div>}
+            <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] bg-slate-50 text-left relative">
+              <KonumSecici
+                koordinat={formData.koordinat}
+                onSec={(lat, lng) => {
+                  const koord = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                  setFormData(prev => ({ ...prev, koordinat: koord }));
+                  adresiGetir(koord);
+                }}
+              />
+              <div className="absolute top-2 left-2 z-[500] bg-[#023E56]/80 text-white px-3 py-1.5 rounded-full text-[9px] font-black italic uppercase pointer-events-none">{t('olustur.haritaDokun')}</div>
             </div>
           </div>
 
