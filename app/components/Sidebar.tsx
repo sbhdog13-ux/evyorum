@@ -38,13 +38,13 @@ export default function Sidebar() {
       <nav className="mt-2">
         {items.map((item, i) => {
           const Icon = item.icon;
-          const aktif = item.highlight;
+          const aktif = pathname === item.href.split('#')[0];
           return (
             <button key={i} onClick={() => router.push(item.href)}
-              className={`w-full flex items-center gap-4 h-14 px-6 border-b border-slate-100 text-left transition-colors ${aktif ? 'bg-blue-50' : 'hover:bg-slate-50'}`}>
+              className={`w-full flex items-center gap-4 h-14 px-6 border-b border-slate-100 text-left transition-colors ${aktif ? 'bg-blue-50 border-l-4 border-l-blue-600' : 'hover:bg-slate-50'}`}>
               <Icon size={20} className="text-blue-600" />
               <span className={`flex-1 text-[12px] font-black uppercase tracking-wide ${aktif ? 'text-blue-600' : 'text-black'}`}>{item.label}</span>
-              {aktif && <span className="bg-blue-600 text-white text-[8px] font-black tracking-widest px-2 py-0.5 rounded-lg">YENİ</span>}
+              {item.highlight && !aktif && <span className="bg-blue-600 text-white text-[8px] font-black tracking-widest px-2 py-0.5 rounded-lg">YENİ</span>}
             </button>
           );
         })}

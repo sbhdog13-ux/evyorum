@@ -10,6 +10,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
 import { puanHesapla, radarHakki } from '@/app/lib/seviye';
+import Sidebar from '@/app/components/Sidebar';
 
 function BinaDetayIcerik() {
   const searchParams = useSearchParams();
@@ -241,7 +242,8 @@ function BinaDetayIcerik() {
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans text-black pb-24 text-left">
+    <div className="lg:pl-80 min-h-screen bg-white font-sans text-black pb-24 text-left">
+      <Sidebar />
       <header className="p-4 border-b border-slate-50 sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <Link href="/arama" className="flex items-center gap-2 text-slate-400 hover:text-black transition-all text-[12px] font-bold uppercase tracking-tight italic">

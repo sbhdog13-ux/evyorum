@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { useLang } from '@/app/lib/i18n';
+import Sidebar from '@/app/components/Sidebar';
 
 function puanRenk(p: number) {
   if (p >= 4) return 'text-green-600';
@@ -155,7 +156,8 @@ function SkorIcerik() {
   );
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans pb-24">
+    <div className="lg:pl-80 min-h-screen bg-white text-black font-sans pb-24">
+      <Sidebar />
       <header className="p-4 border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="max-w-3xl mx-auto flex items-center gap-4">
           <button onClick={() => seciliIlce ? router.push('/skor') : router.push('/')} className="p-3 bg-slate-50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all"><ArrowLeft size={18} /></button>

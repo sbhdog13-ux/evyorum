@@ -8,6 +8,7 @@ import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import LeafletHarita from '@/app/components/LeafletHarita';
 import { useLang } from '@/app/lib/i18n';
+import Sidebar from '@/app/components/Sidebar';
 
 function AramaIcerik() {
   const router = useRouter();
@@ -156,7 +157,8 @@ function AramaIcerik() {
   }, [allReviews]);
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans text-left relative overflow-x-hidden">
+    <div className="lg:pl-80 min-h-screen bg-white text-black font-sans text-left relative overflow-x-hidden">
+      <Sidebar />
       
       {/* SOL FİLTRE PANELİ */}
       <div className={`fixed inset-y-0 left-0 w-80 bg-[#023E56] z-[110] transform transition-transform duration-500 ease-in-out shadow-[20px_0px_60px_rgba(0,0,0,0.5)] p-8 ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'}`}>

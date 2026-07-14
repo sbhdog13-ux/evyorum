@@ -9,6 +9,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
+import Sidebar from '@/app/components/Sidebar';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
@@ -141,7 +142,8 @@ function BinaOlusturForm() {
   if (authLoading) return <div className="min-h-screen flex items-center justify-center font-black italic uppercase text-slate-200">Yükleniyor...</div>;
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] p-4 md:p-6 text-black pb-20 text-left">
+    <div className="lg:pl-80 min-h-screen bg-[#F0F4F8] p-4 md:p-6 text-black pb-20 text-left">
+      <Sidebar />
       <div className="max-w-4xl mx-auto bg-white rounded-[3rem] shadow-2xl border border-slate-200 overflow-hidden text-left">
         
         <header className="p-6 border-b border-slate-50 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-10 text-left">

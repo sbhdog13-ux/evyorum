@@ -11,6 +11,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { takipcilariBildir } from '@/app/lib/notifications';
 import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
+import Sidebar from '@/app/components/Sidebar';
 
 function YorumFormu() {
   const router = useRouter();
@@ -202,7 +203,8 @@ function YorumFormu() {
   if (authLoading) return <div className="min-h-screen flex items-center justify-center font-black italic uppercase text-slate-200">Yükleniyor...</div>;
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-8 text-black font-sans text-left">
+    <div className="lg:pl-80 min-h-screen bg-white p-4 md:p-8 text-black font-sans text-left">
+      <Sidebar />
       <div className="max-w-4xl mx-auto text-left">
         <header className="mb-12 flex justify-between items-center border-b border-slate-100 pb-6 text-left">
           <Link href="/" className="flex items-center gap-2 group text-left">
