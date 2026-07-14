@@ -132,6 +132,8 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kadi.kontrol': 'Kontrol ediliyor...', 'kadi.secBaslik': 'KULLANICI ADINI SEÇ',
     'kadi.secAciklama': 'Yorumlarında gerçek ismin değil, kullanıcı adın görünecek. Bir kez seçilir, değiştirilemez.',
     'kadi.kaydet': 'ADIMI AL', 'kadi.gerekli': 'Mühür basmak için önce kullanıcı adını seçmelisin.',
+    'cevap.goster': 'CEVAPLAR', 'cevap.ph': 'Bir cevap yaz...', 'cevap.gonder': 'GÖNDER',
+    'cevap.sil': 'SİL', 'cevap.silSor': 'Bu cevabı silmek istediğine emin misin?', 'cevap.ilk': 'İlk cevabı sen yaz.',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -262,6 +264,8 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kadi.kontrol': 'Checking...', 'kadi.secBaslik': 'PICK YOUR USERNAME',
     'kadi.secAciklama': 'Your reviews will show your username, not your real name. Chosen once, permanent.',
     'kadi.kaydet': 'CLAIM IT', 'kadi.gerekli': 'Pick a username before stamping a seal.',
+    'cevap.goster': 'REPLIES', 'cevap.ph': 'Write a reply...', 'cevap.gonder': 'SEND',
+    'cevap.sil': 'DELETE', 'cevap.silSor': 'Delete this reply?', 'cevap.ilk': 'Be the first to reply.',
   },
 };
 

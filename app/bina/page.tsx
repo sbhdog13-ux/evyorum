@@ -10,6 +10,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
 import { puanHesapla, radarHakki } from '@/app/lib/seviye';
+import CevapBolumu from '@/app/components/CevapBolumu';
 import Sidebar from '@/app/components/Sidebar';
 
 function BinaDetayIcerik() {
@@ -562,6 +563,7 @@ function BinaDetayIcerik() {
                       </button>
                     </div>
                   )}
+                  {!bulanik && y.id && <CevapBolumu yorumId={y.id} binaAdi={binaIsmi} />}
                 </div>
               );
             })}
