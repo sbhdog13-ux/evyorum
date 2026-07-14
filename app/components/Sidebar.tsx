@@ -21,8 +21,8 @@ export default function Sidebar() {
     { icon: Search, label: t('menu.muhurler'), href: '/arama' },
     { icon: BarChart2, label: t('menu.skorlar'), href: '/skor', highlight: true },
     { icon: Building2, label: t('menu.binaOlustur'), href: '/bina-olustur' },
-    { icon: Radio, label: t('menu.radar'), href: '/profil' },
-    { icon: MessageSquare, label: t('menu.yorumlarim'), href: '/profil' },
+    { icon: Radio, label: t('menu.radar'), href: '/profil#radar-detay-bolumu' },
+    { icon: MessageSquare, label: t('menu.yorumlarim'), href: '/profil#arsiv-bolumu' },
   ];
 
   const initial = user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || 'U';

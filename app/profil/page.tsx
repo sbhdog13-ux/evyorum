@@ -35,7 +35,14 @@ function ProfilIcerik() {
         const radarSnap = await getDocs(radarQ);
         setRadarBinalar(radarSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       } catch (err) { console.error("Hata:", err); } 
-      finally { setLoading(false); }
+      finally {
+        setLoading(false);
+        // Bölümler veriyle birlikte geç çizildiği için hash kaydırmasını elle yap
+        setTimeout(() => {
+          const hedef = window.location.hash?.slice(1);
+          if (hedef) document.getElementById(hedef)?.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      }
     };
     verileriGetir();
   }, [user]);
@@ -203,7 +210,7 @@ function ProfilIcerik() {
             </div>
           </section>
 
-          <section className="space-y-10 pb-20 text-black font-black italic uppercase">
+          <section id="arsiv-bolumu" className="scroll-mt-32 space-y-10 pb-20 text-black font-black italic uppercase">
             <h3 className="text-[16px] tracking-widest text-slate-400 flex items-center gap-4 px-4">
               <MessageSquare size={20} className="text-blue-600" /> {t('profil.arsiv')}
             </h3>

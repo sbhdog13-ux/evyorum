@@ -35,7 +35,7 @@ export default function BottomNav() {
     { icon: BarChart2, label: t('menu.skorlar'), href: '/skor' },
     { icon: Building2, label: t('menu.binaOlustur'), href: '/bina-olustur' },
     { icon: Radar, label: t('menu.radar'), href: '/profil#radar-detay-bolumu' },
-    { icon: MessageSquare, label: t('menu.yorumlarim'), href: '/profil' },
+    { icon: MessageSquare, label: t('menu.yorumlarim'), href: '/profil#arsiv-bolumu' },
   ];
 
   return (
