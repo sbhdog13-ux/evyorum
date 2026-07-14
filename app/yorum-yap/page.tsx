@@ -12,6 +12,7 @@ import { takipcilariBildir } from '@/app/lib/notifications';
 import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import { kufurVarMi } from '@/app/lib/kufur';
+import { adGetir } from '@/app/lib/kullaniciadi';
 import Sidebar from '@/app/components/Sidebar';
 
 function YorumFormu() {
@@ -116,7 +117,13 @@ function YorumFormu() {
       return;
     }
 
-    const gecerliKullaniciAdi = isAnonymous ? "Anonim Sakin" : (user?.displayName || user?.email?.split('@')[0] || "Anonim");
+    // Mahremiyet: yorumda gerçek isim değil kullanıcı adı görünür
+    let gecerliKullaniciAdi = 'Anonim Sakin';
+    if (!isAnonymous && user) {
+      const kadi = await adGetir(user.uid);
+      if (!kadi) return alert(t('kadi.gerekli')); // kapı penceresi zaten açılacaktır
+      gecerliKullaniciAdi = '@' + kadi;
+    }
     const gecerliKullaniciId = isAnonymous ? null : (user?.uid || null);
 
     setLoading(true);

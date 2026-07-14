@@ -11,6 +11,7 @@ import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import Sidebar from '@/app/components/Sidebar';
 import KonumSecici from '@/app/components/KonumSecici';
+import { adGetir } from '@/app/lib/kullaniciadi';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
@@ -125,7 +126,12 @@ function BinaOlusturForm() {
     setLoading(true);
     try {
       const paketliAdres = `${formData.mahalle} MAH. ${formData.ilce}/${formData.il} | ADRES: ${formData.acik_adres_ham} | KOORD: ${formData.koordinat}`;
-      const kullaniciAdi = isAnonymous ? "Anonim Sakin" : (user?.displayName || user?.email?.split('@')[0] || "Anonim");
+      let kullaniciAdi = 'Anonim Sakin';
+      if (!isAnonymous && user) {
+        const kadi = await adGetir(user.uid);
+        if (!kadi) { alert(t('kadi.gerekli')); setLoading(false); return; }
+        kullaniciAdi = '@' + kadi;
+      }
       const kullaniciId = isAnonymous ? null : user?.uid;
 
       // Mobil ile aynı şema: yapısal konum alanları + standart oluşturma metni

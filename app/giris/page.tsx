@@ -6,12 +6,22 @@ import { auth } from '@/app/lib/firebase-auth';
 import { LogIn, ArrowRight, UserPlus, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
+import { adTuret, adGecerliMi, adMusaitMi, adKaydet } from '@/app/lib/kullaniciadi';
 
 export default function GirisKayitSayfasi() {
   const [mode, setMode] = useState<'giris' | 'kayit'>('giris');
   const [email, setEmail] = useState('');
   const [sifre, setSifre] = useState('');
   const [isim, setIsim] = useState('');
+  const [kadi, setKadi] = useState('');
+  const [kadiElle, setKadiElle] = useState(false);
+  const [kadiDurum, setKadiDurum] = useState<'bos' | 'kontrol' | 'musait' | 'alinmis' | 'gecersiz'>('bos');
+
+  const kadiKontrol = async (deger: string) => {
+    if (!adGecerliMi(deger)) { setKadiDurum(deger ? 'gecersiz' : 'bos'); return; }
+    setKadiDurum('kontrol');
+    setKadiDurum(await adMusaitMi(deger) ? 'musait' : 'alinmis');
+  };
   const [hata, setHata] = useState('');
   const [loading, setLoading] = useState(false);
   const [kvkkOnay, setKvkkOnay] = useState(false);
@@ -33,6 +43,7 @@ export default function GirisKayitSayfasi() {
       } else {
         const result = await createUserWithEmailAndPassword(auth, email, sifre);
         await updateProfile(result.user, { displayName: isim });
+        try { await adKaydet(result.user.uid, kadi); } catch {} // ad alınamazsa kapı tekrar sorar
         sendEmailVerification(result.user).catch(() => {});
         alert(t('dogrula.gonderildi'));
       }
@@ -76,10 +87,30 @@ export default function GirisKayitSayfasi() {
                 type="text"
                 required
                 value={isim}
-                onChange={(e) => setIsim(e.target.value)}
+                onChange={(e) => { setIsim(e.target.value); if (!kadiElle) { const o = adTuret(e.target.value); setKadi(o); if (o.length >= 3) kadiKontrol(o); } }}
                 placeholder={t('giris.isimPh')}
                 className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all uppercase"
               />
+            </div>
+          )}
+
+          {mode === 'kayit' && (
+            <div className="space-y-2">
+              <label className="text-[11px] font-black uppercase italic tracking-widest ml-4 text-slate-400">{t('kadi.etiket')}</label>
+              <div className="flex items-center gap-2 w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 focus-within:border-blue-600 transition-all">
+                <span className="font-black text-slate-400">@</span>
+                <input
+                  value={kadi}
+                  onChange={(e) => { setKadiElle(true); const d = adTuret(e.target.value); setKadi(d); kadiKontrol(d); }}
+                  placeholder={t('kadi.ph')}
+                  className="flex-1 bg-transparent outline-none text-[14px] font-black italic lowercase"
+                />
+              </div>
+              {kadi && (
+                <div className={`ml-4 text-[11px] font-bold ${kadiDurum === 'musait' ? 'text-green-600' : kadiDurum === 'kontrol' ? 'text-slate-400' : 'text-red-500'}`}>
+                  {kadiDurum === 'musait' ? t('kadi.musait') : kadiDurum === 'kontrol' ? t('kadi.kontrol') : kadiDurum === 'alinmis' ? t('kadi.alinmis') : t('kadi.gecersiz')}
+                </div>
+              )}
             </div>
           )}
 

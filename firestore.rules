@@ -18,7 +18,11 @@ service cloud.firestore {
         && (request.resource.data.kullanici_id == request.auth.uid
             || request.resource.data.kullanici_id == null)
         && request.resource.data.get('faydali_sayisi', 0) == 0
-        && request.resource.data.get('faydasiz_sayisi', 0) == 0;
+        && request.resource.data.get('faydasiz_sayisi', 0) == 0
+        // Kimlik taklidi kapalı: görünen ad ya kayıtlı kullanıcı adındır ya da anonim kalıptır
+        && (request.resource.data.kullanici_id == null
+            || request.resource.data.kullanici_adi ==
+               get(/databases/$(database)/documents/kullanicilar/$(request.auth.uid)).data.kullanici_adi);
 
       // Silme: sadece sahibi (anonim mühür silinemez — kalıcılık bilinçli)
       allow delete: if request.auth != null
@@ -57,6 +61,18 @@ service cloud.firestore {
     match /kullanicilar/{userId} {
       // Sadece kendi belgen — okuma dahil (yarın hassas veri girerse hazır)
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+
+    match /kullanici_adlari/{ad} {
+      // Müsaitlik kontrolü için tekil okuma serbest (liste çekilemez); belge yalnız sahiplik bilgisi taşır
+      allow get: if true;
+      // Rezervasyon: girişli kullanıcı, kendi adına, geçerli biçimde (3-20, küçük harf/rakam/_/.)
+      // Not: e-posta doğrulaması burada ŞART DEĞİL — kayıt anında ad alınır, doğrulama sonra gelir
+      allow create: if request.auth != null
+        && request.resource.data.kullanici_id == request.auth.uid
+        && ad.matches('^[a-z0-9_.]{3,20}$');
+      // değiştirme/silme yok — ad kalıcı (v1)
     }
 
     match /sikayetler/{sikayetId} {

@@ -127,6 +127,11 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'yorum.sikayet': 'ŞİKAYET ET', 'yorum.sikayetSor': 'Bu deneyimi şikayet etmek istediğine emin misin? Ekibimiz inceleyecek.',
     'yorum.sikayetTesekkur': 'Şikayetin alındı, inceleyeceğiz. Teşekkürler!',
     'yorum.kufurUyari': 'Deneyimin küfür/hakaret içeriyor gibi görünüyor. Gerçekleri sert ama saygılı anlatabilirsin — metni düzenleyip tekrar dene.',
+    'kadi.etiket': 'KULLANICI ADI', 'kadi.ph': 'orn: mahalleli34',
+    'kadi.musait': '✓ Bu ad müsait', 'kadi.alinmis': 'Bu ad alınmış, başka dene', 'kadi.gecersiz': '3-20 karakter; küçük harf, rakam, _ ve . olabilir',
+    'kadi.kontrol': 'Kontrol ediliyor...', 'kadi.secBaslik': 'KULLANICI ADINI SEÇ',
+    'kadi.secAciklama': 'Yorumlarında gerçek ismin değil, kullanıcı adın görünecek. Bir kez seçilir, değiştirilemez.',
+    'kadi.kaydet': 'ADIMI AL', 'kadi.gerekli': 'Mühür basmak için önce kullanıcı adını seçmelisin.',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -252,6 +257,11 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'yorum.sikayet': 'REPORT', 'yorum.sikayetSor': 'Report this experience? Our team will review it.',
     'yorum.sikayetTesekkur': 'Report received — we will review it. Thanks!',
     'yorum.kufurUyari': 'Your experience seems to contain profanity. Be blunt but respectful — please edit and try again.',
+    'kadi.etiket': 'USERNAME', 'kadi.ph': 'e.g. neighbor34',
+    'kadi.musait': '✓ Available', 'kadi.alinmis': 'Taken — try another', 'kadi.gecersiz': '3-20 chars; lowercase letters, digits, _ and .',
+    'kadi.kontrol': 'Checking...', 'kadi.secBaslik': 'PICK YOUR USERNAME',
+    'kadi.secAciklama': 'Your reviews will show your username, not your real name. Chosen once, permanent.',
+    'kadi.kaydet': 'CLAIM IT', 'kadi.gerekli': 'Pick a username before stamping a seal.',
   },
 };
 
