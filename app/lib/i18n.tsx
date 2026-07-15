@@ -134,6 +134,13 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kadi.kaydet': 'ADIMI AL', 'kadi.gerekli': 'Mühür basmak için önce kullanıcı adını seçmelisin.',
     'cevap.goster': 'CEVAPLAR', 'cevap.ph': 'Bir cevap yaz...', 'cevap.gonder': 'GÖNDER',
     'cevap.sil': 'SİL', 'cevap.silSor': 'Bu cevabı silmek istediğine emin misin?', 'cevap.ilk': 'İlk cevabı sen yaz.',
+    'fo.nedir': 'Bulevini Nedir?', 'fo.nasil': 'Nasıl Çalışır?', 'fo.iletisim': 'İletişim',
+    'fo.kesfetBaslik': 'Keşfet', 'fo.binalariKesfet': 'Binaları Keşfet', 'fo.skorlar': 'İlçe & Mahalle Skorları', 'fo.binaAra': 'Bina Ara', 'fo.muhurle': 'Binanı Mühürle',
+    'fo.rehberBaslik': 'Rehber', 'fo.skorNedir': 'Skor & Karne Nedir?', 'fo.muhurNedir': 'Mühür Nedir?', 'fo.sss': 'Sık Sorulan Sorular',
+    'fo.ilcelerBaslik': 'İlçeler', 'fo.ilceler': 'İstanbul İlçeleri',
+    'fo.gizlilikBaslik': 'Gizlilik & Kurallar', 'fo.kvkk': 'Gizlilik & KVKK', 'fo.kullanim': 'Kullanım Koşulları', 'fo.topluluk': 'Topluluk Kuralları',
+    'iskelet.yakinda': 'Bu sayfanın içeriği çok yakında burada olacak.',
+    'nasil.h1': 'Nasıl Çalışır?', 'bk.h1': 'Binaları Keşfet', 'sn.h1': 'Skor & Karne Nedir?', 'il.h1': 'İstanbul İlçeleri',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -266,6 +273,13 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'kadi.kaydet': 'CLAIM IT', 'kadi.gerekli': 'Pick a username before stamping a seal.',
     'cevap.goster': 'REPLIES', 'cevap.ph': 'Write a reply...', 'cevap.gonder': 'SEND',
     'cevap.sil': 'DELETE', 'cevap.silSor': 'Delete this reply?', 'cevap.ilk': 'Be the first to reply.',
+    'fo.nedir': 'What is Bulevini?', 'fo.nasil': 'How It Works', 'fo.iletisim': 'Contact',
+    'fo.kesfetBaslik': 'Explore', 'fo.binalariKesfet': 'Explore Buildings', 'fo.skorlar': 'District & Area Scores', 'fo.binaAra': 'Search Buildings', 'fo.muhurle': 'Seal Your Building',
+    'fo.rehberBaslik': 'Guide', 'fo.skorNedir': 'What is the Score?', 'fo.muhurNedir': 'What is a Seal?', 'fo.sss': 'FAQ',
+    'fo.ilcelerBaslik': 'Districts', 'fo.ilceler': 'Istanbul Districts',
+    'fo.gizlilikBaslik': 'Privacy & Rules', 'fo.kvkk': 'Privacy & GDPR', 'fo.kullanim': 'Terms of Use', 'fo.topluluk': 'Community Rules',
+    'iskelet.yakinda': 'The content of this page will be here very soon.',
+    'nasil.h1': 'How It Works', 'bk.h1': 'Explore Buildings', 'sn.h1': 'What is the Score?', 'il.h1': 'Istanbul Districts',
   },
 };
 
