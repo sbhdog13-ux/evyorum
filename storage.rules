@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Bulevini Storage kuralları — 17 Tem 2026
+// Kanıt fotoğrafları yorumlar/{uid}/... altında tutulur.
+// Görme herkese açık (bina sayfasında gösterilir); yazma sadece kendi klasörüne, doğrulanmış kullanıcıdan, resim + max 5MB.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /yorumlar/{userId}/{dosya=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Adı geçmeyen her yol kapalı (varsayılan ret)
+    match /{dosya=**} {
+      allow read, write: if false;
+    }
+  }
+}
