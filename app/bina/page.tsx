@@ -10,6 +10,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
 import { puanHesapla, radarHakki } from '@/app/lib/seviye';
+import { agirlik } from '@/app/lib/skor';
 import CevapBolumu from '@/app/components/CevapBolumu';
 import Sidebar from '@/app/components/Sidebar';
 
@@ -157,14 +158,15 @@ function BinaDetayIcerik() {
         const kategoriSayaclari: { [key: string]: number } = {};
 
         yorumlar.forEach((satir: any) => {
+          const w = agirlik(satir.baglanti_tipi); // orada yaşayanın puanı daha ağır basar
           const pv = typeof satir.puanlar === 'string' ? JSON.parse(satir.puanlar) : satir.puanlar;
           if (pv && typeof pv === 'object') {
             Object.entries(pv).forEach(([kategori, puan]) => {
               const p = Number(puan);
               if (!isNaN(p) && p > 0) {
                 const anahtar = trUpper(kategori);
-                kategoriToplamlari[anahtar] = (kategoriToplamlari[anahtar] || 0) + p;
-                kategoriSayaclari[anahtar] = (kategoriSayaclari[anahtar] || 0) + 1;
+                kategoriToplamlari[anahtar] = (kategoriToplamlari[anahtar] || 0) + p * w;
+                kategoriSayaclari[anahtar] = (kategoriSayaclari[anahtar] || 0) + w;
               }
             });
           }

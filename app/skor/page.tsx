@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { useLang } from '@/app/lib/i18n';
+import { agirlik } from '@/app/lib/skor';
 import Sidebar from '@/app/components/Sidebar';
 
 function puanRenk(p: number) {
@@ -71,13 +72,12 @@ function SkorIcerik() {
       if (!map[bina].mahalle) { const m = mahalleOku(d); if (m) map[bina].mahalle = m; }
       if (d.puanlar && Object.keys(d.puanlar).length > 0) {
         map[bina].muhurSayisi += 1;
+        const w = agirlik(d.baglanti_tipi); // orada yaşayanın puanı daha ağır basar
         Object.entries(d.puanlar).forEach(([k, v]: any) => {
           if (!map[bina].katToplam[k]) map[bina].katToplam[k] = { t: 0, s: 0 };
-          map[bina].katToplam[k].t += Number(v);
-          map[bina].katToplam[k].s += 1;
+          map[bina].katToplam[k].t += Number(v) * w;
+          map[bina].katToplam[k].s += w;
         });
-        const vals = Object.values(d.puanlar) as number[];
-        map[bina].puanlar.push(vals.reduce((a, v) => a + Number(v), 0) / vals.length);
       }
       if (d.baglanti_tipi === 'sakin') map[bina].dogrulanmis += 1;
     });
@@ -105,8 +105,9 @@ function SkorIcerik() {
     const ilceMap: { [k: string]: { puanlar: number[]; mahalleler: Set<string>; binalar: Set<string> } } = {};
     const mahalleMap: { [m: string]: { puanlar: number[]; binalar: string[] } } = {};
     Object.entries(binaMap).forEach(([bina, val]) => {
-      if (!val.ilce || val.puanlar.length === 0) return;
-      const avg = val.puanlar.reduce((a, b) => a + b, 0) / val.puanlar.length;
+      const katOrtlar = Object.values(val.katToplam).map((v: any) => v.t / v.s);
+      if (!val.ilce || katOrtlar.length === 0) return;
+      const avg = katOrtlar.reduce((a: number, b: number) => a + b, 0) / katOrtlar.length; // binanın ağırlıklı skoru
       if (!ilceMap[val.ilce]) ilceMap[val.ilce] = { puanlar: [], mahalleler: new Set(), binalar: new Set() };
       ilceMap[val.ilce].puanlar.push(avg);
       if (val.mahalle) ilceMap[val.ilce].mahalleler.add(val.mahalle);
