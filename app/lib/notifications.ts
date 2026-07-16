@@ -35,6 +35,7 @@ export async function takipcilariBildir(binaAdi: string, yorumYapanIsim: string)
       }))),
     });
   } catch (e) {
-    console.error('Bildirim gönderilemedi:', e);
+    // Bildirim şimdilik kapalı (Cloud Functions gelince aktif olacak) — sessiz geç
+    console.log('Bildirim atlandı:', (e as any)?.message || e);
   }
 }
