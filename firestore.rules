@@ -19,10 +19,10 @@ service cloud.firestore {
             || request.resource.data.kullanici_id == null)
         && request.resource.data.get('faydali_sayisi', 0) == 0
         && request.resource.data.get('faydasiz_sayisi', 0) == 0
-        // Kimlik taklidi kapalı: görünen ad ya kayıtlı kullanıcı adındır ya da anonim kalıptır
+        // Kimlik taklidi kapalı: görünen ad ya kayıtlı kullanıcı adının @'li halidir ya da anonim kalıptır
         && (request.resource.data.kullanici_id == null
             || request.resource.data.kullanici_adi ==
-               get(/databases/$(database)/documents/kullanicilar/$(request.auth.uid)).data.kullanici_adi);
+               ('@' + get(/databases/$(database)/documents/kullanicilar/$(request.auth.uid)).data.kullanici_adi));
 
       // Silme: sadece sahibi (anonim mühür silinemez — kalıcılık bilinçli)
       allow delete: if request.auth != null

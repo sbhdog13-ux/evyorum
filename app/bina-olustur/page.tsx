@@ -154,7 +154,8 @@ function BinaOlusturForm() {
         created_at: serverTimestamp()
       });
 
-      router.push(`/bina?isim=${encodeURIComponent(temizBinaAdi)}`);
+      // Bina kaydedildikten sonra deneyim/puan yazması için mühürleme formuna gönder (mobil ile aynı akış)
+      router.push(`/yorum-yap?binaAdi=${encodeURIComponent(temizBinaAdi)}`);
     } catch (err: any) {
       setLoading(false);
       alert("Hata: " + err.message);
