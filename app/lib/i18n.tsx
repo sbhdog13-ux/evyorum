@@ -141,6 +141,13 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'fo.gizlilikBaslik': 'Gizlilik & Kurallar', 'fo.kvkk': 'Gizlilik & KVKK', 'fo.kullanim': 'Kullanım Koşulları', 'fo.topluluk': 'Topluluk Kuralları',
     'iskelet.yakinda': 'Bu sayfanın içeriği çok yakında burada olacak.',
     'nasil.h1': 'Nasıl Çalışır?', 'bk.h1': 'Binaları Keşfet', 'sn.h1': 'Skor & Karne Nedir?', 'il.h1': 'İstanbul İlçeleri',
+    'nc.eyebrow': 'REHBER', 'nc.h1a': 'Nasıl', 'nc.h1b': 'Çalışır?',
+    'nc.giris': 'Bulevini basit bir fikre dayanır: bir binada yaşamış olanlar bildiklerini paylaşır, taşınacak olanlar öğrenir. Bu alışveriş üç adımda gerçekleşir.',
+    'nc.s1b': 'Ara', 'nc.s1': "Merak ettiğin binayı adıyla, sokağıyla ya da ilçesiyle ara; dilersen haritadan gez. İstanbul'da mühürlenmiş her bina karşına çıkar.",
+    'nc.s2b': 'Karneyi Gör', 'nc.s2': 'Binanın karnesini incele: ısınma, deprem güveni, yönetim, komşuluk gibi kategorilerde gerçek sakinlerin verdiği puanlar, yazdıkları deneyimler ve çevre analizi (okul, hastane, ulaşım) önünde.',
+    'nc.s3b': 'Mühürle', 'nc.s3': 'Sıra sende. Bir binada yaşadıysan ya da yolun kesiştiyse, deneyimini mühürle. Puanla, anlat, istersen kanıt fotoğrafı ekle. Senin mührün, senden sonra ev arayana yol gösterir.',
+    'nc.kutu1': 'Bunu hep birlikte yapıyoruz. Her mühür tek başına küçük bir nottur; birleştiğinde İstanbul\'un bina hafızasını oluşturur. Buradaki otorite bir şirket değil — ', 'nc.kutu2': 'yaşamış insanların kendisi.',
+    'nc.cta': 'HEMEN BAŞLA →',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -280,6 +287,13 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'fo.gizlilikBaslik': 'Privacy & Rules', 'fo.kvkk': 'Privacy & GDPR', 'fo.kullanim': 'Terms of Use', 'fo.topluluk': 'Community Rules',
     'iskelet.yakinda': 'The content of this page will be here very soon.',
     'nasil.h1': 'How It Works', 'bk.h1': 'Explore Buildings', 'sn.h1': 'What is the Score?', 'il.h1': 'Istanbul Districts',
+    'nc.eyebrow': 'GUIDE', 'nc.h1a': 'How It', 'nc.h1b': 'Works',
+    'nc.giris': 'Bulevini rests on a simple idea: those who have lived in a building share what they know, and those about to move learn from it. This exchange happens in three steps.',
+    'nc.s1b': 'Search', 'nc.s1': "Search for the building by name, street or district; or browse the map. Every sealed building in Istanbul shows up.",
+    'nc.s2b': 'See the Report Card', 'nc.s2': "Review the building's report card: real resident scores on heating, earthquake safety, management and neighbors, their written experiences, and the surroundings analysis (schools, hospitals, transit).",
+    'nc.s3b': 'Seal It', 'nc.s3': "Now it's your turn. If you've lived in a building or your path crossed it, seal your experience. Rate it, tell the story, add evidence if you like. Your seal guides the next home seeker.",
+    'nc.kutu1': "And we do this together. Each seal is a small note on its own; combined, they form Istanbul's building memory. The authority here isn't a company — ", 'nc.kutu2': 'the people who lived it.',
+    'nc.cta': 'GET STARTED →',
   },
 };
 
