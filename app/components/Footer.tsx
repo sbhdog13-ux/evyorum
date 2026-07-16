@@ -31,7 +31,6 @@ export default function Footer() {
       linkler: [
         { ad: t('fo.skorNedir'), href: '/skor-nedir' },
         { ad: t('fo.muhurNedir'), href: '/skor-nedir#muhur' },
-        { ad: t('fo.sss'), href: '/#sss' },
       ],
     },
     {
@@ -46,6 +45,7 @@ export default function Footer() {
         { ad: t('fo.kvkk'), href: '/gizlilik' },
         { ad: t('fo.kullanim'), href: '/gizlilik' },
         { ad: t('fo.topluluk'), href: '/gizlilik' },
+        { ad: t('fo.sss'), href: '/#sss' },
       ],
     },
   ];

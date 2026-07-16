@@ -132,22 +132,6 @@ export default function AcilisSayfasi() {
         </div>
       </section>
 
-      {/* İlçe linkleri — yerel SEO */}
-      <section className="max-w-5xl mx-auto px-6 pb-20">
-        <h2 className="font-black italic uppercase tracking-tighter text-[20px] mb-5 border-l-4 border-blue-600 pl-4">{t('seo.ilceBaslik')}</h2>
-        <div className="flex flex-wrap gap-2.5">
-          <Link href="/skor?ilce=KADIKÖY" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">KADIKÖY</Link>
-          <Link href="/skor?ilce=BEŞİKTAŞ" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">BEŞİKTAŞ</Link>
-          <Link href="/skor?ilce=ŞİŞLİ" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">ŞİŞLİ</Link>
-          <Link href="/skor?ilce=ÜSKÜDAR" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">ÜSKÜDAR</Link>
-          <Link href="/skor?ilce=MALTEPE" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">MALTEPE</Link>
-          <Link href="/skor?ilce=SARIYER" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">SARIYER</Link>
-          <Link href="/skor?ilce=PENDİK" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">PENDİK</Link>
-          <Link href="/skor?ilce=KARTAL" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">KARTAL</Link>
-          <Link href="/skor?ilce=BAKIRKÖY" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">BAKIRKÖY</Link>
-          <Link href="/skor?ilce=ATAŞEHİR" className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-2.5 text-[12px] font-black uppercase italic text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all">ATAŞEHİR</Link>
-        </div>
-      </section>
 
       {/* Yapılandırılmış veri */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Bulevini nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız bir platformdur. Bir binayla yolu kesişmiş herkes deneyimini mühürler; bu kayıtlar birikir ve binanın karnesine dönüşür. Evini tutmadan önce o karneye bakarsın. Şu an İstanbul'da hizmet veriyor."}}, {"@type": "Question", "name": "Bina yorumları güvenilir mi?", "acceptedAnswer": {"@type": "Answer", "text": "Yorumlar bağlantı tipine göre ağırlıklandırılır: mevcut sakinin puanı en yüksek etkiye sahiptir; eski sakin ve ziyaretçi yorumları daha düşük ağırlıkla hesaba katılır. Kanıt fotoğrafı da eklenebilir."}}, {"@type": "Question", "name": "Yorum yazmak için kimliğim görünür mü?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, istersen tamamen anonim paylaşabilirsin. Kimliğin hiçbir zaman ev sahibi veya üçüncü kişilerle paylaşılmaz."}}, {"@type": "Question", "name": "Mühür nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Mühür, bir binada yaşamış birinin o bina hakkında bıraktığı puanlı deneyim kaydıdır: ısınma, deprem dayanıklılığı, komşuluk, yönetim gibi kategorilerde."}}, {"@type": "Question", "name": "Hangi şehirlerde çalışıyor?", "acceptedAnswer": {"@type": "Answer", "text": "Şu an İstanbul'un tüm ilçelerinde derinlemesine çalışıyoruz: her bina gerçek adres ve koordinatla haritada."}}, {"@type": "Question", "name": "Ücretli mi?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, Bulevini tamamen ücretsizdir."}}]}) }} />
