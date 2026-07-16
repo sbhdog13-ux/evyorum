@@ -14,7 +14,7 @@ export default function Footer() {
       linkler: [
         { ad: t('fo.nedir'), href: '/nedir' },
         { ad: t('fo.nasil'), href: '/nasil-calisir' },
-        { ad: t('fo.iletisim'), href: 'mailto:sbhdog13@gmail.com' },
+        { ad: t('fo.iletisim'), href: '/iletisim' },
       ],
     },
     {

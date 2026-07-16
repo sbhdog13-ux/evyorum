@@ -148,6 +148,12 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'nc.s3b': 'Mühürle', 'nc.s3': 'Sıra sende. Bir binada yaşadıysan ya da yolun kesiştiyse, deneyimini mühürle. Puanla, anlat, istersen kanıt fotoğrafı ekle. Senin mührün, senden sonra ev arayana yol gösterir.',
     'nc.kutu1': 'Bunu hep birlikte yapıyoruz. Her mühür tek başına küçük bir nottur; birleştiğinde İstanbul\'un bina hafızasını oluşturur. Buradaki otorite bir şirket değil — ', 'nc.kutu2': 'yaşamış insanların kendisi.',
     'nc.cta': 'HEMEN BAŞLA →',
+    'ilt.h1a': 'Bize', 'ilt.h1b': 'Ulaş', 'ilt.eyebrow': 'İLETİŞİM',
+    'ilt.giris': 'Bir sorun, öneri ya da sorun mu var? Aşağıdaki formu doldur, en kısa sürede sana dönelim.',
+    'ilt.ad': 'AD SOYAD', 'ilt.adPh': 'Adın ve soyadın', 'ilt.eposta': 'E-POSTA', 'ilt.epostaPh': 'ornek@mail.com',
+    'ilt.konu': 'KONU', 'ilt.konuPh': 'Mesajının konusu', 'ilt.mesaj': 'MESAJIN', 'ilt.mesajPh': 'Bize iletmek istediklerini yaz...',
+    'ilt.gonder': 'GÖNDER', 'ilt.gonderiliyor': 'GÖNDERİLİYOR...', 'ilt.basarili': 'Mesajın bize ulaştı — teşekkürler! En kısa sürede döneceğiz.',
+    'ilt.hata': 'Bir sorun oldu, lütfen tekrar dene.', 'ilt.eksik': 'Lütfen tüm alanları doldur.',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -294,6 +300,12 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'nc.s3b': 'Seal It', 'nc.s3': "Now it's your turn. If you've lived in a building or your path crossed it, seal your experience. Rate it, tell the story, add evidence if you like. Your seal guides the next home seeker.",
     'nc.kutu1': "And we do this together. Each seal is a small note on its own; combined, they form Istanbul's building memory. The authority here isn't a company — ", 'nc.kutu2': 'the people who lived it.',
     'nc.cta': 'GET STARTED →',
+    'ilt.h1a': 'Get in', 'ilt.h1b': 'Touch', 'ilt.eyebrow': 'CONTACT',
+    'ilt.giris': 'Have a question, suggestion or an issue? Fill the form below and we will get back to you soon.',
+    'ilt.ad': 'FULL NAME', 'ilt.adPh': 'Your full name', 'ilt.eposta': 'E-MAIL', 'ilt.epostaPh': 'example@mail.com',
+    'ilt.konu': 'SUBJECT', 'ilt.konuPh': 'Subject of your message', 'ilt.mesaj': 'YOUR MESSAGE', 'ilt.mesajPh': 'Write what you want to tell us...',
+    'ilt.gonder': 'SEND', 'ilt.gonderiliyor': 'SENDING...', 'ilt.basarili': 'Your message reached us — thank you! We will get back to you soon.',
+    'ilt.hata': 'Something went wrong, please try again.', 'ilt.eksik': 'Please fill in all fields.',
   },
 };
 

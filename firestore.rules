@@ -89,6 +89,17 @@ service cloud.firestore {
       // değiştirme/silme yok — ad kalıcı (v1)
     }
 
+
+    match /iletisim/{id} {
+      // Bize ulaş formu — herkes gönderebilir (giriş gerekmez); okuma yok (admin konsoldan)
+      allow create: if request.resource.data.ad is string
+        && request.resource.data.ad.size() > 0 && request.resource.data.ad.size() <= 100
+        && request.resource.data.eposta is string && request.resource.data.eposta.size() <= 150
+        && request.resource.data.konu is string && request.resource.data.konu.size() <= 200
+        && request.resource.data.mesaj is string
+        && request.resource.data.mesaj.size() > 0 && request.resource.data.mesaj.size() <= 3000;
+    }
+
     match /sikayetler/{sikayetId} {
       // Şikayet: doğrulanmış kullanıcı kendi adına oluşturur; okuma yok (sadece yönetici konsoldan)
       allow create: if request.auth != null
