@@ -28,15 +28,20 @@ service cloud.firestore {
       allow delete: if request.auth != null
         && request.auth.uid == resource.data.kullanici_id;
 
-      // Güncelleme SADECE oy sayaçları için ve toplamda +1;
-      // aynı pakette kişinin kendi oy belgesi de yazılmış olmalı (getAfter)
-      allow update: if request.auth != null
-        && request.auth.token.email_verified == true
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['faydali_sayisi', 'faydasiz_sayisi'])
-        && (request.resource.data.get('faydali_sayisi', 0) - resource.data.get('faydali_sayisi', 0))
-         + (request.resource.data.get('faydasiz_sayisi', 0) - resource.data.get('faydasiz_sayisi', 0)) == 1
-        && getAfter(/databases/$(database)/documents/yorumlar/$(yorumId)/oylar/$(request.auth.uid)).data.tip is string;
+      // Güncelleme: (a) oy sayaçları +1 (kendi oy belgesiyle) VEYA (b) yönetici fotoğraf onayı/reddi
+      allow update: if (
+          request.auth != null
+          && request.auth.token.email_verified == true
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['faydali_sayisi', 'faydasiz_sayisi'])
+          && (request.resource.data.get('faydali_sayisi', 0) - resource.data.get('faydali_sayisi', 0))
+           + (request.resource.data.get('faydasiz_sayisi', 0) - resource.data.get('faydasiz_sayisi', 0)) == 1
+          && getAfter(/databases/$(database)/documents/yorumlar/$(yorumId)/oylar/$(request.auth.uid)).data.tip is string
+        ) || (
+          // Yönetici: sadece fotoğraf onay durumunu (ve reddederken foto_url'i) değiştirebilir
+          request.auth != null && request.auth.uid == 'mGJ9nLdCsgXvNXDZMGBWjtUIKuv1'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['foto_onay', 'foto_url'])
+        );
 
       // Oylar — gizli kasa: herkes yalnız KENDİ oyunu okuyabilir/oluşturabilir.
       // Belge kimliği = kullanıcı kimliği → kişi başı 1 oy fiziken garanti (ikinci create patlar).

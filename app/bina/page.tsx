@@ -535,8 +535,11 @@ function BinaDetayIcerik() {
                       ))}
                     </div>
                   )}
-                  {!!y.foto_url && (
+                  {!!y.foto_url && y.foto_onay === 'onaylandi' && (
                     <img src={y.foto_url} alt="Kanıt" className="w-full h-52 object-cover rounded-3xl border border-slate-100" />
+                  )}
+                  {!!y.foto_url && y.foto_onay === 'bekliyor' && (
+                    <div className="w-full py-3 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-center text-[10px] font-black italic uppercase text-slate-400 tracking-widest">📷 {t('yorum.fotoBekliyor')}</div>
                   )}
                   {((y.red_flags?.length > 0) || (y.green_flags?.length > 0)) && (
                     <div className="flex flex-wrap gap-2">

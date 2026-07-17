@@ -197,6 +197,7 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'ilc.yargi': 'Skorlar yargı değildir. Her puan sakinlerin ağırlıklı ortalamasıdır; "iyi ilçe / kötü bina" damgası vurmaz. Az mühürlü yerlerde skor henüz olgunlaşmamıştır — o boşluğu sen doldurabilirsin.',
     'ilc.davet1': 'Senin binan, senin ilçen burada yok mu?', 'ilc.davet2': " İstanbul'un hafızasını birlikte yazıyoruz — ilk mührü sen bas.",
     'ilc.cta': 'İLK MÜHRÜ BAS →',
+    'yorum.fotoBekliyor': 'Fotoğraf onay bekliyor',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -392,6 +393,7 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'ilc.yargi': 'Scores are not verdicts. Every score is the weighted average of residents; it stamps no "good district / bad building" label. Where seals are few, the score has not matured yet — you can fill that gap.',
     'ilc.davet1': "Your building, your district isn't here?", 'ilc.davet2': " We are writing Istanbul's memory together — be the first to stamp a seal.",
     'ilc.cta': 'STAMP THE FIRST SEAL →',
+    'yorum.fotoBekliyor': 'Photo pending approval',
   },
 };
 

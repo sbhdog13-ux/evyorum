@@ -192,6 +192,7 @@ function YorumFormu() {
         baglanti_tipi: baglantiTipi,
         foto_url,
         gps_onay,
+        foto_onay: foto_url ? 'bekliyor' : null,
         faydali_sayisi: 0,
         red_flags: redFlags,
         green_flags: greenFlags,

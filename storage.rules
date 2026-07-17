@@ -13,6 +13,8 @@ service firebase.storage {
         && request.auth.uid == userId
         && request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
+      // Yönetici reddettiğinde fotoğrafı depodan silebilir
+      allow delete: if request.auth != null && request.auth.uid == 'mGJ9nLdCsgXvNXDZMGBWjtUIKuv1';
     }
 
     // Adı geçmeyen her yol kapalı (varsayılan ret)
