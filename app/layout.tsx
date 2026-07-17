@@ -8,6 +8,7 @@ import { AuthProvider } from "@/app/contexts/AuthContext";
 import { LangProvider } from "@/app/lib/i18n";
 import BottomNav from "@/app/components/BottomNav";
 import KullaniciAdiKapisi from "@/app/components/KullaniciAdiKapisi";
+import CerezBandi from "@/app/components/CerezBandi";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bulevini.com"),
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <BottomNav />
           <KullaniciAdiKapisi />
+          <CerezBandi />
         </AuthProvider>
         </LangProvider>
       </body>

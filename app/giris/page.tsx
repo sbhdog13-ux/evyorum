@@ -7,6 +7,7 @@ import { LogIn, ArrowRight, UserPlus, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
 import { adTuret, adGecerliMi, adMusaitMi, adKaydet } from '@/app/lib/kullaniciadi';
+import { olay } from '@/app/lib/analytics';
 
 export default function GirisKayitSayfasi() {
   const [mode, setMode] = useState<'giris' | 'kayit'>('giris');
@@ -44,6 +45,7 @@ export default function GirisKayitSayfasi() {
         const result = await createUserWithEmailAndPassword(auth, email, sifre);
         await updateProfile(result.user, { displayName: isim });
         try { await adKaydet(result.user.uid, kadi); } catch {} // ad alınamazsa kapı tekrar sorar
+        olay("kayit_olundu");
         sendEmailVerification(result.user).catch(() => {});
         alert(t('dogrula.gonderildi'));
       }

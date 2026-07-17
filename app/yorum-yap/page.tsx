@@ -13,6 +13,7 @@ import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import { kufurVarMi } from '@/app/lib/kufur';
 import { adGetir } from '@/app/lib/kullaniciadi';
+import { olay } from '@/app/lib/analytics';
 import Sidebar from '@/app/components/Sidebar';
 
 function YorumFormu() {
@@ -200,6 +201,7 @@ function YorumFormu() {
       });
 
       takipcilariBildir(temizBinaAdi, gecerliKullaniciAdi).catch(() => {});
+      olay("muhur_basildi", { bina: temizBinaAdi, kanit: !!foto_url });
       alert("BİNA MÜHÜRLENDİ! 🎉");
       router.push(`/bina?isim=${encodeURIComponent(temizBinaAdi)}`);
     } catch (err: any) {

@@ -5,6 +5,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
 import Footer from '@/app/components/Footer';
+import { olay } from '@/app/lib/analytics';
 
 export default function IletisimSayfasi() {
   const { t } = useLang();
@@ -23,6 +24,7 @@ export default function IletisimSayfasi() {
         ad: ad.trim(), eposta: eposta.trim(), konu: konu.trim(), mesaj: mesaj.trim(),
         created_at: serverTimestamp(),
       });
+      olay("iletisim_gonderildi");
       setDurum('basarili');
       setAd(''); setEposta(''); setKonu(''); setMesaj('');
     } catch { setDurum('hata'); }

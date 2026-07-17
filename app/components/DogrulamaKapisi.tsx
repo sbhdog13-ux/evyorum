@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { sendEmailVerification, reload } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase-auth';
 import { useLang } from '@/app/lib/i18n';
+import { olay } from '@/app/lib/analytics';
 import { MailWarning } from 'lucide-react';
 
 // Yumuşak kapı: e-posta doğrulanmadan mühür/bina formu yerine bu panel gösterilir
@@ -23,7 +24,7 @@ export default function DogrulamaKapisi() {
     if (!auth.currentUser) return;
     setYukleniyor(true);
     await reload(auth.currentUser);
-    if (auth.currentUser.emailVerified) window.location.reload();
+    if (auth.currentUser.emailVerified) { olay("eposta_dogrulandi"); window.location.reload(); }
     else setMesaj(t('dogrula.hala'));
     setYukleniyor(false);
   };

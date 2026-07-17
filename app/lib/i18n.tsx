@@ -198,6 +198,7 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'ilc.davet1': 'Senin binan, senin ilçen burada yok mu?', 'ilc.davet2': " İstanbul'un hafızasını birlikte yazıyoruz — ilk mührü sen bas.",
     'ilc.cta': 'İLK MÜHRÜ BAS →',
     'yorum.fotoBekliyor': 'Fotoğraf onay bekliyor',
+    'cerez.metin': 'Bulevini, deneyimini iyileştirmek ve ziyaretleri anonim olarak ölçmek için çerez kullanır.', 'cerez.detay': 'Ayrıntılar', 'cerez.kabul': 'Kabul Et', 'cerez.reddet': 'Reddet',
   },
   en: {
     'nav.kesfet': 'Explore', 'nav.radar': 'Radar', 'nav.skor': 'Scores', 'nav.muhurle': 'Seal', 'nav.profil': 'Profile', 'nav.menu': 'Menu',
@@ -394,6 +395,7 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'ilc.davet1': "Your building, your district isn't here?", 'ilc.davet2': " We are writing Istanbul's memory together — be the first to stamp a seal.",
     'ilc.cta': 'STAMP THE FIRST SEAL →',
     'yorum.fotoBekliyor': 'Photo pending approval',
+    'cerez.metin': 'Bulevini uses cookies to improve your experience and measure visits anonymously.', 'cerez.detay': 'Details', 'cerez.kabul': 'Accept', 'cerez.reddet': 'Decline',
   },
 };
 

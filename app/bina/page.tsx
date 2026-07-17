@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
 import { puanHesapla, radarHakki } from '@/app/lib/seviye';
 import { agirlik } from '@/app/lib/skor';
+import { olay } from '@/app/lib/analytics';
 import CevapBolumu from '@/app/components/CevapBolumu';
 import Sidebar from '@/app/components/Sidebar';
 
@@ -232,6 +233,7 @@ function BinaDetayIcerik() {
         });
         setIsFollowing(true);
         setRadarDocId(newDoc.id);
+        olay("radara_alindi", { bina: binaIsmi });
       }
     } catch (err) {
       console.error("Radar hatası:", err);
