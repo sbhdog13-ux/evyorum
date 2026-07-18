@@ -1,5 +1,6 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
+import { slugify } from '@/app/lib/slug';
 import React, { useState, Suspense, useEffect, useRef } from 'react';
 import { ArrowLeft, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye, MapPin, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -139,6 +140,7 @@ function BinaOlusturForm() {
       await addDoc(collection(db, 'yorumlar'), {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
+        slug: slugify(temizBinaAdi),
         acik_adres: paketliAdres,
         il: formData.il,
         ilce: formData.ilce,

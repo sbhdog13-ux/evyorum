@@ -1,5 +1,6 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
+import { slugify } from '@/app/lib/slug';
 import { useState, useEffect, useMemo, Suspense } from 'react';
 import { ArrowLeft, MapPin, BarChart2, Trophy, Building2, ChevronRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -141,7 +142,7 @@ function SkorIcerik() {
         {binaMini && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {binaMini.map((b: string) => (
-              <Link key={b} href={`/bina?isim=${encodeURIComponent(b)}`} onClick={e => e.stopPropagation()} className="flex items-center gap-1 bg-white border border-slate-100 rounded-lg px-2 py-1 text-[9px] font-bold text-slate-600 hover:border-blue-600">
+              <Link key={b} href={`/bina/${slugify(b)}`} onClick={e => e.stopPropagation()} className="flex items-center gap-1 bg-white border border-slate-100 rounded-lg px-2 py-1 text-[9px] font-bold text-slate-600 hover:border-blue-600">
                 <Building2 size={9} className="text-blue-600" /> {b}
               </Link>
             ))}
@@ -196,7 +197,7 @@ function SkorIcerik() {
           binalar.length === 0 ? (
             <div className="py-24 text-center font-black italic uppercase text-slate-300 text-[13px]">{t('skor.binaYok')}</div>
           ) : binalar.map((b, i) => (
-            <Satir key={b.ad} i={i} baslik={b.ad} alt={`${b.muhurSayisi} ${t('skor.muhur')}${b.dogrulanmis > 0 ? ` · ${b.dogrulanmis} ${t('skor.sakin')}` : ''}`} puan={b.finalPuan} onClick={() => router.push(`/bina?isim=${encodeURIComponent(b.ad)}`)} />
+            <Satir key={b.ad} i={i} baslik={b.ad} alt={`${b.muhurSayisi} ${t('skor.muhur')}${b.dogrulanmis > 0 ? ` · ${b.dogrulanmis} ${t('skor.sakin')}` : ''}`} puan={b.finalPuan} onClick={() => router.push(`/bina/${slugify(b.ad)}`)} />
           ))
         )}
       </main>

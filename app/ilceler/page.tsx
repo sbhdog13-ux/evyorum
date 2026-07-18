@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
 import { trUpper } from '@/app/lib/utils';
+import { slugify } from '@/app/lib/slug';
 import { agirlik } from '@/app/lib/skor';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
 import Footer from '@/app/components/Footer';
@@ -101,7 +102,7 @@ export default function IlcelerSayfasi() {
         </div>
         <div className="flex flex-col gap-2 mt-3">
           {ornekler.map(b => (
-            <Link key={b.ad} href={`/bina?isim=${encodeURIComponent(b.ad)}`} className="flex items-center gap-3 border border-slate-200 rounded-2xl p-4 hover:border-[#023E56] transition-all">
+            <Link key={b.ad} href={`/bina/${slugify(b.ad)}`} className="flex items-center gap-3 border border-slate-200 rounded-2xl p-4 hover:border-[#023E56] transition-all">
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-black italic uppercase truncate">{b.ad}</div>
                 <div className="text-[10px] text-slate-400 font-semibold">{b.ilce}{b.mahalle ? ` / ${b.mahalle}` : ''} · {b.muhur} {t('arama.muhur')}</div>

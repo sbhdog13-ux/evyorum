@@ -1,5 +1,6 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
+import { slugify } from '@/app/lib/slug';
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Search, Home, MapPin, Star, MessageSquare, ArrowRight, X, SlidersHorizontal, ChevronRight, Map as MapIcon, List, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -281,7 +282,7 @@ function AramaIcerik() {
                 results.map((bina, idx) => (
                   <div 
                     key={idx}
-                    onClick={() => router.push(`/bina?isim=${encodeURIComponent(bina.ad)}`)}
+                    onClick={() => router.push(`/bina/${slugify(bina.ad)}`)}
                     className="group bg-white border-2 border-slate-100 rounded-[3rem] hover:border-blue-600 transition-all cursor-pointer shadow-sm hover:shadow-2xl relative overflow-hidden flex flex-col"
                   >
                     <div className="h-48 w-full bg-slate-100 relative overflow-hidden">

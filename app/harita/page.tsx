@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Search, MapPin, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/app/lib/firebase';
+import { slugify } from '@/app/lib/slug';
 import { collection, getDocs } from 'firebase/firestore';
 import { useLang } from '@/app/lib/i18n';
 
@@ -103,7 +104,7 @@ export default function HaritaPage() {
         const puan = b.sayi ? (b.top / b.sayi).toFixed(1) : '0';
         const icon = L.divIcon({ html: `<div style="width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${renk(Number(puan))};border:2px solid #fff;box-shadow:-1px 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.9);transform:rotate(45deg)"></div></div>`, className: '', iconAnchor: [12, 26] });
         L.marker([b.lat, b.lng], { icon }).addTo(map)
-          .bindPopup(`<div style="padding:10px;min-width:150px;font-family:sans-serif"><div style="font-weight:900;font-style:italic;font-size:13px">${ad}</div><div style="font-size:11px;color:#94a3b8;margin:4px 0 8px">⭐ ${puan} • ${b.sayi} mühür</div><a href="/bina?isim=${encodeURIComponent(ad)}" style="display:block;background:#2563eb;color:#fff;text-align:center;border-radius:10px;padding:7px;font-size:11px;font-weight:900;text-decoration:none">DETAYA GİT →</a></div>`);
+          .bindPopup(`<div style="padding:10px;min-width:150px;font-family:sans-serif"><div style="font-weight:900;font-style:italic;font-size:13px">${ad}</div><div style="font-size:11px;color:#94a3b8;margin:4px 0 8px">⭐ ${puan} • ${b.sayi} mühür</div><a href="/bina/${slugify(ad)}" style="display:block;background:#2563eb;color:#fff;text-align:center;border-radius:10px;padding:7px;font-size:11px;font-weight:900;text-decoration:none">DETAYA GİT →</a></div>`);
       });
     };
     document.head.appendChild(script);

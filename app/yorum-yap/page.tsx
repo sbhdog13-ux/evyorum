@@ -13,6 +13,7 @@ import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import { kufurVarMi } from '@/app/lib/kufur';
 import { adGetir } from '@/app/lib/kullaniciadi';
 import { olay } from '@/app/lib/analytics';
+import { slugify } from '@/app/lib/slug';
 import Sidebar from '@/app/components/Sidebar';
 
 function YorumFormu() {
@@ -180,6 +181,7 @@ function YorumFormu() {
       await addDoc(collection(db, 'yorumlar'), {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
+        slug: slugify(temizBinaAdi),
         il: konum.il || 'İSTANBUL',
         ilce: konum.ilce || '',
         mahalle: konum.mahalle || '',
@@ -202,7 +204,7 @@ function YorumFormu() {
       // Bildirim artık sunucudan (Cloud Functions muhurBildirimi) gönderiliyor
       olay("muhur_basildi", { bina: temizBinaAdi, kanit: !!foto_url });
       alert("BİNA MÜHÜRLENDİ! 🎉");
-      router.push(`/bina?isim=${encodeURIComponent(temizBinaAdi)}`);
+      router.push(`/bina/${slugify(temizBinaAdi)}`);
     } catch (err: any) {
       alert("Hata: " + err.message);
     } finally {

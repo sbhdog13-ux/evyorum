@@ -1,5 +1,6 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
+import { slugify } from '@/app/lib/slug';
 
 import { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Star, ShieldCheck, Loader2, AlertCircle, Radio, MessageSquarePlus, Map, Radar, Users, MessageSquare, ShieldCheck as ShieldIcon, LogOut } from "lucide-react";
@@ -119,7 +120,7 @@ export default function Home() {
     const q = query(yorumlarRef, where('yeni_bina_adi', '==', trUpper(mainText)));
     const snap = await getDocs(q);
     if (!snap.empty) {
-      router.push(`/bina?isim=${encodeURIComponent(trUpper(mainText))}`);
+      router.push(`/bina/${slugify(trUpper(mainText))}`);
     } else {
       setPendingSelection({ name: trUpper(mainText), city: secondaryText });
       setShowConfirmModal(true);
@@ -220,7 +221,7 @@ export default function Home() {
           <div ref={karuselRef} onScroll={karuselScroll} className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-4" style={{ scrollbarWidth: 'none' }}>
             {gercekYorumlar.length > 0 ? (
               gercekYorumlar.map((yorum, i) => (
-                <Link key={i} href={`/bina?isim=${encodeURIComponent(yorum.yeni_bina_adi || yorum.bina_adi)}`} className="group snap-start shrink-0 w-[85%] sm:w-[380px] bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-white hover:border-blue-600 transition-all shadow-xl">
+                <Link key={i} href={`/bina/${slugify(yorum.yeni_bina_adi || yorum.bina_adi)}`} className="group snap-start shrink-0 w-[85%] sm:w-[380px] bg-white/60 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-white hover:border-blue-600 transition-all shadow-xl">
                   <div className="flex justify-between items-start mb-5 text-black">
                     <div className="flex-1 pr-4">
                       <h3 className="text-[15px] font-black uppercase italic tracking-tighter group-hover:text-blue-600 leading-none mb-2 line-clamp-1">{yorum.yeni_bina_adi || yorum.bina_adi}</h3>

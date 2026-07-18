@@ -7,5 +7,5 @@ const withPWA = require('next-pwa')({
 });
 
 module.exports = withPWA({
-  output: 'export',
+  // App Hosting (SSR) — statik export kaldırıldı, sunucu tarafı render aktif
 });
