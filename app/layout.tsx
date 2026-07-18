@@ -4,7 +4,11 @@ export const viewport: Viewport = {
   themeColor: "#023E56",
 };
 import "./globals.css";
+import { Inter } from "next/font/google";
 import { AuthProvider } from "@/app/contexts/AuthContext";
+
+// Bloklamayan, kendi kendine barındırılan font — hız optimizasyonu (eski manuel link/script numarasının yerine).
+const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 import { LangProvider } from "@/app/lib/i18n";
 import BottomNav from "@/app/components/BottomNav";
 import KullaniciAdiKapisi from "@/app/components/KullaniciAdiKapisi";
@@ -44,18 +48,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr">
+    <html lang="tr" className={inter.variable}>
       <head>
         <meta name="google-site-verification" content="DYIFwyUTKNKLk0KnZIeD3y19ACHcnOZlmD2D8icHxBw" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          id="gfont"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-          media="print"
-        />
-        <script dangerouslySetInnerHTML={{ __html: "(function(){var l=document.getElementById('gfont');if(!l)return;function f(){l.media='all'}if(l.sheet){f()}else{l.addEventListener('load',f)}})();" }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
@@ -79,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           "publisher": { "@type": "Organization", "name": "Bulevini", "url": "https://bulevini.com" }
         }) }} />
       </head>
-      <body style={{ fontFamily: "'Inter', sans-serif" }}>
+      <body className={inter.className}>
         <LangProvider>
         <AuthProvider>
           {children}
