@@ -1,11 +1,7 @@
-// @ts-ignore
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
-});
+import type { NextConfig } from 'next';
 
-module.exports = withPWA({
-  // App Hosting (SSR) — statik export kaldırıldı, sunucu tarafı render aktif
-});
+// Firebase App Hosting (SSR) — Turbopack varsayılan.
+// next-pwa (webpack-only, Turbopack ile uyumsuz, bakımsız) kaldırıldı.
+const nextConfig: NextConfig = {};
+
+export default nextConfig;
