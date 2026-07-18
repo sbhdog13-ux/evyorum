@@ -8,7 +8,6 @@ import { db } from '@/app/lib/firebase';
 import { collection, getDocs, addDoc, serverTimestamp, query, where, limit } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { takipcilariBildir } from '@/app/lib/notifications';
 import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import { kufurVarMi } from '@/app/lib/kufur';
@@ -200,7 +199,7 @@ function YorumFormu() {
         created_at: serverTimestamp()
       });
 
-      takipcilariBildir(temizBinaAdi, gecerliKullaniciAdi).catch(() => {});
+      // Bildirim artık sunucudan (Cloud Functions muhurBildirimi) gönderiliyor
       olay("muhur_basildi", { bina: temizBinaAdi, kanit: !!foto_url });
       alert("BİNA MÜHÜRLENDİ! 🎉");
       router.push(`/bina?isim=${encodeURIComponent(temizBinaAdi)}`);
