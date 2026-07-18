@@ -1,7 +1,5 @@
 import { cache } from 'react';
 import type { Metadata } from 'next';
-import { db } from '@/app/lib/firebase';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { agirlik } from '@/app/lib/skor';
 import { trUpper } from '@/app/lib/utils';
 import BinaDetayClient from '../BinaDetayClient';
@@ -22,6 +20,9 @@ type BinaOzet = {
 // React cache: aynı istekte generateMetadata + sayfa tek sorguyla paylaşır.
 const binaOzetiGetir = cache(async (slug: string): Promise<BinaOzet | null> => {
   try {
+    // Firebase'i istek anında (derlemede değil) başlat — build sırasında env yoksa çökmesin.
+    const { db } = await import('@/app/lib/firebase');
+    const { collection, query, where, getDocs } = await import('firebase/firestore');
     const snap = await getDocs(query(collection(db, 'yorumlar'), where('slug', '==', slug)));
     if (snap.empty) return null;
     const yorumlar = snap.docs.map((d) => d.data() as any);
