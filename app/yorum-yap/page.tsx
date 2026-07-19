@@ -1,6 +1,6 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Home, Camera, PlusCircle, CheckCircle2, UserCircle, UserX, Building2, UserCheck, History, Eye } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -27,6 +27,7 @@ function YorumFormu() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [yorum, setYorum] = useState("");
   const [loading, setLoading] = useState(false);
+  const gonderiliyorRef = useRef(false); // senkron kilit — çift/çok gönderimi kökten engeller
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -109,6 +110,7 @@ function YorumFormu() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (gonderiliyorRef.current) return; // zaten gönderiliyor — çift/çok tıklamayı yok say
     const temizBinaAdi = trUpper(binaAdi).trim();
     if (!temizBinaAdi || !yorum.trim()) return alert("Bina adı ve deneyim metni zorunludur!");
     if (kufurVarMi(yorum)) return alert(t('yorum.kufurUyari'));
@@ -118,16 +120,19 @@ function YorumFormu() {
       return;
     }
 
+    // Senkron validasyonlar geçti — HEMEN kilitle (await'ten önce). Böylece
+    // ad çekme/GPS beklerken buton aktif kalıp ikinci gönderim başlatamaz.
+    gonderiliyorRef.current = true;
+    setLoading(true);
+
     // Mahremiyet: yorumda gerçek isim değil kullanıcı adı görünür
     let gecerliKullaniciAdi = 'Anonim Sakin';
     if (!isAnonymous && user) {
       const kadi = await adGetir(user.uid);
-      if (!kadi) return alert(t('kadi.gerekli')); // kapı penceresi zaten açılacaktır
+      if (!kadi) { gonderiliyorRef.current = false; setLoading(false); return alert(t('kadi.gerekli')); }
       gecerliKullaniciAdi = '@' + kadi;
     }
     const gecerliKullaniciId = isAnonymous ? null : (user?.uid || null);
-
-    setLoading(true);
 
     const puanlarVerisi = categories.reduce((acc: any, curr) => {
       acc[curr.label] = curr.score;
@@ -157,25 +162,30 @@ function YorumFormu() {
       if (!konum.koordinat) {
         const konumEkle = confirm(`"${temizBinaAdi}" henüz haritaya eklenmemiş. Konumunu eklemek ister misin? (Haritada görünmesi için önerilir)\n\nTamam: Konum ekle · Vazgeç: Konumsuz devam et`);
         if (konumEkle) {
+          gonderiliyorRef.current = false;
           setLoading(false);
           router.push(`/bina-olustur?binaAdi=${encodeURIComponent(temizBinaAdi)}`);
           return;
         }
       }
 
-      // GPS güven sinyali: kullanıcı bina yakınındaysa (150 m) mühre "konumdan onaylı" işareti
+      // GPS güven sinyali (opsiyonel) — mühürlemeyi BLOKLAMAZ.
+      // Sadece konum izni ZATEN verilmişse hızlıca okur. İzin yoksa mühür anında
+      // izin İSTEMEZ (izin haritaya girerken alınır) → mühür anında bekleme olmaz.
       let gps_onay = false;
-      if (konum.koordinat?.lat && navigator.geolocation) {
+      if (konum.koordinat?.lat && navigator.geolocation && navigator.permissions) {
         try {
-          const poz: any = await new Promise((res, rej) =>
-            navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000, maximumAge: 60000 }));
-          const R = 6371000, d2r = Math.PI / 180;
-          const dLat = (poz.coords.latitude - konum.koordinat.lat) * d2r;
-          const dLng = (poz.coords.longitude - konum.koordinat.lng) * d2r;
-          const a = Math.sin(dLat/2)**2 + Math.cos(konum.koordinat.lat*d2r) * Math.cos(poz.coords.latitude*d2r) * Math.sin(dLng/2)**2;
-          const mesafe = 2 * R * Math.asin(Math.sqrt(a));
-          gps_onay = mesafe <= 150;
-        } catch {} // izin yok/zaman aşımı — sorun değil, sinyal opsiyonel
+          const izin = await navigator.permissions.query({ name: 'geolocation' as PermissionName }).catch(() => null);
+          if (izin?.state === 'granted') {
+            const poz: any = await new Promise((res, rej) =>
+              navigator.geolocation.getCurrentPosition(res, rej, { timeout: 4000, maximumAge: 300000 }));
+            const R = 6371000, d2r = Math.PI / 180;
+            const dLat = (poz.coords.latitude - konum.koordinat.lat) * d2r;
+            const dLng = (poz.coords.longitude - konum.koordinat.lng) * d2r;
+            const a = Math.sin(dLat/2)**2 + Math.cos(konum.koordinat.lat*d2r) * Math.cos(poz.coords.latitude*d2r) * Math.sin(dLng/2)**2;
+            gps_onay = 2 * R * Math.asin(Math.sqrt(a)) <= 150;
+          }
+        } catch {} // sinyal opsiyonel — hata/zaman aşımı mührü etkilemez
       }
 
       await addDoc(collection(db, 'yorumlar'), {
@@ -203,11 +213,12 @@ function YorumFormu() {
 
       // Bildirim artık sunucudan (Cloud Functions muhurBildirimi) gönderiliyor
       olay("muhur_basildi", { bina: temizBinaAdi, kanit: !!foto_url });
-      alert("BİNA MÜHÜRLENDİ! 🎉");
-      router.push(`/bina/${slugify(temizBinaAdi)}`);
+      // Bloklayan alert kaldırıldı — karneye anında yönlendir (başarı bandı orada görünür)
+      router.push(`/bina/${slugify(temizBinaAdi)}?muhur=1`);
     } catch (err: any) {
       alert("Hata: " + err.message);
     } finally {
+      gonderiliyorRef.current = false;
       setLoading(false);
     }
   };

@@ -183,7 +183,7 @@ function BinaOlusturForm() {
 
         <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-8 text-left">
           {/* Büyük harita önizleme — tıklayınca tam ekran seçici açılır */}
-          <button type="button" onClick={() => setHaritaAcik(true)}
+          <button type="button" onClick={() => { setHaritaAcik(true); if (typeof navigator !== 'undefined' && navigator.geolocation) navigator.geolocation.getCurrentPosition(() => {}, () => {}, { timeout: 8000, maximumAge: 300000 }); }}
             className="w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[280px] md:h-[340px] bg-slate-50 relative block group">
             <div className="absolute inset-0 pointer-events-none">
               <KonumSecici koordinat={formData.koordinat} onSec={() => {}} salt />

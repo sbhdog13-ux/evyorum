@@ -66,6 +66,17 @@ export default function BinaDetayClient({ binaAdi }: { binaAdi: string }) {
   const [radarDocId, setRadarDocId] = useState<string | null>(null);
   const [poilar, setPoilar] = useState<{ ad: string; tur: string; mesafe: number }[]>([]);
   const [aktifKat, setAktifKat] = useState<string[]>(['saglik', 'egitim', 'ulasim', 'market']);
+  const [muhurToast, setMuhurToast] = useState(false);
+
+  // Mühürleme sonrası anlık başarı bandı (bloklayan alert yerine) — ?muhur=1 ile gelir
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('muhur') === '1') {
+      setMuhurToast(true);
+      window.history.replaceState(null, '', window.location.pathname); // URL'i temizle
+      const z = setTimeout(() => setMuhurToast(false), 4000);
+      return () => clearTimeout(z);
+    }
+  }, []);
 
   // Yakın çevre analizi — Overpass API (mobil ile aynı sorgu)
   useEffect(() => {
@@ -282,6 +293,11 @@ export default function BinaDetayClient({ binaAdi }: { binaAdi: string }) {
   return (
     <div className="lg:pl-80 min-h-screen bg-white font-sans text-black pb-24 text-left">
       <Sidebar />
+      {muhurToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-green-600 text-white px-6 py-3 rounded-2xl shadow-2xl text-[13px] font-black italic uppercase tracking-tight flex items-center gap-2 animate-in fade-in slide-in-from-top duration-300">
+          <CheckCircle size={18} /> BİNA MÜHÜRLENDİ! 🎉
+        </div>
+      )}
       <header className="p-4 border-b border-slate-50 sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <Link href="/arama" className="flex items-center gap-2 text-slate-400 hover:text-black transition-all text-[12px] font-bold uppercase tracking-tight italic">
