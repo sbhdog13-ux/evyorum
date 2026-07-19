@@ -174,7 +174,7 @@ async function binaOzetiYazSlug(slug) {
   const finalPuan = katVals.length ? Number((katVals.reduce((a, b) => a + b, 0) / katVals.length).toFixed(1)) : 0;
 
   await db.collection('binalar').doc(slug).set({
-    slug, ad, ilce: ilce || 'İSTANBUL', mahalle, koordinat,
+    slug, adSlug: slugYap(ad), ad, ilce: ilce || 'İSTANBUL', mahalle, koordinat,
     finalPuan, kategoriOrt, muhurSayisi, dogrulanmis, sorun, arti,
     guncelleme: new Date(),
   });

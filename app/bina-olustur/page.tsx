@@ -1,12 +1,13 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
 import { slugify } from '@/app/lib/slug';
+import { yakinAyniIsim, tekilSlugBul, type BinaOzet } from '@/app/lib/binaKimlik';
 import React, { useState, Suspense, useEffect, useRef } from 'react';
 import { ArrowLeft, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye, MapPin, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
@@ -26,6 +27,8 @@ function BinaOlusturForm() {
   const [haritaAcik, setHaritaAcik] = useState(false);
   const [deneyimModal, setDeneyimModal] = useState(false);
   const [olusturulanBina, setOlusturulanBina] = useState('');
+  const [olusturulanSlug, setOlusturulanSlug] = useState('');
+  const [yakinUyari, setYakinUyari] = useState<BinaOzet | null>(null);
   const [aramaMetni, setAramaMetni] = useState('');
   const [aramaSonuclar, setAramaSonuclar] = useState<any[]>([]);
   const aramaTimer = useRef<any>(null);
@@ -139,15 +142,28 @@ function BinaOlusturForm() {
 
       // Mobil ile aynı şema: yapısal konum alanları + standart oluşturma metni
       const [koordLat, koordLng] = formData.koordinat.split(',').map((c: string) => parseFloat(c.trim()));
+      const koord = (!isNaN(koordLat) && !isNaN(koordLng)) ? { lat: koordLat, lng: koordLng } : null;
+
+      // KİMLİK: aynı isimli binalar arasında 500 m yakında var mı? (muhtemelen aynı bina)
+      const adSlug = slugify(temizBinaAdi);
+      const ayniSnap = await getDocs(query(collection(db, 'binalar'), where('adSlug', '==', adSlug)));
+      const ayniIsimliler: BinaOzet[] = ayniSnap.docs.map(d => d.data() as BinaOzet);
+      if (koord) {
+        const yakin = yakinAyniIsim(ayniIsimliler, koord.lat, koord.lng, 500);
+        if (yakin) { setYakinUyari(yakin); setLoading(false); return; } // engelle + uyar
+      }
+      // Tekil adres (aynı isim başka bölgede varsa çakışmayı çöz)
+      const tekilSlug = tekilSlugBul(temizBinaAdi, formData.ilce, formData.mahalle, new Set(ayniIsimliler.map(b => b.slug)));
+
       await addDoc(collection(db, 'yorumlar'), {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
-        slug: slugify(temizBinaAdi),
+        slug: tekilSlug,
         acik_adres: paketliAdres,
         il: formData.il,
         ilce: formData.ilce,
         mahalle: formData.mahalle,
-        koordinat: (!isNaN(koordLat) && !isNaN(koordLng)) ? { lat: koordLat, lng: koordLng } : null,
+        koordinat: koord,
         yorum_metni: 'BİNA MÜHÜRLENDİ.',
         kullanici_adi: kullaniciAdi,
         kullanici_id: kullaniciId,
@@ -159,7 +175,9 @@ function BinaOlusturForm() {
       });
 
       // Bina oluştu — mobildeki gibi tek-butonlu modal (deneyimini paylaş → yorum sayfası)
+      // Deneyim, binanın TEKİL adresine bağlanacak (isimden türetilmez)
       setOlusturulanBina(temizBinaAdi);
+      setOlusturulanSlug(tekilSlug);
       setDeneyimModal(true);
       setLoading(false);
     } catch (err: any) {
@@ -173,13 +191,38 @@ function BinaOlusturForm() {
 
   return (
     <div className="lg:pl-80 min-h-screen bg-[#F0F4F8] p-4 md:p-6 text-black pb-20 text-left">
+      {yakinUyari && (
+        <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-8">
+          <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="text-[40px] mb-1">📍</div>
+            <h3 className="text-[17px] font-black italic uppercase tracking-tighter text-[#023E56] mb-2">Bu bina zaten var</h3>
+            <p className="text-[13px] font-medium text-slate-500 mb-1 leading-relaxed">
+              <b>{yakinUyari.ad}</b> bu bölgede (500 m içinde) zaten kayıtlı. Muhtemelen aynı bina.
+            </p>
+            <p className="text-[12px] text-slate-400 mb-6">{yakinUyari.ilce}{yakinUyari.mahalle ? ` / ${yakinUyari.mahalle}` : ''}</p>
+            <button
+              onClick={() => router.push(`/bina/${yakinUyari.slug}`)}
+              className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black text-[14px] uppercase italic tracking-tight hover:bg-[#023E56] transition-all mb-2"
+            >
+              MEVCUT BİNAYA GİT →
+            </button>
+            <button
+              onClick={() => { setYakinUyari(null); router.push('/iletisim'); }}
+              className="w-full text-slate-400 rounded-2xl py-2.5 font-bold text-[12px] uppercase italic hover:text-[#023E56] transition-all"
+            >
+              Gerçekten farklı bir binaysa → bize ulaş
+            </button>
+            <button onClick={() => setYakinUyari(null)} className="w-full text-slate-300 py-2 font-bold text-[11px] uppercase hover:text-slate-500">Vazgeç</button>
+          </div>
+        </div>
+      )}
       {deneyimModal && (
         <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-8">
           <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl animate-in fade-in zoom-in duration-200">
             <h3 className="text-[18px] font-black italic uppercase tracking-tighter text-black mb-2">{t('olustur.modalBaslik')}</h3>
             <p className="text-[13px] font-medium text-slate-400 mb-6 leading-relaxed">{t('olustur.modalAlt')}</p>
             <button
-              onClick={() => { setDeneyimModal(false); router.push(`/yorum-yap?binaAdi=${encodeURIComponent(olusturulanBina)}`); }}
+              onClick={() => { setDeneyimModal(false); router.push(`/yorum-yap?binaAdi=${encodeURIComponent(olusturulanBina)}&binaSlug=${encodeURIComponent(olusturulanSlug)}`); }}
               className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black text-[14px] uppercase italic tracking-tight hover:bg-[#023E56] transition-all"
             >
               {t('olustur.modalBtn')}

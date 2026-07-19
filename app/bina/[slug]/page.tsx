@@ -111,7 +111,7 @@ export default async function BinaSlugSayfasi({ params }: { params: Promise<{ sl
         </div>
       )}
       {/* Zengin, canlı, interaktif deneyim — mevcut tüm özellikler korunur */}
-      <BinaDetayClient binaAdi={ozet?.ad || decodeURIComponent(slug)} />
+      <BinaDetayClient binaAdi={ozet?.ad || decodeURIComponent(slug)} binaSlug={slug} />
       {ozet && (
         <script
           type="application/ld+json"

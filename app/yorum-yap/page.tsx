@@ -22,6 +22,7 @@ function YorumFormu() {
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [binaAdi, setBinaAdi] = useState("");
+  const [binaSlug, setBinaSlug] = useState(""); // belirli binanın tekil adresi (oluşturma/seçim akışından) — varsa deneyim buna bağlanır
   const [kayitliBinalar, setKayitliBinalar] = useState<string[]>([]);
   const [filtrelenmişBinalar, setFiltrelenmişBinalar] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -72,11 +73,14 @@ function YorumFormu() {
     if (queryBina) {
       setBinaAdi(trUpper(decodeURIComponent(queryBina)).trim());
     }
+    const querySlug = searchParams.get('binaSlug');
+    if (querySlug) setBinaSlug(querySlug.trim());
   }, [searchParams]);
 
   const handleBinaYazimi = (val: string) => {
     const uppercaseVal = trUpper(val);
     setBinaAdi(uppercaseVal);
+    setBinaSlug(""); // isim elle değişti → belirli bina bağı düşer (isimden türetilir / gerekiyorsa seçtirilir)
     if (uppercaseVal.length > 0) {
       setFiltrelenmişBinalar(kayitliBinalar.filter(b => b.includes(uppercaseVal)));
       setShowDropdown(true);
@@ -154,8 +158,11 @@ function YorumFormu() {
         } catch (e) { console.error('Foto yükleme hatası:', e); }
       }
 
-      // Binanın konum bilgilerini mevcut kayıttan kopyala (mobil ile aynı şema)
-      const binaKonum = await getDocs(query(collection(db, 'yorumlar'), where('yeni_bina_adi', '==', temizBinaAdi), limit(1)));
+      // Binanın konum bilgilerini mevcut kayıttan kopyala.
+      // Belirli bina (binaSlug) varsa ONUN kaydından çek (aynı isimli başka binayla karışmasın); yoksa isimden.
+      const binaKonum = binaSlug
+        ? await getDocs(query(collection(db, 'yorumlar'), where('slug', '==', binaSlug), limit(1)))
+        : await getDocs(query(collection(db, 'yorumlar'), where('yeni_bina_adi', '==', temizBinaAdi), limit(1)));
       const konum = binaKonum.docs[0]?.data() || {};
 
       // Bina haritada yoksa konum eklemeyi öner (mobil ile aynı akış)
@@ -191,7 +198,7 @@ function YorumFormu() {
       await addDoc(collection(db, 'yorumlar'), {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
-        slug: slugify(temizBinaAdi),
+        slug: binaSlug || slugify(temizBinaAdi),
         il: konum.il || 'İSTANBUL',
         ilce: konum.ilce || '',
         mahalle: konum.mahalle || '',
@@ -214,7 +221,7 @@ function YorumFormu() {
       // Bildirim artık sunucudan (Cloud Functions muhurBildirimi) gönderiliyor
       olay("muhur_basildi", { bina: temizBinaAdi, kanit: !!foto_url });
       // Bloklayan alert kaldırıldı — karneye anında yönlendir (başarı bandı orada görünür)
-      router.push(`/bina/${slugify(temizBinaAdi)}?muhur=1`);
+      router.push(`/bina/${binaSlug || slugify(temizBinaAdi)}?muhur=1`);
     } catch (err: any) {
       alert("Hata: " + err.message);
     } finally {

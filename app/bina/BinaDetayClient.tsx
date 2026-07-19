@@ -14,7 +14,7 @@ import { olay } from '@/app/lib/analytics';
 import CevapBolumu from '@/app/components/CevapBolumu';
 import Sidebar from '@/app/components/Sidebar';
 
-export default function BinaDetayClient({ binaAdi }: { binaAdi: string }) {
+export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string; binaSlug?: string }) {
   const { t } = useLang();
   const { user } = useAuth();
   const [oyVerilenler, setOyVerilenler] = useState<{ [id: string]: 'faydali' | 'faydasiz' }>({});
@@ -117,12 +117,16 @@ export default function BinaDetayClient({ binaAdi }: { binaAdi: string }) {
         }
 
         // YORUMLARI ÇEK — hem yeni_bina_adi hem bina_adi (mobil ile aynı)
-        const [yeniSnap, eskiSnap] = await Promise.all([
-          getDocs(query(collection(db, 'yorumlar'), where('yeni_bina_adi', '==', binaIsmi))),
-          getDocs(query(collection(db, 'yorumlar'), where('bina_adi', '==', binaIsmi))),
-        ]);
+        // Belirli bina = tekil adres (slug). Slug varsa ONA göre çek — aynı isimli
+        // başka bina karneleri karışmaz. Slug yoksa (eski link) isimden çek.
+        const snaplar = binaSlug
+          ? [await getDocs(query(collection(db, 'yorumlar'), where('slug', '==', binaSlug)))]
+          : await Promise.all([
+              getDocs(query(collection(db, 'yorumlar'), where('yeni_bina_adi', '==', binaIsmi))),
+              getDocs(query(collection(db, 'yorumlar'), where('bina_adi', '==', binaIsmi))),
+            ]);
         const yorumMap: { [id: string]: any } = {};
-        [...yeniSnap.docs, ...eskiSnap.docs].forEach(d => { yorumMap[d.id] = { id: d.id, ...d.data() }; });
+        snaplar.forEach(s => s.docs.forEach(d => { yorumMap[d.id] = { id: d.id, ...d.data() }; }));
         const yorumlar = Object.values(yorumMap);
 
         // Tarihe göre sırala
@@ -191,7 +195,7 @@ export default function BinaDetayClient({ binaAdi }: { binaAdi: string }) {
       finally { setLoading(false); }
     };
     verileriGetir();
-  }, [binaIsmi, user]);
+  }, [binaIsmi, binaSlug, user]);
 
   // Kendi oylarımı yükle (buton durumları — yalnız kendi oy belgelerim okunabilir)
   useEffect(() => {
@@ -320,7 +324,7 @@ export default function BinaDetayClient({ binaAdi }: { binaAdi: string }) {
             </div>
 
             <Link
-              href={`/yorum-yap?binaAdi=${encodeURIComponent(binaIsmi || "")}`}
+              href={`/yorum-yap?binaAdi=${encodeURIComponent(binaIsmi || "")}${binaSlug ? `&binaSlug=${encodeURIComponent(binaSlug)}` : ""}`}
               className="bg-blue-600 text-white px-6 py-3 rounded-full text-[11px] font-black uppercase italic hover:bg-[#023E56] transition-all shadow-xl shadow-blue-100 flex items-center gap-2"
             >
               <MessageSquarePlus size={14} /> <span className="hidden sm:inline">{t('bina.paylas')}</span><span className="sm:hidden">{t('bina.paylasKisa')}</span>
