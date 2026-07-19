@@ -24,6 +24,8 @@ function BinaOlusturForm() {
   const [loading, setLoading] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
   const [haritaAcik, setHaritaAcik] = useState(false);
+  const [deneyimModal, setDeneyimModal] = useState(false);
+  const [olusturulanBina, setOlusturulanBina] = useState('');
   const [aramaMetni, setAramaMetni] = useState('');
   const [aramaSonuclar, setAramaSonuclar] = useState<any[]>([]);
   const aramaTimer = useRef<any>(null);
@@ -156,8 +158,10 @@ function BinaOlusturForm() {
         created_at: serverTimestamp()
       });
 
-      // Bina kaydedildikten sonra deneyim/puan yazması için mühürleme formuna gönder (mobil ile aynı akış)
-      router.push(`/yorum-yap?binaAdi=${encodeURIComponent(temizBinaAdi)}`);
+      // Bina oluştu — mobildeki gibi tek-butonlu modal (deneyimini paylaş → yorum sayfası)
+      setOlusturulanBina(temizBinaAdi);
+      setDeneyimModal(true);
+      setLoading(false);
     } catch (err: any) {
       setLoading(false);
       alert("Hata: " + err.message);
@@ -169,6 +173,20 @@ function BinaOlusturForm() {
 
   return (
     <div className="lg:pl-80 min-h-screen bg-[#F0F4F8] p-4 md:p-6 text-black pb-20 text-left">
+      {deneyimModal && (
+        <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-8">
+          <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h3 className="text-[18px] font-black italic uppercase tracking-tighter text-black mb-2">{t('olustur.modalBaslik')}</h3>
+            <p className="text-[13px] font-medium text-slate-400 mb-6 leading-relaxed">{t('olustur.modalAlt')}</p>
+            <button
+              onClick={() => { setDeneyimModal(false); router.push(`/yorum-yap?binaAdi=${encodeURIComponent(olusturulanBina)}`); }}
+              className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black text-[14px] uppercase italic tracking-tight hover:bg-[#023E56] transition-all"
+            >
+              {t('olustur.modalBtn')}
+            </button>
+          </div>
+        </div>
+      )}
       <Sidebar />
       <div className="max-w-4xl mx-auto bg-white rounded-[3rem] shadow-2xl border border-slate-200 overflow-hidden text-left">
         
