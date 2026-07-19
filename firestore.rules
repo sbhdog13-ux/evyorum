@@ -68,6 +68,13 @@ service cloud.firestore {
       }
     }
 
+    match /binalar/{slug} {
+      // Bina özet karneleri (ölçek çözümü) — herkese açık okunur (listeleme sayfaları buradan besleniyor).
+      // Yazma sadece Cloud Functions (admin SDK, kuralları atlar); istemci yazamaz.
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /takipler/{takipId} {
       // Radar tamamen kişiseldir: kimin neyi izlediği kimseye görünmez
       allow read: if request.auth != null && request.auth.uid == resource.data.kullanici_id;
