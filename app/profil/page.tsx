@@ -22,6 +22,31 @@ function ProfilIcerik() {
   const [radarBinalar, setRadarBinalar] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [silModal, setSilModal] = useState(false);
+  const [silOnayMetni, setSilOnayMetni] = useState('');
+  const [silLoading, setSilLoading] = useState(false);
+
+  // Y3 — Apple 5.1.1: uygulama içi hesap silme.
+  // Sunucudaki hesabiSil robotu: mühürler 'Anonim Sakin' olur (içerik kalır),
+  // profil + kullanıcı adı + radar + giriş hesabı SİLİNİR. Aynı e-posta ile yeniden kayıt serbest.
+  const hesabiSil = async () => {
+    if (silOnayMetni !== 'SİL' || silLoading) return;
+    setSilLoading(true);
+    try {
+      const { getFunctions, httpsCallable } = await import('firebase/functions');
+      const { app } = await import('@/app/lib/firebase-auth');
+      const fn = httpsCallable(getFunctions(app, 'us-central1'), 'hesabiSil');
+      await fn();
+      const { signOut } = await import('firebase/auth');
+      const { auth } = await import('@/app/lib/firebase-auth');
+      await signOut(auth).catch(() => {}); // auth kaydı zaten silindi — oturum düşer
+      alert('Hesabın silindi. Mühürlerin anonim olarak binaların hafızasında kalacak.');
+      window.location.href = '/';
+    } catch (e: any) {
+      alert('Hesap silinemedi: ' + (e?.message || 'bilinmeyen hata') + '\nTekrar dener misin?');
+      setSilLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) { router.push('/giris'); return; }
@@ -240,6 +265,49 @@ function ProfilIcerik() {
               </button>
             )}
           </section>
+
+          {/* TEHLİKELİ BÖLGE — Y3 hesap silme (Apple 5.1.1) */}
+          <section className="mt-16 border-t border-slate-100 pt-10 text-left">
+            <h3 className="text-[12px] font-black italic uppercase tracking-widest text-slate-300 mb-4">HESAP</h3>
+            <button
+              onClick={() => { setSilOnayMetni(''); setSilModal(true); }}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-red-200 text-red-500 text-[12px] font-black italic uppercase tracking-tight hover:bg-red-50 transition-all"
+            >
+              <Trash2 size={15} /> HESABIMI SİL
+            </button>
+            <p className="text-[11px] text-slate-400 mt-3 max-w-md leading-relaxed">
+              Hesabın, profilin, kullanıcı adın ve radarın kalıcı olarak silinir. Mühürlerin
+              "Anonim Sakin" olarak binaların ortak hafızasında kalır.
+            </p>
+          </section>
+
+          {silModal && (
+            <div className="fixed inset-0 z-[300] bg-black/60 flex items-center justify-center p-6">
+              <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm shadow-2xl text-left">
+                <h3 className="text-[17px] font-black italic uppercase tracking-tighter text-red-600 mb-3">HESABINI SİLMEK ÜZERESİN</h3>
+                <ul className="text-[12.5px] text-slate-500 space-y-1.5 mb-4 leading-relaxed list-disc pl-4">
+                  <li><b>Silinir:</b> hesabın, profilin, kullanıcı adın (@), radarın</li>
+                  <li><b>Kalır:</b> mühürlerin — "Anonim Sakin" olarak, sana bağlantısız</li>
+                  <li>Bu işlem <b>geri alınamaz</b>. Aynı e-postayla sonra yeni hesap açabilirsin.</li>
+                </ul>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Onay için "SİL" yaz</label>
+                <input
+                  value={silOnayMetni}
+                  onChange={(e) => setSilOnayMetni(e.target.value.toLocaleUpperCase('tr-TR'))}
+                  placeholder="SİL"
+                  className="w-full mt-1 mb-5 border-2 border-slate-200 rounded-xl px-4 py-3 font-black uppercase tracking-widest outline-none focus:border-red-400"
+                />
+                <div className="flex gap-3">
+                  <button onClick={() => setSilModal(false)} disabled={silLoading}
+                    className="flex-1 py-3.5 rounded-2xl bg-slate-100 text-slate-500 text-[12px] font-black italic uppercase">Vazgeç</button>
+                  <button onClick={hesabiSil} disabled={silOnayMetni !== 'SİL' || silLoading}
+                    className="flex-1 py-3.5 rounded-2xl bg-red-600 text-white text-[12px] font-black italic uppercase disabled:opacity-40">
+                    {silLoading ? 'SİLİNİYOR…' : 'KALICI OLARAK SİL'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

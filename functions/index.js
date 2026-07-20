@@ -249,3 +249,64 @@ exports.fotoOnayBildirimi = onDocumentUpdated(
     console.log(`[foto-bildirim] ${binaAdi} ${sonra.foto_onay}: ${sonuc}`);
   }
 );
+
+// ============================================================================
+// HESAP SİLME (Y3 — Apple 5.1.1 zorunluluğu)
+// Model: hesap + kişisel veriler SİLİNİR; mühürler/izler "Anonim Sakin" olur
+// (bina hafızası korunur, "silinmiş" etiketi yok — mevcut anonim kimlikle aynı).
+// Auth hesabı tamamen silindiği için aynı e-posta ile yeniden kayıt SERBEST.
+// ============================================================================
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { getAuth } = require('firebase-admin/auth');
+
+exports.hesabiSil = onCall({ region: 'us-central1' }, async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'Giriş gerekli.');
+
+  let anonimYorum = 0, anonimCevap = 0, silinenTakip = 0;
+
+  // 1) Mühürler/yorumlar → Anonim Sakin (içerik ve puanlar KALIR)
+  const yorumSnap = await db.collection('yorumlar').where('kullanici_id', '==', uid).get();
+  let batch = db.batch(), n = 0;
+  for (const d of yorumSnap.docs) {
+    batch.update(d.ref, { kullanici_id: null, kullanici_adi: 'Anonim Sakin' });
+    anonimYorum++; n++;
+    if (n >= 400) { await batch.commit(); batch = db.batch(); n = 0; }
+  }
+  if (n > 0) { await batch.commit(); batch = db.batch(); n = 0; }
+
+  // 2) Cevaplar → Anonim Sakin (alt koleksiyon — collectionGroup)
+  const cevapSnap = await db.collectionGroup('cevaplar').where('kullanici_id', '==', uid).get();
+  for (const d of cevapSnap.docs) {
+    batch.update(d.ref, { kullanici_id: null, kullanici_adi: 'Anonim Sakin' });
+    anonimCevap++; n++;
+    if (n >= 400) { await batch.commit(); batch = db.batch(); n = 0; }
+  }
+  if (n > 0) { await batch.commit(); batch = db.batch(); n = 0; }
+
+  // 3) Radar (takipler) — kişisel liste, silinir
+  const takipSnap = await db.collection('takipler').where('kullanici_id', '==', uid).get();
+  for (const d of takipSnap.docs) {
+    batch.delete(d.ref); silinenTakip++; n++;
+    if (n >= 400) { await batch.commit(); batch = db.batch(); n = 0; }
+  }
+  if (n > 0) { await batch.commit(); batch = db.batch(); n = 0; }
+
+  // 4) Şikayet kayıtlarındaki kimlik bağı → anonim
+  const sikayetSnap = await db.collection('sikayetler').where('kullanici_id', '==', uid).get();
+  for (const d of sikayetSnap.docs) { batch.update(d.ref, { kullanici_id: null }); n++; }
+  if (n > 0) { await batch.commit(); batch = db.batch(); n = 0; }
+
+  // 5) Kullanıcı adı rezervasyonu — silinir (ad serbest kalır)
+  const adSnap = await db.collection('kullanici_adlari').where('kullanici_id', '==', uid).get();
+  for (const d of adSnap.docs) batch.delete(d.ref);
+  // 6) Profil belgesi — silinir
+  batch.delete(db.collection('kullanicilar').doc(uid));
+  await batch.commit();
+
+  // 7) Giriş hesabı (auth) — silinir → aynı e-posta ile yeniden kayıt serbest
+  await getAuth().deleteUser(uid);
+
+  console.log(`[hesap-sil] ${uid}: ${anonimYorum} yorum + ${anonimCevap} cevap anonim, ${silinenTakip} takip silindi`);
+  return { ok: true, anonimYorum, anonimCevap, silinenTakip };
+});
