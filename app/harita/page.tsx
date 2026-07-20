@@ -91,20 +91,15 @@ export default function HaritaPage() {
 
       // Mühürlenmiş binalar (mobil renk skalası)
       const renk = (p: number) => p >= 4 ? '#16a34a' : p >= 2.5 ? '#eab308' : p >= 1 ? '#f97316' : '#dc2626';
-      const snap = await getDocs(collection(db, 'yorumlar'));
-      const binaMap: any = {};
+      // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar) oku
+      const snap = await getDocs(collection(db, 'binalar'));
       snap.docs.forEach(d => {
-        const v: any = d.data();
-        const ad = (v.yeni_bina_adi || v.bina_adi || '').trim();
-        if (!ad || !v.koordinat?.lat) return;
-        if (!binaMap[ad]) binaMap[ad] = { lat: v.koordinat.lat, lng: v.koordinat.lng, top: 0, sayi: 0 };
-        binaMap[ad].top += v.puan || 0; binaMap[ad].sayi += 1;
-      });
-      Object.entries(binaMap).forEach(([ad, b]: any) => {
-        const puan = b.sayi ? (b.top / b.sayi).toFixed(1) : '0';
+        const b: any = d.data();
+        if (!b.koordinat?.lat) return;
+        const puan = (b.finalPuan || 0).toFixed(1);
         const icon = L.divIcon({ html: `<div style="width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${renk(Number(puan))};border:2px solid #fff;box-shadow:-1px 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.9);transform:rotate(45deg)"></div></div>`, className: '', iconAnchor: [12, 26] });
-        L.marker([b.lat, b.lng], { icon }).addTo(map)
-          .bindPopup(`<div style="padding:10px;min-width:150px;font-family:sans-serif"><div style="font-weight:900;font-style:italic;font-size:13px">${ad}</div><div style="font-size:11px;color:#94a3b8;margin:4px 0 8px">⭐ ${puan} • ${b.sayi} mühür</div><a href="/bina/${slugify(ad)}" style="display:block;background:#2563eb;color:#fff;text-align:center;border-radius:10px;padding:7px;font-size:11px;font-weight:900;text-decoration:none">DETAYA GİT →</a></div>`);
+        L.marker([b.koordinat.lat, b.koordinat.lng], { icon }).addTo(map)
+          .bindPopup(`<div style="padding:10px;min-width:150px;font-family:sans-serif"><div style="font-weight:900;font-style:italic;font-size:13px">${b.ad}</div><div style="font-size:11px;color:#94a3b8;margin:4px 0 8px">⭐ ${puan} • ${b.muhurSayisi || 0} mühür</div><a href="/bina/${b.slug || slugify(b.ad)}" style="display:block;background:#2563eb;color:#fff;text-align:center;border-radius:10px;padding:7px;font-size:11px;font-weight:900;text-decoration:none">DETAYA GİT →</a></div>`);
       });
     };
     document.head.appendChild(script);

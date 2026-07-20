@@ -30,8 +30,9 @@ function AramaIcerik() {
   useEffect(() => {
     const verileriGetir = async () => {
       setLoading(true);
-      const snap = await getDocs(collection(db, 'yorumlar'));
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar)
+      const snap = await getDocs(collection(db, 'binalar'));
+      const data = snap.docs.map(d => d.data());
       setAllReviews(data);
       gruplaVeFiltrele(data, searchTerm, filters);
       setLoading(false);
@@ -39,81 +40,28 @@ function AramaIcerik() {
     verileriGetir();
   }, []);
 
+  // binalar zaten bina-başına özettir (hesap robotta yapıldı) — burada sadece dönüştür + süz
   const gruplaVeFiltrele = (data: any[], search: string, activeFilters: any) => {
     const searchStr = trUpper(search);
-    const gruplar: { [key: string]: any } = {};
-    
-    data.forEach(item => {
-      const isim = trUpper((item.yeni_bina_adi || item.bina_adi)?.toString()).trim() || "";
-      if (!isim) return;
-
-      if (!gruplar[isim]) {
-        gruplar[isim] = {
-          ad: isim,
-          toplamAgirlikliPuan: 0,
-          toplamEtkiPayi: 0,
-          sayi: 0,
-          dogrulanmisSayisi: 0,
-          ilce: "İSTANBUL",
-          mahalle: "Bilinmiyor",
-          koordinat: "",
-          foto: item.foto_url || "",
-          kategoriler: {} 
-        };
-      }
-
-      // Önce yapısal alanlar (mobil şeması), sonra acik_adres fallback
-      if (item.ilce) gruplar[isim].ilce = trUpper(item.ilce.toString()).trim();
-      if (item.mahalle) gruplar[isim].mahalle = trUpper(item.mahalle.toString()).trim();
-      if (item.koordinat?.lat && item.koordinat?.lng) {
-        gruplar[isim].koordinat = `${item.koordinat.lat}, ${item.koordinat.lng}`;
-      }
-      if ((!item.ilce || !gruplar[isim].koordinat) && item.acik_adres && item.acik_adres.includes('|')) {
-        const parcalar = item.acik_adres.split('|');
-        const yerBilgisi = parcalar[0]?.split(' ');
-        if (!item.ilce && yerBilgisi && yerBilgisi.length > 2) {
-          gruplar[isim].mahalle = yerBilgisi[0] || gruplar[isim].mahalle;
-          gruplar[isim].ilce = trUpper(yerBilgisi[2]?.split('/')[0]) || gruplar[isim].ilce;
-        }
-        if (!gruplar[isim].koordinat) {
-          const koordParca = parcalar.find((p: string) => p.includes('KOORD:'));
-          if (koordParca) gruplar[isim].koordinat = koordParca.replace('KOORD:', '').trim();
-        }
-      }
-
-      let etkiCarpani = 0.3; 
-      if (item.baglanti_tipi === 'sakin') etkiCarpani = 1.0;
-      if (item.baglanti_tipi === 'eski_sakin') etkiCarpani = 0.7;
-      if (item.is_verified) etkiCarpani += 0.2;
-
-      const p = typeof item.puanlar === 'string' ? JSON.parse(item.puanlar) : item.puanlar;
-      if (p && typeof p === 'object') {
-        const puanDegerleri = Object.values(p).map(val => Number(val)).filter(val => !isNaN(val));
-        if (puanDegerleri.length > 0) {
-          const satirOrtalamasi = puanDegerleri.reduce((a, b) => a + b, 0) / puanDegerleri.length;
-          gruplar[isim].toplamAgirlikliPuan += (satirOrtalamasi * etkiCarpani);
-          gruplar[isim].toplamEtkiPayi += etkiCarpani;
-          gruplar[isim].sayi += 1;
-          if (item.is_verified) gruplar[isim].dogrulanmisSayisi += 1;
-        }
-        Object.keys(p).forEach(k => {
-          gruplar[isim].kategoriler[trUpper(k)] = true;
-        });
-      }
-    });
-
-    const finalResults = Object.values(gruplar).filter((b: any) => {
-      const ortalama = b.toplamEtkiPayi > 0 ? (b.toplamAgirlikliPuan / b.toplamEtkiPayi) : 0;
-      b.finalPuan = ortalama;
-
-      const aramaUyumu = b.ad.includes(searchStr) || b.ilce.includes(searchStr) || b.mahalle.includes(searchStr);
-      const ilceUyumu = activeFilters.ilce === "" || b.ilce === activeFilters.ilce;
-      const puanUyumu = ortalama >= activeFilters.minPuan;
-      const kategoriUyumu = activeFilters.kategori === "" || b.kategoriler[activeFilters.kategori];
-      
-      return aramaUyumu && ilceUyumu && puanUyumu && kategoriUyumu;
-    });
-
+    const finalResults = data
+      .map((b: any) => ({
+        ad: b.ad, slug: b.slug,
+        finalPuan: b.finalPuan || 0,
+        sayi: b.muhurSayisi || 0,
+        dogrulanmisSayisi: b.dogrulanmis || 0,
+        ilce: trUpper(b.ilce || 'İSTANBUL').trim(),
+        mahalle: trUpper(b.mahalle || 'Bilinmiyor').trim(),
+        koordinat: b.koordinat?.lat ? `${b.koordinat.lat}, ${b.koordinat.lng}` : '',
+        foto: '',
+        kategoriler: Object.fromEntries(Object.keys(b.kategoriOrt || {}).map((k) => [trUpper(k), true])),
+      }))
+      .filter((b) => {
+        const aramaUyumu = b.ad.includes(searchStr) || b.ilce.includes(searchStr) || b.mahalle.includes(searchStr);
+        const ilceUyumu = activeFilters.ilce === "" || b.ilce === activeFilters.ilce;
+        const puanUyumu = b.finalPuan >= activeFilters.minPuan;
+        const kategoriUyumu = activeFilters.kategori === "" || b.kategoriler[activeFilters.kategori];
+        return aramaUyumu && ilceUyumu && puanUyumu && kategoriUyumu;
+      });
     finalResults.sort((a: any, b: any) => b.finalPuan - a.finalPuan);
     setResults(finalResults);
   };
@@ -128,33 +76,25 @@ function AramaIcerik() {
     gruplaVeFiltrele(allReviews, searchTerm, newFilters);
   };
 
+  // allReviews artık binalar özet kayıtları
   const ilceListesi = useMemo(() => {
-    return Array.from(new Set(allReviews.map(r => {
-      if (r.ilce) return trUpper(r.ilce.toString()).trim();
-      if (r.acik_adres && r.acik_adres.includes('|')) {
-        return trUpper(r.acik_adres.split('|')[0].split(' ')[2]?.split('/')[0]);
-      }
-      return null;
-    }))).filter(Boolean);
+    return Array.from(new Set(allReviews.map((b: any) => b.ilce ? trUpper(b.ilce.toString()).trim() : null))).filter(Boolean);
   }, [allReviews]);
 
   const ilcePuanlari = useMemo(() => {
     const ozet: { [ilce: string]: { toplam: number; sayi: number } } = {};
-    allReviews.forEach((item: any) => {
-      const ilce = item.ilce ? trUpper(item.ilce.toString()).trim() : '';
-      if (!ilce) return;
+    allReviews.forEach((b: any) => {
+      const ilce = b.ilce ? trUpper(b.ilce.toString()).trim() : '';
+      if (!ilce || !(b.finalPuan > 0)) return;
       if (!ozet[ilce]) ozet[ilce] = { toplam: 0, sayi: 0 };
-      ozet[ilce].toplam += (item.puan || 0);
+      ozet[ilce].toplam += (b.finalPuan || 0);
       ozet[ilce].sayi += 1;
     });
     return ozet;
   }, [allReviews]);
 
   const dinamikKriterler = useMemo(() => {
-    return Array.from(new Set(allReviews.flatMap(r => {
-      const p = typeof r.puanlar === 'string' ? JSON.parse(r.puanlar) : r.puanlar;
-      return p ? Object.keys(p).map(k => trUpper(k)) : [];
-    })));
+    return Array.from(new Set(allReviews.flatMap((b: any) => Object.keys(b.kategoriOrt || {}).map(k => trUpper(k)))));
   }, [allReviews]);
 
   return (
@@ -282,7 +222,7 @@ function AramaIcerik() {
                 results.map((bina, idx) => (
                   <div 
                     key={idx}
-                    onClick={() => router.push(`/bina/${slugify(bina.ad)}`)}
+                    onClick={() => router.push(`/bina/${bina.slug || slugify(bina.ad)}`)}
                     className="group bg-white border-2 border-slate-100 rounded-[3rem] hover:border-blue-600 transition-all cursor-pointer shadow-sm hover:shadow-2xl relative overflow-hidden flex flex-col"
                   >
                     <div className="h-48 w-full bg-slate-100 relative overflow-hidden">

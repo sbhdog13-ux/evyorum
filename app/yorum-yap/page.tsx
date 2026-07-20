@@ -23,8 +23,8 @@ function YorumFormu() {
   const { user, loading: authLoading } = useAuth();
   const [binaAdi, setBinaAdi] = useState("");
   const [binaSlug, setBinaSlug] = useState(""); // belirli binanın tekil adresi (oluşturma/seçim akışından) — varsa deneyim buna bağlanır
-  const [kayitliBinalar, setKayitliBinalar] = useState<string[]>([]);
-  const [filtrelenmişBinalar, setFiltrelenmişBinalar] = useState<string[]>([]);
+  const [kayitliBinalar, setKayitliBinalar] = useState<any[]>([]); // {ad, slug, ilce, mahalle}
+  const [filtrelenmişBinalar, setFiltrelenmişBinalar] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [yorum, setYorum] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,11 +59,13 @@ function YorumFormu() {
 
   useEffect(() => {
     const binalariGetir = async () => {
-      const snap = await getDocs(collection(db, 'yorumlar'));
-      const uniqueNames = Array.from(new Set(
-        snap.docs.map(d => trUpper(((d.data().yeni_bina_adi || d.data().bina_adi) || '').toString()).trim())
-      )).filter(Boolean) as string[];
-      setKayitliBinalar(uniqueNames);
+      // Ölçek: tüm yorumlar yerine özet defteri (binalar). Her öneri kendi tekil adresini (slug) taşır.
+      const snap = await getDocs(collection(db, 'binalar'));
+      const liste = snap.docs.map(d => {
+        const b: any = d.data();
+        return { ad: trUpper((b.ad || '').toString()).trim(), slug: b.slug, ilce: trUpper(b.ilce || '').trim(), mahalle: trUpper(b.mahalle || '').trim() };
+      }).filter(b => b.ad && b.slug);
+      setKayitliBinalar(liste);
     };
     binalariGetir();
   }, []);
@@ -82,15 +84,16 @@ function YorumFormu() {
     setBinaAdi(uppercaseVal);
     setBinaSlug(""); // isim elle değişti → belirli bina bağı düşer (isimden türetilir / gerekiyorsa seçtirilir)
     if (uppercaseVal.length > 0) {
-      setFiltrelenmişBinalar(kayitliBinalar.filter(b => b.includes(uppercaseVal)));
+      setFiltrelenmişBinalar(kayitliBinalar.filter(b => b.ad.includes(uppercaseVal)));
       setShowDropdown(true);
     } else {
       setShowDropdown(false);
     }
   };
 
-  const binaSec = (isim: string) => {
-    setBinaAdi(trUpper(isim).trim());
+  const binaSec = (b: any) => {
+    setBinaAdi(trUpper(b.ad).trim());
+    setBinaSlug(b.slug || ''); // seçilen belirli binanın tekil adresi → deneyim buna bağlanır
     setShowDropdown(false);
   };
 
@@ -278,13 +281,16 @@ function YorumFormu() {
                     </button>
                   )}
                   {filtrelenmişBinalar.map((b, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={b.slug || idx}
                       onClick={() => binaSec(b)}
-                      className="p-5 font-black italic uppercase text-lg border-b border-slate-50 hover:bg-blue-600 hover:text-white cursor-pointer transition-colors flex justify-between items-center text-left"
+                      className="p-5 border-b border-slate-50 hover:bg-blue-600 hover:text-white cursor-pointer transition-colors flex justify-between items-center text-left group"
                     >
-                      {b}
-                      <CheckCircle2 size={18} className="text-blue-600" />
+                      <div className="min-w-0">
+                        <div className="font-black italic uppercase text-lg truncate">{b.ad}</div>
+                        {(b.ilce || b.mahalle) && <div className="text-[11px] font-bold text-slate-400 group-hover:text-white/80 uppercase tracking-tight truncate">📍 {b.ilce}{b.mahalle ? ` / ${b.mahalle}` : ''}</div>}
+                      </div>
+                      <CheckCircle2 size={18} className="text-blue-600 group-hover:text-white shrink-0" />
                     </div>
                   ))}
                 </div>

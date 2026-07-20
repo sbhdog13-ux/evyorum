@@ -15,38 +15,17 @@ export default function IlcelerSayfasi() {
   const [ornekler, setOrnekler] = useState<any[]>([]);
 
   useEffect(() => {
-    getDocs(collection(db, 'yorumlar')).then(snap => {
-      const binalar: { [ad: string]: { ilce: string; mahalle: string; muhur: number; katToplam: { [k: string]: { t: number; s: number } } } } = {};
-      const ilceler = new Set<string>();
-      let muhur = 0;
-      snap.docs.forEach(d => {
-        const y: any = d.data();
-        const ad = trUpper((y.yeni_bina_adi || y.bina_adi || '').toString()).trim();
-        if (!ad) return;
-        if (!binalar[ad]) binalar[ad] = { ilce: '', mahalle: '', muhur: 0, katToplam: {} };
-        if (y.ilce) { binalar[ad].ilce = trUpper(y.ilce); ilceler.add(trUpper(y.ilce)); }
-        if (y.mahalle && !binalar[ad].mahalle) binalar[ad].mahalle = trUpper(y.mahalle);
-        muhur += 1; // keşfet ile aynı sayım: tüm mühür kayıtları
-        if (y.puanlar && Object.keys(y.puanlar).length > 0) {
-          binalar[ad].muhur += 1;
-          const w = agirlik(y.baglanti_tipi);
-          Object.entries(y.puanlar).forEach(([k, v]: any) => {
-            if (!binalar[ad].katToplam[k]) binalar[ad].katToplam[k] = { t: 0, s: 0 };
-            binalar[ad].katToplam[k].t += Number(v) * w;
-            binalar[ad].katToplam[k].s += w;
-          });
-        }
-      });
-      const liste = Object.entries(binalar)
-        .map(([ad, b]) => {
-          const katlar = Object.values(b.katToplam).map(v => v.t / v.s);
-          const skor = katlar.length ? Number((katlar.reduce((a, x) => a + x, 0) / katlar.length).toFixed(1)) : 0;
-          return { ad, ilce: b.ilce, mahalle: b.mahalle, muhur: b.muhur, skor };
-        })
-        .filter(b => b.skor > 0)
-        .sort((a, b) => b.skor - a.skor)
-        .slice(0, 3);
-      setIstatistik({ muhur, bina: Object.keys(binalar).length, ilce: ilceler.size });
+    // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar)
+    getDocs(collection(db, 'binalar')).then(snap => {
+      const binalar = snap.docs.map(d => d.data() as any);
+      const ilceler = new Set(binalar.map(b => trUpper(b.ilce || '')).filter(Boolean));
+      const muhur = binalar.reduce((a, b) => a + (b.muhurSayisi || 0), 0);
+      const liste = binalar
+        .filter(b => (b.finalPuan || 0) > 0)
+        .sort((a, b) => (b.finalPuan || 0) - (a.finalPuan || 0))
+        .slice(0, 3)
+        .map(b => ({ ad: b.ad, slug: b.slug, ilce: trUpper(b.ilce || ''), mahalle: trUpper(b.mahalle || ''), muhur: b.muhurSayisi || 0, skor: b.finalPuan || 0 }));
+      setIstatistik({ muhur, bina: binalar.length, ilce: ilceler.size });
       setOrnekler(liste);
     }).catch(() => {});
   }, []);
@@ -102,7 +81,7 @@ export default function IlcelerSayfasi() {
         </div>
         <div className="flex flex-col gap-2 mt-3">
           {ornekler.map(b => (
-            <Link key={b.ad} href={`/bina/${slugify(b.ad)}`} className="flex items-center gap-3 border border-slate-200 rounded-2xl p-4 hover:border-[#023E56] transition-all">
+            <Link key={b.slug || b.ad} href={`/bina/${b.slug || slugify(b.ad)}`} className="flex items-center gap-3 border border-slate-200 rounded-2xl p-4 hover:border-[#023E56] transition-all">
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-black italic uppercase truncate">{b.ad}</div>
                 <div className="text-[10px] text-slate-400 font-semibold">{b.ilce}{b.mahalle ? ` / ${b.mahalle}` : ''} · {b.muhur} {t('arama.muhur')}</div>

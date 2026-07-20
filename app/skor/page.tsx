@@ -33,91 +33,53 @@ function SkorIcerik() {
 
   const [mod, setMod] = useState<'skorlar' | 'binalar'>('skorlar');
   const [loading, setLoading] = useState(true);
-  const [allDocs, setAllDocs] = useState<any[]>([]);
+  const [binaKayitlari, setBinaKayitlari] = useState<any[]>([]);
   const [filtreler, setFiltreler] = useState<{ [k: string]: number }>({});
   const [filtreAcik, setFiltreAcik] = useState(false);
 
   useEffect(() => {
-    getDocs(collection(db, 'yorumlar'))
-      .then(snap => setAllDocs(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+    // Ölçek: tüm yorumları değil, hazır özet defteri (binalar) oku → hızlı, sabit maliyet
+    getDocs(collection(db, 'binalar'))
+      .then(snap => setBinaKayitlari(snap.docs.map(d => d.data())))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const ilceOku = (d: any): string => {
-    if (d.ilce?.trim()) return trUpper(d.ilce).trim();
-    if (d.acik_adres) {
-      const ilk = (d.acik_adres.split('|')[0] || '').trim();
-      const kisim = ilk.includes(' MAH. ') ? ilk.split(' MAH. ')[1] : ilk;
-      const ilce = kisim.split('/')[0].replace('İSTANBUL', '').trim();
-      if (ilce) return trUpper(ilce);
-    }
-    return '';
-  };
-  const mahalleOku = (d: any): string => {
-    if (d.mahalle?.trim()) return trUpper(d.mahalle).trim();
-    if (d.acik_adres) {
-      const ilk = (d.acik_adres.split('|')[0] || '').trim();
-      if (ilk.includes(' MAH. ')) return trUpper(ilk.split(' MAH. ')[0].trim());
-    }
-    return '';
-  };
-
-  const binaMap = useMemo(() => {
-    const map: { [b: string]: { ilce: string; mahalle: string; puanlar: number[]; muhurSayisi: number; dogrulanmis: number; katToplam: { [k: string]: { t: number; s: number } } } } = {};
-    allDocs.forEach((d: any) => {
-      const bina = trUpper((d.yeni_bina_adi || d.bina_adi || '')).trim();
-      if (!bina) return;
-      if (!map[bina]) map[bina] = { ilce: '', mahalle: '', puanlar: [], muhurSayisi: 0, dogrulanmis: 0, katToplam: {} };
-      if (!map[bina].ilce) { const i = ilceOku(d); if (i) map[bina].ilce = i; }
-      if (!map[bina].mahalle) { const m = mahalleOku(d); if (m) map[bina].mahalle = m; }
-      if (d.puanlar && Object.keys(d.puanlar).length > 0) {
-        map[bina].muhurSayisi += 1;
-        const w = agirlik(d.baglanti_tipi); // orada yaşayanın puanı daha ağır basar
-        Object.entries(d.puanlar).forEach(([k, v]: any) => {
-          if (!map[bina].katToplam[k]) map[bina].katToplam[k] = { t: 0, s: 0 };
-          map[bina].katToplam[k].t += Number(v) * w;
-          map[bina].katToplam[k].s += w;
-        });
-      }
-      if (d.baglanti_tipi === 'sakin') map[bina].dogrulanmis += 1;
-    });
-    return map;
-  }, [allDocs]);
-
+  // Özet defterden gelen her kayıt ZATEN bir binadır (hesap robotta yapıldı) — burada sadece süz/sırala
   const binalar = useMemo(() => {
-    return Object.entries(binaMap)
-      .map(([ad, val]) => {
-        const kategoriOrt: { [k: string]: number } = {};
-        Object.entries(val.katToplam).forEach(([k, v]) => { kategoriOrt[trUpper(k)] = Number((v.t / v.s).toFixed(1)); });
-        const katOrt = Object.values(kategoriOrt);
-        const finalPuan = katOrt.length > 0 ? Number((katOrt.reduce((a, v) => a + v, 0) / katOrt.length).toFixed(1)) : 0;
-        return { ad, finalPuan, muhurSayisi: val.muhurSayisi, dogrulanmis: val.dogrulanmis, kategoriOrt };
-      })
+    return binaKayitlari
+      .map((b: any) => ({
+        ad: b.ad, slug: b.slug,
+        finalPuan: b.finalPuan || 0,
+        muhurSayisi: b.muhurSayisi || 0,
+        dogrulanmis: b.dogrulanmis || 0,
+        kategoriOrt: (b.kategoriOrt || {}) as { [k: string]: number },
+      }))
       .filter(b => b.finalPuan > 0 && Object.entries(filtreler).every(([k, min]) => min === 0 || (b.kategoriOrt[k] !== undefined && b.kategoriOrt[k] >= min)))
       .sort((a, b) => b.finalPuan - a.finalPuan);
-  }, [binaMap, filtreler]);
+  }, [binaKayitlari, filtreler]);
 
   const tumKategoriler = useMemo(() => Array.from(new Set(
-    allDocs.flatMap((d: any) => d.puanlar ? Object.keys(d.puanlar).map(k => trUpper(k)) : [])
-  )).sort(), [allDocs]);
+    binaKayitlari.flatMap((b: any) => Object.keys(b.kategoriOrt || {}))
+  )).sort(), [binaKayitlari]);
 
   const { ilceler, mahalleler } = useMemo(() => {
     const ilceMap: { [k: string]: { puanlar: number[]; mahalleler: Set<string>; binalar: Set<string> } } = {};
     const mahalleMap: { [m: string]: { puanlar: number[]; binalar: string[] } } = {};
-    Object.entries(binaMap).forEach(([bina, val]) => {
-      const katOrtlar = Object.values(val.katToplam).map((v: any) => v.t / v.s);
-      if (!val.ilce || katOrtlar.length === 0) return;
-      const avg = katOrtlar.reduce((a: number, b: number) => a + b, 0) / katOrtlar.length; // binanın ağırlıklı skoru
-      if (!ilceMap[val.ilce]) ilceMap[val.ilce] = { puanlar: [], mahalleler: new Set(), binalar: new Set() };
-      ilceMap[val.ilce].puanlar.push(avg);
-      if (val.mahalle) ilceMap[val.ilce].mahalleler.add(val.mahalle);
-      ilceMap[val.ilce].binalar.add(bina);
-      if (seciliIlce && val.ilce === trUpper(seciliIlce)) {
-        const m = val.mahalle || 'BELİRSİZ';
+    binaKayitlari.forEach((b: any) => {
+      const ilce = trUpper(b.ilce || '').trim();
+      const avg = b.finalPuan || 0;
+      if (!ilce || avg <= 0) return; // deneyimsiz bina atlanır (skor sayfasıyla aynı)
+      const mahalle = trUpper(b.mahalle || '').trim();
+      if (!ilceMap[ilce]) ilceMap[ilce] = { puanlar: [], mahalleler: new Set(), binalar: new Set() };
+      ilceMap[ilce].puanlar.push(avg);
+      if (mahalle) ilceMap[ilce].mahalleler.add(mahalle);
+      ilceMap[ilce].binalar.add(b.ad);
+      if (seciliIlce && ilce === trUpper(seciliIlce)) {
+        const m = mahalle || 'BELİRSİZ';
         if (!mahalleMap[m]) mahalleMap[m] = { puanlar: [], binalar: [] };
         mahalleMap[m].puanlar.push(avg);
-        mahalleMap[m].binalar.push(bina);
+        mahalleMap[m].binalar.push(b.ad);
       }
     });
     return {
@@ -131,7 +93,7 @@ function SkorIcerik() {
         binalar: v.binalar.slice(0, 3),
       })).sort((a, b) => b.ortalama - a.ortalama),
     };
-  }, [binaMap, seciliIlce]);
+  }, [binaKayitlari, seciliIlce]);
 
   const Satir = ({ i, baslik, alt, puan, onClick, binaMini }: any) => (
     <button onClick={onClick} disabled={!onClick} className="w-full flex items-center gap-5 bg-slate-50 border border-slate-100 rounded-[2rem] p-5 text-left hover:border-blue-600 transition-all disabled:cursor-default">
@@ -197,7 +159,7 @@ function SkorIcerik() {
           binalar.length === 0 ? (
             <div className="py-24 text-center font-black italic uppercase text-slate-300 text-[13px]">{t('skor.binaYok')}</div>
           ) : binalar.map((b, i) => (
-            <Satir key={b.ad} i={i} baslik={b.ad} alt={`${b.muhurSayisi} ${t('skor.muhur')}${b.dogrulanmis > 0 ? ` · ${b.dogrulanmis} ${t('skor.sakin')}` : ''}`} puan={b.finalPuan} onClick={() => router.push(`/bina/${slugify(b.ad)}`)} />
+            <Satir key={b.slug || b.ad} i={i} baslik={b.ad} alt={`${b.muhurSayisi} ${t('skor.muhur')}${b.dogrulanmis > 0 ? ` · ${b.dogrulanmis} ${t('skor.sakin')}` : ''}`} puan={b.finalPuan} onClick={() => router.push(`/bina/${b.slug || slugify(b.ad)}`)} />
           ))
         )}
       </main>

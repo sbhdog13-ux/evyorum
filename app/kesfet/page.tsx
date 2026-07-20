@@ -41,14 +41,13 @@ export default function Home() {
       const snap = await getDocs(q);
       setGercekYorumlar(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((y: any) => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0))));
 
-      // Tüm benzersiz bina adları — arama önerileri için (mobil ile aynı)
-      const tumSnap = await getDocs(collection(db, 'yorumlar'));
-      const unique = Array.from(new Set(
-        tumSnap.docs.map(d => trUpper(((d.data().yeni_bina_adi || d.data().bina_adi) || '').toString()).trim())
-      )).filter(Boolean) as string[];
+      // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar) — öneriler + istatistik
+      const binaSnap = await getDocs(collection(db, 'binalar'));
+      const binaKayit = binaSnap.docs.map(d => d.data() as any);
+      const unique = Array.from(new Set(binaKayit.map(b => trUpper((b.ad || '').toString()).trim()))).filter(Boolean) as string[];
       setTumBinalar(unique);
-      const ilceler = new Set(tumSnap.docs.map(d => (d.data() as any).ilce).filter(Boolean));
-      setStats({ muhur: tumSnap.size, bina: unique.length, ilce: ilceler.size });
+      const ilceler = new Set(binaKayit.map(b => b.ilce).filter(Boolean));
+      setStats({ muhur: binaKayit.reduce((a, b) => a + (b.muhurSayisi || 0), 0), bina: binaKayit.length, ilce: ilceler.size });
 
       if (user) {
         const radarRef = collection(db, 'takipler');
