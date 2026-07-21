@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
 import { adTuret, adGecerliMi, adMusaitMi, adKaydet } from '@/app/lib/kullaniciadi';
 import { olay } from '@/app/lib/analytics';
+import { dogrulamaMailiGonder, sifreSifirlamaMailiGonder } from '@/app/lib/mailler';
 
 export default function GirisKayitSayfasi() {
   const [mode, setMode] = useState<'giris' | 'kayit'>('giris');
@@ -46,7 +47,8 @@ export default function GirisKayitSayfasi() {
         await updateProfile(result.user, { displayName: isim });
         try { await adKaydet(result.user.uid, kadi); } catch {} // ad alınamazsa kapı tekrar sorar
         olay("kayit_olundu");
-        sendEmailVerification(result.user).catch(() => {});
+        // Markalı hoş geldin+doğrulama maili (Resend, noreply@bulevini.com)
+        dogrulamaMailiGonder().catch(() => sendEmailVerification(result.user).catch(() => {}));
         alert(t('dogrula.gonderildi'));
       }
       router.push('/');
@@ -138,6 +140,20 @@ export default function GirisKayitSayfasi() {
               placeholder="••••••••"
               className="w-full h-16 bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 text-[14px] font-black italic focus:outline-none focus:border-blue-600 transition-all"
             />
+            {mode === 'giris' && (
+              <button
+                type="button"
+                onClick={async () => {
+                  const mail = email.trim() || prompt(t('giris.unuttumMail')) || '';
+                  if (!mail.includes('@')) return;
+                  try { await sifreSifirlamaMailiGonder(mail); alert(t('giris.unuttumGitti')); }
+                  catch { alert(t('giris.hataGenel')); }
+                }}
+                className="block ml-4 mt-1 text-[11px] font-black italic uppercase tracking-tight text-slate-400 hover:text-blue-600 transition-colors"
+              >
+                {t('giris.sifremiUnuttum')}
+              </button>
+            )}
           </div>
 
           {mode === 'kayit' && (

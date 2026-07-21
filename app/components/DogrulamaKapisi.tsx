@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { sendEmailVerification, reload } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase-auth';
+import { dogrulamaMailiGonder } from '@/app/lib/mailler';
 import { useLang } from '@/app/lib/i18n';
 import { olay } from '@/app/lib/analytics';
 import { MailWarning } from 'lucide-react';
@@ -15,8 +16,12 @@ export default function DogrulamaKapisi() {
   const tekrarGonder = async () => {
     if (!auth.currentUser) return;
     setYukleniyor(true);
-    try { await sendEmailVerification(auth.currentUser); setMesaj(t('dogrula.gonderildi')); }
-    catch { setMesaj('...'); }
+    // Markalı mail (Resend); olmadı Firebase varsayılanına düş
+    try { await dogrulamaMailiGonder(); setMesaj(t('dogrula.gonderildi')); }
+    catch {
+      try { await sendEmailVerification(auth.currentUser); setMesaj(t('dogrula.gonderildi')); }
+      catch { setMesaj('...'); }
+    }
     finally { setYukleniyor(false); }
   };
 

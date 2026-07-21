@@ -310,3 +310,129 @@ exports.hesabiSil = onCall({ region: 'us-central1' }, async (request) => {
   console.log(`[hesap-sil] ${uid}: ${anonimYorum} yorum + ${anonimCevap} cevap anonim, ${silinenTakip} takip silindi`);
   return { ok: true, anonimYorum, anonimCevap, silinenTakip };
 });
+
+// ============================================================================
+// MARKALI E-POSTALAR (O6) — Resend üzerinden noreply@bulevini.com
+// Hoş geldin+doğrulama, şifre sıfırlama, iletişim formu bildirimi.
+// Linkler bulevini.com/hesap-islem'e düşer (markalı sayfa). Reply-to: sbhdog13@gmail.com
+// ============================================================================
+const { defineSecret } = require('firebase-functions/params');
+const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
+const ADMIN_MAIL = 'sbhdog13@gmail.com';
+
+// Onaylanan taslakla aynı görünüm — e-posta istemcileri için inline stiller
+function mailSablon({ baslik, altBaslik, metin, ctaYazi, ctaUrl, guvenlikNotu }) {
+  return `<!DOCTYPE html><html lang="tr"><body style="margin:0;padding:0;background:#eef2f6;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="max-width:560px;margin:0 auto;padding:28px 14px;">
+    <div style="background:#ffffff;border:1px solid #e4ebf1;border-radius:18px;padding:34px 30px;">
+      <div style="text-align:center;margin-bottom:22px;">
+        <img src="https://bulevini.com/logo.png" alt="Bulevini" height="52" style="height:52px;width:auto;" />
+      </div>
+      <h1 style="font-size:24px;font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:-0.6px;color:#023E56;text-align:center;margin:0 0 6px;line-height:1.2;">${baslik}</h1>
+      <p style="font-size:13px;font-weight:700;color:#5f7686;text-align:center;margin:0 0 18px;">${altBaslik}</p>
+      <p style="font-size:14.5px;color:#33485a;text-align:center;margin:0 0 22px;line-height:1.6;">${metin}</p>
+      <div style="text-align:center;margin:0 0 14px;">
+        <a href="${ctaUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:900;font-style:italic;text-transform:uppercase;font-size:14px;padding:15px 34px;border-radius:14px;">${ctaYazi}</a>
+      </div>
+      <p style="font-size:11.5px;color:#5f7686;text-align:center;word-break:break-all;margin:0 0 20px;">Buton çalışmazsa: <a href="${ctaUrl}" style="color:#2563eb;text-decoration:none;">${ctaUrl}</a></p>
+      <div style="background:#eaf4fb;border:1px solid #d6e7f4;border-radius:12px;padding:13px 16px;font-size:12.5px;color:#3a5064;text-align:center;">🔒 ${guvenlikNotu}</div>
+      <hr style="border:none;border-top:1px solid #e4ebf1;margin:24px 0 16px;" />
+      <p style="text-align:center;font-size:11.5px;font-weight:900;font-style:italic;text-transform:uppercase;color:#023E56;margin:0 0 6px;">Bugün İstanbul'dayız. <span style="color:#A1CDE9;">Yarın, sokağında.</span></p>
+      <p style="text-align:center;font-size:11px;color:#5f7686;margin:0;">Bulevini — binaların ortak hafızası · bulevini.com</p>
+    </div>
+  </div></body></html>`;
+}
+
+async function resendMailGonder(to, subject, html) {
+  const yanit = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${RESEND_API_KEY.value()}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: 'Bulevini <noreply@bulevini.com>',
+      reply_to: ADMIN_MAIL,
+      to: [to], subject, html,
+    }),
+  });
+  if (!yanit.ok) console.error('[mail] Resend hatası', yanit.status, await yanit.text());
+  return yanit.ok;
+}
+
+// Firebase'in ürettiği linkten oobCode'u alıp markalı sayfamıza çevir
+function markaliLink(firebaseLink, mode) {
+  const kod = new URL(firebaseLink).searchParams.get('oobCode');
+  return `https://bulevini.com/hesap-islem?mode=${mode}&oobCode=${encodeURIComponent(kod || '')}`;
+}
+
+// 1) Hoş geldin + doğrulama maili — kayıt sonrası ve "tekrar gönder" istemciden çağırır
+exports.dogrulamaMaili = onCall({ region: 'us-central1', secrets: [RESEND_API_KEY] }, async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'Giriş gerekli.');
+  const kullanici = await getAuth().getUser(uid);
+  if (!kullanici.email) throw new HttpsError('failed-precondition', 'E-posta yok.');
+  if (kullanici.emailVerified) return { ok: true, zaten: true };
+
+  const fbLink = await getAuth().generateEmailVerificationLink(kullanici.email);
+  const url = markaliLink(fbLink, 'verifyEmail');
+  const ok = await resendMailGonder(
+    kullanici.email,
+    "Bulevini'ye hoş geldin 👋 — son bir adım kaldı",
+    mailSablon({
+      baslik: 'Aramıza hoş geldin!',
+      altBaslik: 'Artık binaların ortak hafızasının bir parçasısın.',
+      metin: 'Kaydın oluştu. Mühür basmaya, radar kurmaya ve binaların gerçek hikâyesini görmeye başlamak için <b>tek bir adım</b> kaldı: e-posta adresini doğrula.',
+      ctaYazi: 'E-POSTAMI DOĞRULA →', ctaUrl: url,
+      guvenlikNotu: 'Bu bağlantı <b>sana özel</b> ve kısa süre geçerlidir. Kaydı sen yapmadıysan bu maili görmezden gelebilirsin — hesabın açılmaz.',
+    })
+  );
+  console.log(`[mail] doğrulama → ${kullanici.email}: ${ok ? 'gönderildi' : 'HATA'}`);
+  return { ok };
+});
+
+// 2) Şifre sıfırlama maili — giriş sayfasındaki "Şifremi unuttum" çağırır (girişsiz)
+exports.sifreSifirlamaMaili = onCall({ region: 'us-central1', secrets: [RESEND_API_KEY] }, async (request) => {
+  const email = String(request.data?.email || '').trim().toLowerCase();
+  if (!email || !email.includes('@')) throw new HttpsError('invalid-argument', 'Geçerli bir e-posta gir.');
+  try {
+    const fbLink = await getAuth().generatePasswordResetLink(email);
+    const url = markaliLink(fbLink, 'resetPassword');
+    await resendMailGonder(
+      email,
+      'Şifreni sıfırla',
+      mailSablon({
+        baslik: 'Şifreni mi unuttun?',
+        altBaslik: 'Sorun değil — birkaç saniyede yenile.',
+        metin: 'Hesabının şifresini sıfırlamak için bir istek aldık. Yeni şifreni belirlemek için aşağıdaki butona bas.',
+        ctaYazi: 'YENİ ŞİFRE BELİRLE →', ctaUrl: url,
+        guvenlikNotu: 'Bu isteği sen yapmadıysan <b>hiçbir şey yapmana gerek yok</b> — şifren aynı kalır. Bağlantı kısa süre sonra geçersiz olur.',
+      })
+    );
+    console.log(`[mail] şifre sıfırlama → ${email}: gönderildi`);
+  } catch (e) {
+    // Hesap yoksa da 'ok' dön — e-posta avcılığına (enumeration) kapı açma
+    console.log(`[mail] şifre sıfırlama → ${email}: hesap yok/hata (sessiz)`);
+  }
+  return { ok: true };
+});
+
+// 3) İletişim formu bildirimi — yeni mesaj gelince admin'e mail
+exports.iletisimBildirimi = onDocumentCreated(
+  { document: 'iletisim/{id}', region: 'us-central1', secrets: [RESEND_API_KEY] },
+  async (event) => {
+    const m = event.data?.data();
+    if (!m) return;
+    const esc = (s) => String(s || '').replace(/</g, '&lt;');
+    await resendMailGonder(
+      ADMIN_MAIL,
+      `📬 Yeni iletişim mesajı: ${esc(m.konu).slice(0, 80)}`,
+      mailSablon({
+        baslik: 'Yeni iletişim mesajı',
+        altBaslik: `${esc(m.ad)} · ${esc(m.eposta)}`,
+        metin: `<b>Konu:</b> ${esc(m.konu)}<br/><br/>${esc(m.mesaj).replace(/\n/g, '<br/>')}`,
+        ctaYazi: 'FIRESTORE\'DA GÖR →',
+        ctaUrl: 'https://console.firebase.google.com/project/bulevini-3896a/firestore/data/iletisim',
+        guvenlikNotu: 'Bu mail, bulevini.com iletişim formundan yeni mesaj geldiği için sana gönderildi.',
+      })
+    );
+    console.log(`[mail] iletişim bildirimi → ${ADMIN_MAIL}`);
+  }
+);
