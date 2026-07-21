@@ -1,6 +1,7 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
 import { slugify } from '@/app/lib/slug';
+import { streetViewUrl } from '@/app/lib/streetview';
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Search, Home, MapPin, Star, MessageSquare, ArrowRight, X, SlidersHorizontal, ChevronRight, Map as MapIcon, List, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -52,7 +53,7 @@ function AramaIcerik() {
         ilce: trUpper(b.ilce || 'İSTANBUL').trim(),
         mahalle: trUpper(b.mahalle || 'Bilinmiyor').trim(),
         koordinat: b.koordinat?.lat ? `${b.koordinat.lat}, ${b.koordinat.lng}` : '',
-        foto: '',
+        foto: streetViewUrl(b.koordinat),
         kategoriler: Object.fromEntries(Object.keys(b.kategoriOrt || {}).map((k) => [trUpper(k), true])),
       }))
       .filter((b) => {
