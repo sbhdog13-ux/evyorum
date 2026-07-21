@@ -21,3 +21,17 @@ const firebaseConfig = {
 
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const auth = getAuth(app);
+
+// App Check (Y7 — bot koruması). reCAPTCHA v3 = görünmez; her Firestore isteğine
+// gizli güven token'ı ekler. SADECE tarayıcıda çalışır (DOM gerekir); sunucuda atlanır.
+// Site anahtarı public'tir (client'a gömülür). Enforce ayrıca Firebase konsolundan açılır.
+if (typeof window !== "undefined") {
+  import("firebase/app-check").then(({ initializeAppCheck, ReCaptchaV3Provider }) => {
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider("6Leqzl0tAAAAAI2u91-V45JcdXQvJKaOZrpT6QRC"),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch { /* App Check hatası siteyi bozmaz */ }
+  }).catch(() => {});
+}
