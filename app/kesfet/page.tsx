@@ -110,7 +110,7 @@ export default function Home() {
   }, [searchTerm]);
 
   const eslesenBinalar = searchTerm.length >= 2
-    ? tumBinalar.filter(b => b.includes(trUpper(searchTerm))).slice(0, 4)
+    ? tumBinalar.filter(b => slugify(b).includes(slugify(searchTerm))).slice(0, 4) // O5 tolerans
     : [];
 
   const handleSelection = async (mainText: string, secondaryText: string) => {

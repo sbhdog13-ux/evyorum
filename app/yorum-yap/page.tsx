@@ -84,7 +84,8 @@ function YorumFormu() {
     setBinaAdi(uppercaseVal);
     setBinaSlug(""); // isim elle değişti → belirli bina bağı düşer (isimden türetilir / gerekiyorsa seçtirilir)
     if (uppercaseVal.length > 0) {
-      setFiltrelenmişBinalar(kayitliBinalar.filter(b => b.ad.includes(uppercaseVal)));
+      // O5 tolerans: ü/u, ı/i farkları aramayı bozmasın (iki taraf da slug'a düzleşir)
+      setFiltrelenmişBinalar(kayitliBinalar.filter(b => slugify(b.ad).includes(slugify(uppercaseVal))));
       setShowDropdown(true);
     } else {
       setShowDropdown(false);

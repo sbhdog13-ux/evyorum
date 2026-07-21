@@ -56,7 +56,9 @@ function AramaIcerik() {
         kategoriler: Object.fromEntries(Object.keys(b.kategoriOrt || {}).map((k) => [trUpper(k), true])),
       }))
       .filter((b) => {
-        const aramaUyumu = b.ad.includes(searchStr) || b.ilce.includes(searchStr) || b.mahalle.includes(searchStr);
+        // O5 tolerans: iki taraf da slug'a düzleştirilir — "gul", "GÜL", "Gül apartmani" hepsi bulur
+        const aranan = slugify(searchStr);
+        const aramaUyumu = slugify(b.ad).includes(aranan) || slugify(b.ilce).includes(aranan) || slugify(b.mahalle).includes(aranan);
         const ilceUyumu = activeFilters.ilce === "" || b.ilce === activeFilters.ilce;
         const puanUyumu = b.finalPuan >= activeFilters.minPuan;
         const kategoriUyumu = activeFilters.kategori === "" || b.kategoriler[activeFilters.kategori];
@@ -246,7 +248,7 @@ function AramaIcerik() {
                         <div className="flex items-center gap-2">
                           <MessageSquare size={16} />
                           <span className="font-black italic text-xs uppercase">
-                            {bina.sayi} Mühür • {Math.round(bina.toplamEtkiPayi * 10)} GÜVEN
+                            {bina.sayi} Mühür • {bina.dogrulanmisSayisi} SAKİN
                           </span>
                         </div>
                         <ArrowRight className="text-blue-600 transform group-hover:translate-x-2 transition-transform" />
