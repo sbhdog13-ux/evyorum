@@ -57,3 +57,8 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_SENTRY_DSN
+    value: https://0a5df513f496ea51066d4b22d916cb0f@o4511779943481344.ingest.de.sentry.io/4511779951018064
+    availability:
+      - BUILD
+      - RUNTIME

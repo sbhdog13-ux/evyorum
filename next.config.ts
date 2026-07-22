@@ -1,7 +1,13 @@
 import type { NextConfig } from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
 
-// Firebase App Hosting (SSR) — Turbopack varsayılan.
-// next-pwa (webpack-only, Turbopack ile uyumsuz, bakımsız) kaldırıldı.
+// Firebase App Hosting (SSR). Build webpack ile (next build --webpack).
 const nextConfig: NextConfig = {};
 
-export default nextConfig;
+// Sentry (O7) — hata izleme. Source map yükleme kapalı (auth token yok; hatalar yine yakalanır).
+export default withSentryConfig(nextConfig, {
+  org: 'bulevini',
+  project: 'javascript-nextjs',
+  silent: true,
+  sourcemaps: { disable: true },
+});
