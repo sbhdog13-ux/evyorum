@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
+import GeriButonu from '@/app/components/GeriButonu';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
@@ -34,6 +35,7 @@ export default function IletisimSayfasi() {
   return (
     <div className="min-h-screen bg-white text-[#0f172a] font-sans flex flex-col">
       <header className="max-w-2xl w-full mx-auto flex items-center justify-between px-6 py-7">
+        <GeriButonu />
         <Link href="/"><img src="/logo.png" alt="Bulevini" className="h-11" /></Link>
         <LangSwitcher />
       </header>

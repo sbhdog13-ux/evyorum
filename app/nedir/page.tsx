@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import GeriButonu from '@/app/components/GeriButonu';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
 
 export default function NedirSayfasi() {
@@ -8,6 +9,7 @@ export default function NedirSayfasi() {
   return (
     <div className="min-h-screen bg-white text-[#0f172a] font-sans">
       <header className="max-w-3xl mx-auto flex items-center justify-between px-6 py-7">
+        <GeriButonu />
         <Link href="/"><img src="/logo.png" alt="Bulevini" className="h-11" /></Link>
         <LangSwitcher />
       </header>

@@ -12,12 +12,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Uygulama tamamen açık temalı — cihaz koyu modda olsa bile body beyaz kalsın
+   (aksi halde footer boşluğu, overscroll vb. yerlerde siyah zemin sızıyordu). */
 
 body {
   background: var(--background);

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import GeriButonu from '@/app/components/GeriButonu';
 
 export const metadata: Metadata = {
   title: 'Gizlilik Politikası ve KVKK Aydınlatma Metni | Bulevini',
@@ -10,7 +11,8 @@ export const metadata: Metadata = {
 export default function GizlilikSayfasi() {
   return (
     <div className="min-h-screen bg-white text-[#0f172a] font-sans">
-      <header className="max-w-3xl mx-auto flex items-center justify-between px-6 py-7">
+      <header className="max-w-3xl mx-auto flex items-center gap-4 px-6 py-7">
+        <GeriButonu />
         <Link href="/"><img src="/logo.png" alt="Bulevini" className="h-11" /></Link>
       </header>
       <article className="max-w-3xl mx-auto px-6 pb-24 leading-relaxed text-[15px] text-slate-700">
