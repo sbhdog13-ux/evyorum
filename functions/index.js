@@ -266,6 +266,17 @@ const SEED_SLUG = {};
 for (const tur of Object.keys(SEED_SOZLUK)) {
   SEED_SLUG[tur] = new Map(SEED_SOZLUK[tur].map((ad) => [slugYap(ad), ad]));
 }
+// Elle düzeltme (farklı slug'lı yazım hataları) — yanlış slug → doğru isim
+const MANUEL_DUZELTME = {
+  [slugYap('ASONSÖR')]: 'ASANSÖR',
+  [slugYap('MANZAR')]: 'MANZARA',
+  [slugYap('INTERNT ÇEKIM GÜCÜ')]: 'İNTERNET ÇEKİM GÜCÜ',
+  [slugYap('KENTSE DÖNÜŞÜM')]: 'KENTSEL DÖNÜŞÜM',
+  [slugYap('KOMŞULARI İYİ')]: 'KOMŞULAR İYİ',
+  [slugYap('YEŞİLLİK ALAN')]: 'YEŞİL ALAN',
+  [slugYap('SAKIN')]: 'SAKİNLİK',
+};
+const duzelt = (ad) => MANUEL_DUZELTME[slugYap(String(ad || '').trim())] || String(ad || '').trim();
 
 exports.sozlukTemizle = onRequest(
   { region: 'us-central1', timeoutSeconds: 540, memory: '512MiB' },
@@ -276,7 +287,7 @@ exports.sozlukTemizle = onRequest(
     // Pass 1: her tür için slug → {varyant: sayı}
     const say = { kriterler: {}, sorunlar: {}, artilar: {} };
     const ekle = (tur, ad) => {
-      const a = String(ad || '').trim(); if (!a) return;
+      const a = duzelt(ad); if (!a) return; // elle düzeltmeyi en başta uygula
       const slug = slugYap(a); if (!slug) return;
       if (tur === 'kriterler' && VARSAYILAN_KRITER.has(slug)) return;
       (say[tur][slug] = say[tur][slug] || {});
@@ -302,7 +313,7 @@ exports.sozlukTemizle = onRequest(
 
     // Pass 2: yorumları kanonik isimlere çevir (slug aynı, isim farklıysa)
     let batch = db.batch(), degisen = 0, batchN = 0;
-    const kanon = (tur, ad) => kanonikMap[tur][slugYap(ad)] || trUst(ad).trim();
+    const kanon = (tur, ad) => { const d = duzelt(ad); return kanonikMap[tur][slugYap(d)] || trUst(d).trim(); };
     for (const d of snap.docs) {
       const y = d.data();
       const pv = puanlariOku(y); let degisti = false;
