@@ -1,7 +1,6 @@
 "use client";
 import Link from 'next/link';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
-import Footer from '@/app/components/Footer';
 
 export default function BinalariKesfetSayfasi() {
   const { t } = useLang();
@@ -45,8 +44,6 @@ export default function BinalariKesfetSayfasi() {
           <p className="text-[11px] text-slate-400 italic mt-3">{t('bk.ctaAlt')}</p>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

@@ -43,8 +43,8 @@ export default function Footer() {
       baslik: t('fo.gizlilikBaslik'),
       linkler: [
         { ad: t('fo.kvkk'), href: '/gizlilik' },
-        { ad: t('fo.kullanim'), href: '/gizlilik' },
-        { ad: t('fo.topluluk'), href: '/gizlilik' },
+        { ad: t('fo.kullanim'), href: '/kullanim-kosullari' },
+        { ad: t('fo.topluluk'), href: '/topluluk-kurallari' },
         { ad: t('fo.sss'), href: '/#sss' },
       ],
     },

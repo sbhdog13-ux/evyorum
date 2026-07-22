@@ -7,7 +7,6 @@ import { trUpper } from '@/app/lib/utils';
 import { slugify } from '@/app/lib/slug';
 import { agirlik } from '@/app/lib/skor';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
-import Footer from '@/app/components/Footer';
 
 export default function IlcelerSayfasi() {
   const { t } = useLang();
@@ -102,8 +101,6 @@ export default function IlcelerSayfasi() {
           <Link href="/yorum-yap" className="inline-block bg-white text-[#023E56] text-[12px] font-black italic tracking-widest px-7 py-3.5 rounded-xl mt-4">{t('ilc.cta')}</Link>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

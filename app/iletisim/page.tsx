@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
-import Footer from '@/app/components/Footer';
 import { olay } from '@/app/lib/analytics';
 
 export default function IletisimSayfasi() {
@@ -79,8 +78,6 @@ export default function IletisimSayfasi() {
           </form>
         )}
       </section>
-
-      <Footer />
     </div>
   );
 }

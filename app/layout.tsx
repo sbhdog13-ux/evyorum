@@ -13,6 +13,7 @@ import { LangProvider } from "@/app/lib/i18n";
 import BottomNav from "@/app/components/BottomNav";
 import KullaniciAdiKapisi from "@/app/components/KullaniciAdiKapisi";
 import CerezBandi from "@/app/components/CerezBandi";
+import Footer from "@/app/components/Footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bulevini.com"),
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <LangProvider>
         <AuthProvider>
           {children}
+          <Footer />
           <BottomNav />
           <KullaniciAdiKapisi />
           <CerezBandi />

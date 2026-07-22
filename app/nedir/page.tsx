@@ -1,7 +1,6 @@
 "use client";
 import Link from 'next/link';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
-import Footer from '@/app/components/Footer';
 
 export default function NedirSayfasi() {
   const { t } = useLang();
@@ -51,7 +50,6 @@ export default function NedirSayfasi() {
           <Link href="/giris" className="inline-block bg-[#023E56] text-white text-[12px] font-black italic tracking-widest px-7 py-4 rounded-2xl mt-5">{t('nedir.cta')}</Link>
         </div>
       </section>
-    <Footer />
     </div>
   );
 }

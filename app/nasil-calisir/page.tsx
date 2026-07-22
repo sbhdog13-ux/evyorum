@@ -1,7 +1,6 @@
 "use client";
 import Link from 'next/link';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
-import Footer from '@/app/components/Footer';
 
 export default function NasilCalisirSayfasi() {
   const { t } = useLang();
@@ -40,8 +39,6 @@ export default function NasilCalisirSayfasi() {
           <Link href="/giris" className="inline-block bg-[#023E56] text-white text-[13px] font-black italic tracking-widest px-8 py-4 rounded-2xl">{t('nc.cta')}</Link>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

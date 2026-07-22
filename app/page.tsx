@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
-import Footer from '@/app/components/Footer';
 
 export default function AcilisSayfasi() {
   const { user, loading } = useAuth() as any;
@@ -136,8 +135,6 @@ export default function AcilisSayfasi() {
       {/* Yapılandırılmış veri */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Bulevini nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız bir platformdur. Bir binayla yolu kesişmiş herkes deneyimini mühürler; bu kayıtlar birikir ve binanın karnesine dönüşür. Evini tutmadan önce o karneye bakarsın. Şu an İstanbul'da hizmet veriyor."}}, {"@type": "Question", "name": "Bina yorumları güvenilir mi?", "acceptedAnswer": {"@type": "Answer", "text": "Yorumlar bağlantı tipine göre ağırlıklandırılır: mevcut sakinin puanı en yüksek etkiye sahiptir; eski sakin ve ziyaretçi yorumları daha düşük ağırlıkla hesaba katılır. Kanıt fotoğrafı da eklenebilir."}}, {"@type": "Question", "name": "Yorum yazmak için kimliğim görünür mü?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, istersen tamamen anonim paylaşabilirsin. Kimliğin hiçbir zaman ev sahibi veya üçüncü kişilerle paylaşılmaz."}}, {"@type": "Question", "name": "Mühür nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Mühür, bir binada yaşamış birinin o bina hakkında bıraktığı puanlı deneyim kaydıdır: ısınma, deprem dayanıklılığı, komşuluk, yönetim gibi kategorilerde."}}, {"@type": "Question", "name": "Hangi şehirlerde çalışıyor?", "acceptedAnswer": {"@type": "Answer", "text": "Şu an İstanbul'un tüm ilçelerinde derinlemesine çalışıyoruz: her bina gerçek adres ve koordinatla haritada."}}, {"@type": "Question", "name": "Ücretli mi?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, Bulevini tamamen ücretsizdir."}}]}) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "WebSite", "name": "Bulevini", "url": "https://bulevini.com", "description": "İstanbul bina ve mahalle yorumları — kiralamadan önce binanın karnesini gör."}) }} />
-
-      <Footer />
     </div>
   );
 }
