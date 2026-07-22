@@ -21,6 +21,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/iletisim`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE}/giris`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${BASE}/gizlilik`, changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${BASE}/kullanim-kosullari`, changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${BASE}/topluluk-kurallari`, changeFrequency: 'yearly', priority: 0.2 },
   ];
 
   let binalar: MetadataRoute.Sitemap = [];
