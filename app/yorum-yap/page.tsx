@@ -14,7 +14,27 @@ import { kufurVarMi } from '@/app/lib/kufur';
 import { adGetir } from '@/app/lib/kullaniciadi';
 import { olay } from '@/app/lib/analytics';
 import { slugify } from '@/app/lib/slug';
+import { havuzBirlestir, oneriler, kanonik, type SozlukKaydi, type SozlukTuru } from '@/app/lib/kriterSozluk';
 import Sidebar from '@/app/components/Sidebar';
+
+// Öneri çipleri — mevcut kriter/sorun/artıyı gösterip yeniden yazmayı engeller (çöplüğü önler)
+function OneriListe({ oneri, onSec, renk }: { oneri: SozlukKaydi[]; onSec: (ad: string) => void; renk: 'blue' | 'red' | 'green' }) {
+  if (!oneri.length) return null;
+  const stil = renk === 'red' ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
+    : renk === 'green' ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'
+    : 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100';
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      <span className="text-[9px] font-black uppercase italic text-slate-300 self-center">Bunu mu demek istedin?</span>
+      {oneri.map((o) => (
+        <button key={o.slug} type="button" onClick={() => onSec(o.ad)}
+          className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase italic border transition-all ${stil}`}>
+          {o.ad}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function YorumFormu() {
   const router = useRouter();
@@ -46,6 +66,8 @@ function YorumFormu() {
   const [greenFlags, setGreenFlags] = useState<string[]>([]);
   const [yeniRedFlag, setYeniRedFlag] = useState("");
   const [yeniGreenFlag, setYeniGreenFlag] = useState("");
+  // Robotun tuttuğu dinamik sözlük (meta/*) — seed ile birleşip öneri havuzunu oluşturur
+  const [sozluk, setSozluk] = useState<Record<SozlukTuru, SozlukKaydi[]>>({ kriterler: [], sorunlar: [], artilar: [] });
 
   const RED_PRESET = ['BÖCEKLENMİŞ', 'ASANSÖR BOZUK', 'KÜF / NEM', 'GÜRÜLTÜ', 'FİBER YOK', 'SU BASKINI'];
   const GREEN_PRESET = ['SESSİZ MAHALLE', 'FİBER VAR', 'İYİ YÖNETİM', 'KOMŞULAR İYİ', 'YENİ BİNA', 'ULAŞIM KOLAY'];
@@ -56,6 +78,23 @@ function YorumFormu() {
       router.push('/giris');
     }
   }, [user, authLoading]);
+
+  // Sözlüğü yükle (3 küçük meta dokümanı) — öneriler için havuz
+  useEffect(() => {
+    (async () => {
+      try {
+        const { doc, getDoc } = await import('firebase/firestore');
+        const turler: SozlukTuru[] = ['kriterler', 'sorunlar', 'artilar'];
+        const sonuc: Record<SozlukTuru, SozlukKaydi[]> = { kriterler: [], sorunlar: [], artilar: [] };
+        await Promise.all(turler.map(async (tur) => {
+          const snap = await getDoc(doc(db, 'meta', tur));
+          const veri: any = snap.exists() ? snap.data() : {};
+          sonuc[tur] = Object.entries(veri).map(([slug, v]: any) => ({ slug, ad: v.ad, sayi: v.sayi || 0 }));
+        }));
+        setSozluk(sonuc);
+      } catch { /* sözlük okunamazsa sadece seed ile devam */ }
+    })();
+  }, []);
 
   useEffect(() => {
     const binalariGetir = async () => {
@@ -110,10 +149,34 @@ function YorumFormu() {
     }
   };
 
-  const addNewCategory = () => {
-    if (!newCatName) return;
-    setCategories([...categories, { id: Date.now(), label: trUpper(newCatName), score: 3 }]);
+  // Kriter ekle — kanonikleştir (harf-körü birebir eşleşme mevcut isme çevrilir) + slug-tekrarı engelle
+  const addNewCategory = (adInput?: string) => {
+    const ham = (adInput ?? newCatName).trim();
+    if (!ham) return;
+    const ad = kanonik(ham, havuzBirlestir('kriterler', sozluk.kriterler));
+    const s = slugify(ad);
+    if (!categories.some((c) => slugify(c.label) === s)) {
+      setCategories((prev) => [...prev, { id: Date.now(), label: ad, score: 3 }]);
+    }
     setNewCatName("");
+  };
+  // Sorun ekle — aynı kanonikleştirme
+  const sorunEkle = (adInput?: string) => {
+    const ham = (adInput ?? yeniRedFlag).trim();
+    if (!ham) return;
+    const ad = kanonik(ham, havuzBirlestir('sorunlar', sozluk.sorunlar));
+    const s = slugify(ad);
+    if (!redFlags.some((f) => slugify(f) === s)) setRedFlags((p) => [...p, ad]);
+    setYeniRedFlag("");
+  };
+  // Artı ekle — aynı kanonikleştirme
+  const artiEkle = (adInput?: string) => {
+    const ham = (adInput ?? yeniGreenFlag).trim();
+    if (!ham) return;
+    const ad = kanonik(ham, havuzBirlestir('artilar', sozluk.artilar));
+    const s = slugify(ad);
+    if (!greenFlags.some((f) => slugify(f) === s)) setGreenFlags((p) => [...p, ad]);
+    setYeniGreenFlag("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -353,10 +416,13 @@ function YorumFormu() {
                     placeholder="ÖRN: ASANSÖR..." 
                     className="flex-1 bg-transparent font-bold text-sm outline-none uppercase placeholder:text-slate-300 text-left"
                   />
-                  <button type="button" onClick={addNewCategory} className="bg-blue-600 text-white p-2 rounded-xl hover:rotate-90 transition-all text-left">
+                  <button type="button" onClick={() => addNewCategory()} className="bg-blue-600 text-white p-2 rounded-xl hover:rotate-90 transition-all text-left">
                     <PlusCircle size={20} />
                   </button>
                 </div>
+                <OneriListe renk="blue"
+                  oneri={oneriler(newCatName, havuzBirlestir('kriterler', sozluk.kriterler), categories.map((c) => c.label))}
+                  onSec={(ad) => addNewCategory(ad)} />
               </div>
 
               <div className="relative group border-2 border-dashed p-6 rounded-[2.5rem] border-slate-200 flex flex-col items-center justify-center gap-2 text-left">
@@ -402,10 +468,14 @@ function YorumFormu() {
                 </div>
                 <div className="flex items-center gap-2 max-w-sm">
                   <input value={yeniRedFlag} onChange={e => setYeniRedFlag(trUpper(e.target.value))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); sorunEkle(); } }}
                     placeholder={t('muhurle.sorunEkle')} className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
-                  <button type="button" onClick={() => { const t = yeniRedFlag.trim(); if (t && !redFlags.includes(t)) setRedFlags(p => [...p, t]); setYeniRedFlag(''); }}
+                  <button type="button" onClick={() => sorunEkle()}
                     className="bg-red-600 text-white p-3 rounded-2xl"><PlusCircle size={16} /></button>
                 </div>
+                <OneriListe renk="red"
+                  oneri={oneriler(yeniRedFlag, havuzBirlestir('sorunlar', sozluk.sorunlar), redFlags)}
+                  onSec={(ad) => sorunEkle(ad)} />
               </div>
 
               <div className="space-y-3">
@@ -424,10 +494,14 @@ function YorumFormu() {
                 </div>
                 <div className="flex items-center gap-2 max-w-sm">
                   <input value={yeniGreenFlag} onChange={e => setYeniGreenFlag(trUpper(e.target.value))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); artiEkle(); } }}
                     placeholder={t('muhurle.artiEkle')} className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-[11px] font-bold uppercase outline-none placeholder:text-slate-300" />
-                  <button type="button" onClick={() => { const t = yeniGreenFlag.trim(); if (t && !greenFlags.includes(t)) setGreenFlags(p => [...p, t]); setYeniGreenFlag(''); }}
+                  <button type="button" onClick={() => artiEkle()}
                     className="bg-green-600 text-white p-3 rounded-2xl"><PlusCircle size={16} /></button>
                 </div>
+                <OneriListe renk="green"
+                  oneri={oneriler(yeniGreenFlag, havuzBirlestir('artilar', sozluk.artilar), greenFlags)}
+                  onSec={(ad) => artiEkle(ad)} />
               </div>
             </section>
 

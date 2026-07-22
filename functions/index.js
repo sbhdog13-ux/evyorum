@@ -182,6 +182,25 @@ async function binaOzetiYazSlug(slug) {
 }
 
 // TETİKLEYİCİ: yorum eklenince/değişince/silinince ilgili bina(lar)ın özetini güncelle
+// ---- Kriter/Sorun/Artı sözlüğü (meta/*) — "çöplük" önleyici öneri havuzu ----
+const { FieldValue } = require('firebase-admin/firestore');
+// Varsayılan 4 kriter sözlüğe girmez (sabittir, özel değil)
+const VARSAYILAN_KRITER = new Set(
+  ['ISINMA / YALITIM', 'DEPREM DAYANIKLILIĞI', 'KOMŞULUK İLİŞKİLERİ', 'YÖNETİM / AİDAT'].map(slugYap)
+);
+// meta/{tur} dokümanına isimleri ekle/sayaç artır: { [slug]: {ad, sayi} }
+async function sozlugeEkle(tur, adlar) {
+  const gecerli = [...new Set((adlar || []).map((a) => String(a || '').trim()).filter(Boolean))];
+  if (!gecerli.length) return;
+  const guncelleme = {};
+  for (const ad of gecerli) {
+    const slug = slugYap(ad);
+    if (!slug || (tur === 'kriterler' && VARSAYILAN_KRITER.has(slug))) continue;
+    guncelleme[slug] = { ad: trUst(ad).trim(), sayi: FieldValue.increment(1) };
+  }
+  if (Object.keys(guncelleme).length) await db.doc(`meta/${tur}`).set(guncelleme, { merge: true });
+}
+
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
 exports.binaOzetiGuncelle = onDocumentWritten(
   { document: 'yorumlar/{yorumId}', region: 'us-central1' },
@@ -192,6 +211,16 @@ exports.binaOzetiGuncelle = onDocumentWritten(
     if (sonra) sluglar.add(sonra.slug || slugYap(sonra.yeni_bina_adi || sonra.bina_adi));
     if (once) sluglar.add(once.slug || slugYap(once.yeni_bina_adi || once.bina_adi)); // isim/bina değiştiyse eskisini de tazele
     for (const slug of sluglar) { if (slug) await binaOzetiYazSlug(slug); }
+
+    // Yeni yorumsa (create) özel kriter/sorun/artı isimlerini sözlüğe ekle
+    if (!once && sonra) {
+      try {
+        const pv = typeof sonra.puanlar === 'string' ? JSON.parse(sonra.puanlar || '{}') : (sonra.puanlar || {});
+        await sozlugeEkle('kriterler', Object.keys(pv || {}));
+        await sozlugeEkle('sorunlar', sonra.red_flags || []);
+        await sozlugeEkle('artilar', sonra.green_flags || []);
+      } catch (e) { console.error('[sozluk] ekleme hatası', e); }
+    }
   }
 );
 
@@ -222,6 +251,98 @@ exports.binalariYenidenHesapla = onRequest(
     for (const slug of sluglar) { await binaOzetiYazSlug(slug); n++; }
     console.log(`[yeniden-hesapla] ${n} bina özeti, ${eklenen} yoruma slug eklendi`);
     res.status(200).send(`OK — ${n} bina özeti (${snap.size} yorumdan), ${eklenen} yoruma slug eklendi.`);
+  }
+);
+
+// HTTP: tek-seferlik sözlük temizliği (3b) — mevcut harf/Türkçe varyantlarını (aynı slug)
+// düzgün kanonik isme toplar, meta/* sözlüğünü kurar, özetleri tazeler. Yazım hataları
+// (farklı slug) OTOMATİK birleşmez. Token korumalı.
+const SEED_SOZLUK = {
+  kriterler: ['ASANSÖR','OTOPARK','İNTERNET / FİBER','GÜVENLİK','ISI YALITIMI','SES YALITIMI','SU BASINCI','BALKON','GÜNEŞ / IŞIK','KAPICI / GÖREVLİ','JENERATÖR','ENGELLİ ERİŞİMİ'],
+  sorunlar: ['BÖCEKLENMİŞ','ASANSÖR BOZUK','KÜF / NEM','GÜRÜLTÜ','FİBER YOK','SU BASKINI','OTOPARK YOK','GÜVENLİK ZAYIF','AİDAT YÜKSEK','ISINMA SORUNU','SU KESİNTİSİ','KÖTÜ YÖNETİM'],
+  artilar: ['SESSİZ MAHALLE','FİBER VAR','İYİ YÖNETİM','KOMŞULAR İYİ','YENİ BİNA','ULAŞIM KOLAY','OTOPARK VAR','GÜVENLİKLİ','TEMİZ ORTAK ALAN','GÜNEŞ ALIR'],
+};
+const SEED_SLUG = {};
+for (const tur of Object.keys(SEED_SOZLUK)) {
+  SEED_SLUG[tur] = new Map(SEED_SOZLUK[tur].map((ad) => [slugYap(ad), ad]));
+}
+
+exports.sozlukTemizle = onRequest(
+  { region: 'us-central1', timeoutSeconds: 540, memory: '512MiB' },
+  async (req, res) => {
+    if (req.query.token !== 'bulevini-ozet-2026-7f3a') { res.status(403).send('yetkisiz'); return; }
+    const snap = await db.collection('yorumlar').get();
+
+    // Pass 1: her tür için slug → {varyant: sayı}
+    const say = { kriterler: {}, sorunlar: {}, artilar: {} };
+    const ekle = (tur, ad) => {
+      const a = String(ad || '').trim(); if (!a) return;
+      const slug = slugYap(a); if (!slug) return;
+      if (tur === 'kriterler' && VARSAYILAN_KRITER.has(slug)) return;
+      (say[tur][slug] = say[tur][slug] || {});
+      say[tur][slug][trUst(a).trim()] = (say[tur][slug][trUst(a).trim()] || 0) + 1;
+    };
+    const puanlariOku = (y) => (typeof y.puanlar === 'string' ? JSON.parse(y.puanlar || '{}') : (y.puanlar || {}));
+    for (const d of snap.docs) {
+      const y = d.data();
+      Object.keys(puanlariOku(y)).forEach((k) => ekle('kriterler', k));
+      (y.red_flags || []).forEach((f) => ekle('sorunlar', f));
+      (y.green_flags || []).forEach((f) => ekle('artilar', f));
+    }
+
+    // Kanonik seç: seed'de varsa seed adı, yoksa en çok kullanılan varyant
+    const kanonikMap = { kriterler: {}, sorunlar: {}, artilar: {} };
+    for (const tur of Object.keys(say)) {
+      for (const [slug, varyantlar] of Object.entries(say[tur])) {
+        const seedAd = SEED_SLUG[tur].get(slug);
+        kanonikMap[tur][slug] = seedAd
+          || Object.entries(varyantlar).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'tr'))[0][0];
+      }
+    }
+
+    // Pass 2: yorumları kanonik isimlere çevir (slug aynı, isim farklıysa)
+    let batch = db.batch(), degisen = 0, batchN = 0;
+    const kanon = (tur, ad) => kanonikMap[tur][slugYap(ad)] || trUst(ad).trim();
+    for (const d of snap.docs) {
+      const y = d.data();
+      const pv = puanlariOku(y); let degisti = false;
+      const yeniPv = {};
+      Object.entries(pv).forEach(([k, v]) => {
+        const slug = slugYap(k);
+        const nk = (tur => VARSAYILAN_KRITER.has(slug) ? trUst(k).trim() : kanon(tur, k))('kriterler');
+        if (nk !== k) degisti = true;
+        yeniPv[nk] = v;
+      });
+      const yeniRed = (y.red_flags || []).map((f) => kanon('sorunlar', f));
+      const yeniGreen = (y.green_flags || []).map((f) => kanon('artilar', f));
+      const redDegis = JSON.stringify(yeniRed) !== JSON.stringify(y.red_flags || []);
+      const greenDegis = JSON.stringify(yeniGreen) !== JSON.stringify(y.green_flags || []);
+      if (degisti || redDegis || greenDegis) {
+        batch.update(d.ref, { puanlar: yeniPv, red_flags: yeniRed, green_flags: yeniGreen });
+        degisen++; batchN++;
+        if (batchN >= 400) { await batch.commit(); batch = db.batch(); batchN = 0; }
+      }
+    }
+    if (batchN > 0) await batch.commit();
+
+    // meta/* sözlüğünü kur (kanonik ad + toplam sayı)
+    for (const tur of Object.keys(kanonikMap)) {
+      const dok = {};
+      for (const [slug, ad] of Object.entries(kanonikMap[tur])) {
+        const toplam = Object.values(say[tur][slug]).reduce((a, b) => a + b, 0);
+        dok[slug] = { ad, sayi: toplam };
+      }
+      await db.doc(`meta/${tur}`).set(dok); // tam yaz (temiz kur)
+    }
+
+    // Özetleri tazele (arama filtresi de temizlensin)
+    const sluglar = new Set();
+    snap.docs.forEach((d) => { const s = d.data().slug || slugYap(d.data().yeni_bina_adi || d.data().bina_adi); if (s) sluglar.add(s); });
+    for (const slug of sluglar) await binaOzetiYazSlug(slug);
+
+    const ozet = Object.fromEntries(Object.keys(kanonikMap).map((t) => [t, Object.keys(kanonikMap[t]).length]));
+    console.log('[sozluk-temizle]', degisen, 'yorum güncellendi, sözlük:', ozet);
+    res.status(200).send(`OK — ${degisen} yorum kanonikleştirildi. Sözlük: ${JSON.stringify(ozet)}`);
   }
 );
 

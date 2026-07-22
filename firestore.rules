@@ -75,6 +75,13 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /meta/{dok} {
+      // Kriter/sorun/artı sözlüğü (çöplük önleyici öneri havuzu) — herkese açık okunur.
+      // Yazma sadece Cloud Functions (robot sözlüğü besler); istemci yazamaz.
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /takipler/{takipId} {
       // Radar tamamen kişiseldir: kimin neyi izlediği kimseye görünmez
       allow read: if request.auth != null && request.auth.uid == resource.data.kullanici_id;
