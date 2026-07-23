@@ -88,25 +88,51 @@ function BinaOlusturForm() {
     setAddressLoading(true);
     try {
       const [lat, lng] = coords.split(',').map(c => c.trim());
-      // Nominatim — mobil ile aynı adres servisi (Google key gerektirmez)
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=tr&addressdetails=1`
-      );
-      const data = await response.json();
+      let bulundu = false;
 
-      if (data && data.address) {
-        const a = data.address;
-        const fullAddress = data.display_name || '';
-        const district = trUpper((a.town || a.city_district || a.district || a.county || '')).replace('İLÇESİ', '').trim();
-        const neighborhood = trUpper((a.suburb || a.quarter || a.neighbourhood || '')).replace('MAHALLESİ', '').replace('MAH.', '').trim();
+      // 1) Google Geocoding — İstanbul'da kapı/bina numarası düzgün gelir
+      if (GOOGLE_MAPS_API_KEY) {
+        try {
+          const g = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=tr&key=${GOOGLE_MAPS_API_KEY}`);
+          const gd = await g.json();
+          if (gd.status === 'OK' && gd.results?.length) {
+            const res = gd.results[0];
+            const bilesen = (turler: string[]) =>
+              res.address_components.find((c: any) => turler.some(t => c.types.includes(t)))?.long_name || '';
+            const ilce = trUpper(bilesen(['administrative_area_level_2'])).replace('İLÇESİ', '').trim();
+            const mahalle = trUpper(bilesen(['neighborhood', 'sublocality_level_1', 'sublocality', 'administrative_area_level_4']))
+              .replace('MAHALLESİ', '').replace('MAH.', '').trim();
+            setFormData(prev => ({
+              ...prev,
+              acik_adres_ham: trUpper(res.formatted_address || ''),
+              ilce,
+              mahalle,
+              foto_url: generateStreetViewUrl(coords),
+            }));
+            bulundu = true;
+          }
+        } catch { /* Google başarısızsa aşağıda Nominatim'e düş */ }
+      }
 
-        setFormData(prev => ({
-          ...prev,
-          acik_adres_ham: trUpper(fullAddress),
-          ilce: district,
-          mahalle: neighborhood,
-          foto_url: generateStreetViewUrl(coords)
-        }));
+      // 2) Yedek: Nominatim (Google açık değilse / başarısızsa) — hiç bozulmasın
+      if (!bulundu) {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=tr&addressdetails=1`
+        );
+        const data = await response.json();
+        if (data && data.address) {
+          const a = data.address;
+          const fullAddress = data.display_name || '';
+          const district = trUpper((a.town || a.city_district || a.district || a.county || '')).replace('İLÇESİ', '').trim();
+          const neighborhood = trUpper((a.suburb || a.quarter || a.neighbourhood || '')).replace('MAHALLESİ', '').replace('MAH.', '').trim();
+          setFormData(prev => ({
+            ...prev,
+            acik_adres_ham: trUpper(fullAddress),
+            ilce: district,
+            mahalle: neighborhood,
+            foto_url: generateStreetViewUrl(coords),
+          }));
+        }
       }
     } catch (error) {
       console.error("Hata:", error);
