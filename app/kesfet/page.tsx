@@ -182,8 +182,8 @@ export default function Home() {
               <span className="text-blue-600 italic underline">{t('acilis.motto2')}</span> {t('acilis.motto3')}
             </h1>
             <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-4 shadow-xl">
-              <div className="absolute inset-0 pointer-events-none bg-slate-300">{haritaGoster && <LeafletHarita binalar={[]} />}</div>
-              <div className="absolute inset-0 bg-slate-900/45 backdrop-blur-[3px] flex flex-col items-center justify-center gap-3 text-white">
+              <div className="absolute inset-0 z-0 pointer-events-none bg-slate-300">{haritaGoster && <LeafletHarita binalar={[]} />}</div>
+              <div className="absolute inset-0 z-10 bg-slate-900/45 backdrop-blur-[3px] flex flex-col items-center justify-center gap-3 text-white">
                 <Map size={30} className="opacity-70" />
                 <div className="font-black uppercase italic text-[17px]">{t('kesfet.haritaBaslik')}</div>
                 <div className="text-[12px] font-medium opacity-70">{t('kesfet.haritaAlt')}</div>
