@@ -90,29 +90,21 @@ function BinaOlusturForm() {
       const [lat, lng] = coords.split(',').map(c => c.trim());
       let bulundu = false;
 
-      // 1) Google Geocoding — İstanbul'da kapı/bina numarası düzgün gelir
-      if (GOOGLE_MAPS_API_KEY) {
-        try {
-          const g = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=tr&key=${GOOGLE_MAPS_API_KEY}`);
-          const gd = await g.json();
-          if (gd.status === 'OK' && gd.results?.length) {
-            const res = gd.results[0];
-            const bilesen = (turler: string[]) =>
-              res.address_components.find((c: any) => turler.some(t => c.types.includes(t)))?.long_name || '';
-            const ilce = trUpper(bilesen(['administrative_area_level_2'])).replace('İLÇESİ', '').trim();
-            const mahalle = trUpper(bilesen(['neighborhood', 'sublocality_level_1', 'sublocality', 'administrative_area_level_4']))
-              .replace('MAHALLESİ', '').replace('MAH.', '').trim();
-            setFormData(prev => ({
-              ...prev,
-              acik_adres_ham: trUpper(res.formatted_address || ''),
-              ilce,
-              mahalle,
-              foto_url: generateStreetViewUrl(coords),
-            }));
-            bulundu = true;
-          }
-        } catch { /* Google başarısızsa aşağıda Nominatim'e düş */ }
-      }
+      // 1) Kendi sunucu ucumuz (Google Geocoding proxy) — İstanbul'da kapı/bina no gelir
+      try {
+        const g = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`);
+        const gd = await g.json();
+        if (gd.ok) {
+          setFormData(prev => ({
+            ...prev,
+            acik_adres_ham: trUpper(gd.adres || ''),
+            ilce: trUpper(gd.ilce || '').replace('İLÇESİ', '').trim(),
+            mahalle: trUpper(gd.mahalle || '').replace('MAHALLESİ', '').replace('MAH.', '').trim(),
+            foto_url: generateStreetViewUrl(coords),
+          }));
+          bulundu = true;
+        }
+      } catch { /* proxy başarısızsa aşağıda Nominatim'e düş */ }
 
       // 2) Yedek: Nominatim (Google açık değilse / başarısızsa) — hiç bozulmasın
       if (!bulundu) {

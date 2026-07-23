@@ -62,3 +62,7 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: GOOGLE_GEOCODE_KEY
+    secret: GOOGLE_GEOCODE_KEY
+    availability:
+      - RUNTIME
