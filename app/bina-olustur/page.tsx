@@ -335,6 +335,17 @@ function BinaOlusturForm() {
                     adresiGetir(koord);
                   }}
                 />
+                {/* Seçici içindeyken de sokak görünümü — noktaya dokununca oracıkta 360° teyit */}
+                {(() => {
+                  const k = (formData.koordinat || '').split(',').map(x => parseFloat(x.trim()));
+                  if (k.length !== 2 || isNaN(k[0]) || isNaN(k[1])) return null;
+                  return (
+                    <div className="absolute inset-x-3 bottom-3 z-[720] rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-black">
+                      <div className="absolute top-2 right-3 z-10 bg-black/60 text-[10px] font-bold text-white px-2.5 py-1 rounded-full pointer-events-none">sürükle · gez</div>
+                      <SokakGorunumu lat={k[0]} lng={k[1]} className="w-full" style={{ height: '26vh', minHeight: 150, maxHeight: 230 }} />
+                    </div>
+                  );
+                })()}
               </div>
               <div className="px-5 py-4 border-t border-slate-100 bg-white flex items-center justify-between gap-4 z-[710]">
                 <div className="text-[11px] font-black italic text-slate-500 uppercase min-w-0 truncate">
