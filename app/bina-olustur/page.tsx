@@ -13,6 +13,7 @@ import { useLang } from '@/app/lib/i18n';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import Sidebar from '@/app/components/Sidebar';
 import KonumSecici from '@/app/components/KonumSecici';
+import SokakGorunumu from '@/app/components/SokakGorunumu';
 import { adGetir } from '@/app/lib/kullaniciadi';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
@@ -279,12 +280,17 @@ function BinaOlusturForm() {
             )}
           </button>
 
-          {formData.foto_url && (
-            <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl h-[200px] relative bg-slate-100 text-left">
-              <img src={formData.foto_url} alt="Bina" onError={(e: any) => { e.currentTarget.style.display = "none"; }} className="w-full h-full object-cover" />
-              <div className="absolute top-2 left-2 bg-[#023E56]/50 text-white p-2 rounded-full"><Camera size={14} /></div>
-            </div>
-          )}
+          {/* Konum seçilince: interaktif sokak görünümü — kullanıcı binayı 360° gezip doğru yeri teyit eder */}
+          {(() => {
+            const k = (formData.koordinat || '').split(',').map(x => parseFloat(x.trim()));
+            if (k.length !== 2 || isNaN(k[0]) || isNaN(k[1])) return null;
+            return (
+              <div className="rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl relative bg-black text-left">
+                <div className="absolute top-2 left-2 z-10 bg-[#023E56]/70 text-white px-3 py-1.5 rounded-full text-[10px] font-black italic uppercase flex items-center gap-1.5 pointer-events-none"><Camera size={12} /> Sokak görünümü · sürükleyip gez</div>
+                <SokakGorunumu lat={k[0]} lng={k[1]} className="w-full" style={{ height: 220 }} />
+              </div>
+            );
+          })()}
 
           {/* Tam ekran konum seçici — keşfet haritasıyla aynı deneyim */}
           {haritaAcik && (
