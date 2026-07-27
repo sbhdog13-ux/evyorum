@@ -6,6 +6,7 @@ import { db } from '@/app/lib/firebase';
 import { slugify } from '@/app/lib/slug';
 import { collection, getDocs } from 'firebase/firestore';
 import { useLang } from '@/app/lib/i18n';
+import SokakGorunumu from '@/app/components/SokakGorunumu';
 
 declare global { interface Window { L: any } }
 
@@ -152,9 +153,14 @@ export default function HaritaPage() {
       {secilen && (
         <div className="absolute bottom-0 left-0 right-0 z-[1000] bg-white rounded-t-[2rem] shadow-2xl p-6 max-w-xl mx-auto">
           <div className="flex items-center gap-2 mb-3"><MapPin size={18} className="text-blue-600" /><span className="font-black uppercase italic text-[14px] text-blue-600">{t('harita.konumSecildi')}</span></div>
-          {adresYukleniyor ? <div className="text-[12px] text-slate-400 py-3">{t('harita.adresAliniyor')}</div> : <p className="text-[13px] font-medium text-slate-700 mb-2 line-clamp-3">{secilen.adres}</p>}
+          {/* Sokak görünümü — sürükleyip gezilebilir, adres kendiliğinden yenilenir */}
+          <div className="relative rounded-2xl overflow-hidden mb-3 bg-black">
+            <div className="absolute top-2 right-3 z-10 bg-black/60 text-[10px] font-bold text-white px-2.5 py-1 rounded-full pointer-events-none">sürükle · gez</div>
+            <SokakGorunumu lat={secilen.lat} lng={secilen.lng} onAdres={(a) => { setAdresYukleniyor(false); setSecilen(s => s ? { ...s, adres: a } : s); }} className="w-full" style={{ height: '30vh', minHeight: 160, maxHeight: 280 }} />
+          </div>
+          {adresYukleniyor && !secilen.adres ? <div className="text-[12px] text-slate-400 py-1">{t('harita.adresAliniyor')}</div> : <p className="text-[13px] font-medium text-slate-700 mb-2 line-clamp-3">{secilen.adres}</p>}
           <p className="text-[11px] text-slate-400 mb-4">{t('harita.soru')}</p>
-          <button disabled={adresYukleniyor} onClick={() => router.push(`/bina-olustur?koordinat=${encodeURIComponent(`${secilen.lat}, ${secilen.lng}`)}`)} className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black uppercase italic text-[13px] hover:bg-[#023E56] transition-all">{t('harita.muhurle')}</button>
+          <button disabled={adresYukleniyor && !secilen.adres} onClick={() => router.push(`/bina-olustur?koordinat=${encodeURIComponent(`${secilen.lat}, ${secilen.lng}`)}`)} className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black uppercase italic text-[13px] hover:bg-[#023E56] transition-all">{t('harita.muhurle')}</button>
           <button onClick={() => setSecilen(null)} className="w-full py-3 text-[12px] font-bold text-slate-400">{t('harita.farkliKonum')}</button>
         </div>
       )}
