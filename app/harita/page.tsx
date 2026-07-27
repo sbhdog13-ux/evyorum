@@ -7,6 +7,7 @@ import { slugify } from '@/app/lib/slug';
 import { collection, getDocs } from 'firebase/firestore';
 import { useLang } from '@/app/lib/i18n';
 import SokakGorunumu from '@/app/components/SokakGorunumu';
+import { adresOnerileri, adresKoordinat } from '@/app/lib/googleMaps';
 
 declare global { interface Window { L: any } }
 
@@ -112,11 +113,14 @@ export default function HaritaPage() {
     clearTimeout(aramaTimer.current);
     if (!m.trim()) { setSonuclar([]); return; }
     aramaTimer.current = setTimeout(async () => {
-      try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(m + ' İstanbul')}&format=json&limit=5&bounded=1&viewbox=27.9,41.65,29.95,40.55&accept-language=tr`);
-        setSonuclar(await r.json() || []);
-      } catch { setSonuclar([]); }
-    }, 500);
+      try { setSonuclar(await adresOnerileri(m)); } catch { setSonuclar([]); }
+    }, 300);
+  };
+
+  const oneriSec = async (id: string) => {
+    setAramaMetni(''); setSonuclar([]);
+    const k = await adresKoordinat(id);
+    if (k) pinKoy(k.lat, k.lng, true);
   };
 
   return (
@@ -139,10 +143,10 @@ export default function HaritaPage() {
         </div>
         {sonuclar.length > 0 && (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
-            {sonuclar.map((s: any, i) => (
-              <button key={i} onClick={() => { setAramaMetni(''); setSonuclar([]); pinKoy(parseFloat(s.lat), parseFloat(s.lon), true); }} className="w-full flex items-start gap-2 px-4 py-3 text-left border-b border-slate-50 hover:bg-[#e8f3fa] transition-colors">
+            {sonuclar.map((s: any) => (
+              <button key={s.id} onClick={() => oneriSec(s.id)} className="w-full flex items-start gap-2 px-4 py-3 text-left border-b border-slate-50 hover:bg-[#e8f3fa] transition-colors">
                 <MapPin size={13} className="text-blue-600 mt-0.5 shrink-0" />
-                <span className="text-[12px] font-medium text-slate-700 line-clamp-2">{s.display_name}</span>
+                <span className="text-[12px] font-medium text-slate-700 line-clamp-2">{s.metin}</span>
               </button>
             ))}
           </div>

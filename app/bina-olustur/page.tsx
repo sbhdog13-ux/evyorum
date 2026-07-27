@@ -14,6 +14,7 @@ import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import Sidebar from '@/app/components/Sidebar';
 import KonumSecici from '@/app/components/KonumSecici';
 import SokakGorunumu from '@/app/components/SokakGorunumu';
+import { adresOnerileri, adresKoordinat } from '@/app/lib/googleMaps';
 import { adGetir } from '@/app/lib/kullaniciadi';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
@@ -39,11 +40,17 @@ function BinaOlusturForm() {
     clearTimeout(aramaTimer.current);
     if (!m.trim()) { setAramaSonuclar([]); return; }
     aramaTimer.current = setTimeout(async () => {
-      try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(m + ' İstanbul')}&format=json&limit=5&bounded=1&viewbox=27.9,41.65,29.95,40.55&accept-language=tr`);
-        setAramaSonuclar(await r.json() || []);
-      } catch { setAramaSonuclar([]); }
-    }, 400);
+      try { setAramaSonuclar(await adresOnerileri(m)); } catch { setAramaSonuclar([]); }
+    }, 300);
+  };
+
+  const oneriSec = async (id: string) => {
+    setAramaSonuclar([]); setAramaMetni('');
+    const k = await adresKoordinat(id);
+    if (!k) return;
+    const koord = `${k.lat.toFixed(6)}, ${k.lng.toFixed(6)}`;
+    setFormData(prev => ({ ...prev, koordinat: koord }));
+    adresiGetir(koord);
   };
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [baglantiTipi, setBaglantiTipi] = useState<'sakin' | 'eski_sakin' | 'ziyaretci'>('sakin');
@@ -311,16 +318,10 @@ function BinaOlusturForm() {
                 {aramaSonuclar.length > 0 && (
                   <div className="absolute left-5 right-5 top-[64px] bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden z-[720]">
                     {aramaSonuclar.map((sonuc: any) => (
-                      <button key={sonuc.place_id} type="button"
-                        onClick={() => {
-                          const koord = `${parseFloat(sonuc.lat).toFixed(6)}, ${parseFloat(sonuc.lon).toFixed(6)}`;
-                          setFormData(prev => ({ ...prev, koordinat: koord }));
-                          adresiGetir(koord);
-                          setAramaSonuclar([]);
-                          setAramaMetni('');
-                        }}
+                      <button key={sonuc.id} type="button"
+                        onClick={() => oneriSec(sonuc.id)}
                         className="w-full text-left px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-[#e8f3fa] transition-colors">
-                        <span className="text-[12px] font-bold text-slate-600 line-clamp-1">📍 {sonuc.display_name}</span>
+                        <span className="text-[12px] font-bold text-slate-600 line-clamp-1">📍 {sonuc.metin}</span>
                       </button>
                     ))}
                   </div>

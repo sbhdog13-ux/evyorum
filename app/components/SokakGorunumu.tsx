@@ -3,25 +3,9 @@
 // Leaflet zemin BEDAVA kalır; bu bileşen sadece açılınca Google devreye girer (Bulevini-Maps projesi, kotalı).
 // Sokakta gezdikçe (position_changed) adres yeniden çözülür → onAdres ile üst panele bildirilir.
 import { useEffect, useRef } from 'react';
+import { loadGoogleMaps } from '@/app/lib/googleMaps';
 
 declare global { interface Window { google: any } }
-const KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-
-// Google Maps JS SDK'sını tek sefer yükler (birden çok panel/harita çağırsa da bir kez).
-let googleYukleme: Promise<void> | null = null;
-function googleYukle(): Promise<void> {
-  if (typeof window !== 'undefined' && window.google?.maps) return Promise.resolve();
-  if (!googleYukleme) {
-    googleYukleme = new Promise<void>((res, rej) => {
-      if (!KEY) return rej(new Error('NEXT_PUBLIC_GOOGLE_MAPS_KEY yok'));
-      const s = document.createElement('script');
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&language=tr&region=TR`;
-      s.async = true; s.onload = () => res(); s.onerror = () => rej(new Error('Google Maps yüklenemedi'));
-      document.head.appendChild(s);
-    });
-  }
-  return googleYukleme;
-}
 
 type Props = {
   lat: number;
@@ -66,7 +50,7 @@ export default function SokakGorunumu({ lat, lng, onAdres, className, style }: P
 
   useEffect(() => {
     let iptal = false;
-    googleYukle().then(() => {
+    loadGoogleMaps().then(() => {
       if (iptal || !divRef.current) return;
       const g = window.google;
       if (!geoRef.current) geoRef.current = new g.maps.Geocoder();
