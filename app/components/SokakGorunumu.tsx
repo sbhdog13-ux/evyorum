@@ -39,6 +39,14 @@ export default function SokakGorunumu({ lat, lng, onAdres, className, style }: P
   const onAdresRef = useRef(onAdres);
   onAdresRef.current = onAdres;
 
+  const roRef = useRef<any>(null);
+
+  // Panoramayı yeniden boyutlandır — WebGL sahnesi siyah kalmasın (kısa/geç yerleşen kutularda kritik).
+  const boyutlandir = () => {
+    const g = window.google;
+    if (panoRef.current && g?.maps) g.maps.event.trigger(panoRef.current, 'resize');
+  };
+
   // Noktaya en yakın gerçek sokak görüntüsünü bulup panoramaya yerleştirir (görüntü yoksa siyah kalmaz).
   const konumla = (la: number, ln: number) => {
     const g = window.google;
@@ -51,8 +59,8 @@ export default function SokakGorunumu({ lat, lng, onAdres, className, style }: P
         panoRef.current.setPosition({ lat: la, lng: ln });
       }
       panoRef.current.setVisible(true);
-      // Görünür olunca yeniden boyutlandır (birkaç kez — layout otursun, tile'lar siyah kalmasın)
-      [60, 260, 600].forEach((ms) => setTimeout(() => panoRef.current && g.maps.event.trigger(panoRef.current, 'resize'), ms));
+      // Görünür olunca defalarca yeniden boyutlandır (layout + tile'lar otursun, siyah kalmasın)
+      [0, 120, 350, 700, 1200].forEach((ms) => setTimeout(boyutlandir, ms));
     });
   };
 
@@ -75,10 +83,17 @@ export default function SokakGorunumu({ lat, lng, onAdres, className, style }: P
             if (st === 'OK' && r[0]) onAdresRef.current?.(r[0].formatted_address);
           });
         });
+        // Görüntü (pano) değişince yeniden boyutlandır — siyah tile'ları önler
+        panoRef.current.addListener('pano_changed', () => { boyutlandir(); requestAnimationFrame(boyutlandir); });
+        // Kutu boyutu geç oturursa (kısa pencere/panel animasyonu) otomatik resize
+        if (typeof ResizeObserver !== 'undefined' && divRef.current) {
+          roRef.current = new ResizeObserver(() => boyutlandir());
+          roRef.current.observe(divRef.current);
+        }
       }
       konumla(lat, lng);
     }).catch(() => {});
-    return () => { iptal = true; };
+    return () => { iptal = true; roRef.current?.disconnect?.(); };
   }, []);
 
   // lat/lng değişince (yeni pin) panoramayı taşı
