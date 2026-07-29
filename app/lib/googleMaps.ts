@@ -49,7 +49,10 @@ export async function adresOnerileri(sorgu: string): Promise<AramaOneri[]> {
       },
       (preds: any, status: string) => {
         if (status !== g.maps.places.PlacesServiceStatus.OK || !preds) return resolve([]);
-        resolve(preds.map((p: any) => ({ id: p.place_id, metin: p.description })));
+        // Kesin İstanbul-only: strictBounds kenar illeri (Kocaeli/Sakarya) sızdırabiliyor → açıklamada "İstanbul" şartı
+        resolve(preds
+          .filter((p: any) => (p.description || '').toLowerCase().includes('stanbul'))
+          .map((p: any) => ({ id: p.place_id, metin: p.description })));
       },
     );
   });
