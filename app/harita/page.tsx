@@ -87,7 +87,11 @@ export default function HaritaPage() {
       }
 
       map.on('click', (e: any) => {
-        if (!icinde(e.latlng.lat, e.latlng.lng)) return;
+        if (!icinde(e.latlng.lat, e.latlng.lng)) {
+          map.flyTo([41.0082, 28.9784], 11);
+          alert('Sadece İstanbul: Şimdilik yalnızca İstanbul içindeki binaları mühürleyebilirsin. Harita İstanbul’a döndürüldü.');
+          return;
+        }
         pinKoy(e.latlng.lat, e.latlng.lng);
       });
 

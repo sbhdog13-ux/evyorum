@@ -8,8 +8,28 @@ export default function KonumSecici({ koordinat, onSec, salt = false }: { koordi
   const mapRef = useRef<any>(null);
   const pinRef = useRef<any>(null);
   const divRef = useRef<HTMLDivElement>(null);
+  const geoRef = useRef<any>(null);
   const onSecRef = useRef(onSec);
   onSecRef.current = onSec;
+
+  // Nokta İstanbul poligonu içinde mi (harita/mobil ile aynı kontrol)
+  const istanbulIcinde = (lat: number, lng: number): boolean => {
+    const geo = geoRef.current;
+    if (!geo?.features) return false;
+    const nokta = (x: number, y: number, poly: number[][]) => {
+      let ic = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const [xi, yi] = poly[i], [xj, yj] = poly[j];
+        if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) ic = !ic;
+      }
+      return ic;
+    };
+    for (const f of geo.features) {
+      const polys = f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [f.geometry.coordinates];
+      for (const p of polys) for (const ring of p) if (nokta(lng, lat, ring)) return true;
+    }
+    return false;
+  };
 
   const pinKoy = (lat: number, lng: number, zoomla = false) => {
     const L = window.L;
@@ -39,11 +59,17 @@ export default function KonumSecici({ koordinat, onSec, salt = false }: { koordi
       }
       if (!salt) map.on('click', (e: any) => {
         const { lat, lng } = e.latlng;
+        if (geoRef.current && !istanbulIcinde(lat, lng)) {
+          map.flyTo([41.0082, 28.9784], 11);
+          alert('Sadece İstanbul: Şimdilik yalnızca İstanbul içindeki binaları mühürleyebilirsin. Harita İstanbul’a döndürüldü.');
+          return;
+        }
         pinKoy(lat, lng);
         onSecRef.current(lat, lng);
       });
       // İlçe sınırları — keşfet haritasıyla aynı görünüm
       fetch('/istanbul.json').then(r => r.json()).then(geo => {
+        geoRef.current = geo;
         if (geo && mapRef.current) L.geoJSON(geo, { style: { fillColor: '#94a3b8', fillOpacity: 0.12, color: '#1e293b', weight: 0.8 } }).addTo(mapRef.current);
       }).catch(() => {});
     };

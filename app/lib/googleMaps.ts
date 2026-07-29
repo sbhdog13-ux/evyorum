@@ -41,10 +41,11 @@ export async function adresOnerileri(sorgu: string): Promise<AramaOneri[]> {
         input: sorgu,
         sessionToken: acToken,
         componentRestrictions: { country: 'tr' },
-        locationBias: new g.maps.LatLngBounds(
+        bounds: new g.maps.LatLngBounds(
           new g.maps.LatLng(IST_BIAS.south, IST_BIAS.west),
           new g.maps.LatLng(IST_BIAS.north, IST_BIAS.east),
         ),
+        strictBounds: true, // yalnızca İstanbul içi — mobil ile aynı
       },
       (preds: any, status: string) => {
         if (status !== g.maps.places.PlacesServiceStatus.OK || !preds) return resolve([]);
