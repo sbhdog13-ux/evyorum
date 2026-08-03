@@ -1,9 +1,8 @@
 "use client";
-import { trUpper } from '@/app/lib/utils';
 import { slugify } from '@/app/lib/slug';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Star, ShieldCheck, Loader2, AlertCircle, Radio, MessageSquarePlus, Map, Radar, Users, MessageSquare, ShieldCheck as ShieldIcon, LogOut } from "lucide-react";
+import { MapPin, Star, ShieldCheck, Radio, MessageSquarePlus, Map, LogOut } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import { db } from '@/app/lib/firebase';
@@ -17,17 +16,10 @@ import { auth } from '@/app/lib/firebase-auth';
 
 export default function Home() {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [pendingSelection, setPendingSelection] = useState({ name: "", city: "" });
   const [radarBinalar, setRadarBinalar] = useState<any[]>([]);
   const [gercekYorumlar, setGercekYorumlar] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const [tumBinalar, setTumBinalar] = useState<string[]>([]);
   const [stats, setStats] = useState({ muhur: 0, bina: 0, ilce: 0 });
   const router = useRouter();
   const { t } = useLang();
@@ -44,8 +36,6 @@ export default function Home() {
       // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar) — öneriler + istatistik
       const binaSnap = await getDocs(collection(db, 'binalar'));
       const binaKayit = binaSnap.docs.map(d => d.data() as any);
-      const unique = Array.from(new Set(binaKayit.map(b => trUpper((b.ad || '').toString()).trim()))).filter(Boolean) as string[];
-      setTumBinalar(unique);
       const ilceler = new Set(binaKayit.map(b => b.ilce).filter(Boolean));
       setStats({ muhur: binaKayit.reduce((a, b) => a + (b.muhurSayisi || 0), 0), bina: binaKayit.length, ilce: ilceler.size });
 
@@ -92,41 +82,6 @@ export default function Home() {
     }, 3500);
     return () => clearInterval(interval);
   }, [gercekYorumlar.length, elleKaydirdi]);
-
-  // Nominatim adres önerileri (mobil ile aynı sistem — Google Places yerine)
-  useEffect(() => {
-    if (searchTerm.length < 3) { setSuggestions([]); return; }
-    const delay = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm + ' İstanbul')}&viewbox=27.9,41.65,29.95,40.55&bounded=1&format=json&limit=4&accept-language=tr`;
-        const res = await fetch(url);
-        const json = await res.json();
-        setSuggestions(json || []);
-      } catch { setSuggestions([]); }
-      finally { setIsSearching(false); }
-    }, 400);
-    return () => clearTimeout(delay);
-  }, [searchTerm]);
-
-  const eslesenBinalar = searchTerm.length >= 2
-    ? tumBinalar.filter(b => slugify(b).includes(slugify(searchTerm))).slice(0, 4) // O5 tolerans
-    : [];
-
-  const handleSelection = async (mainText: string, secondaryText: string) => {
-    setIsSearching(true);
-    const yorumlarRef = collection(db, 'yorumlar');
-    const q = query(yorumlarRef, where('yeni_bina_adi', '==', trUpper(mainText)));
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      router.push(`/bina/${slugify(trUpper(mainText))}`);
-    } else {
-      setPendingSelection({ name: trUpper(mainText), city: secondaryText });
-      setShowConfirmModal(true);
-    }
-    setIsSearching(false);
-    setShowSuggestions(false);
-  };
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -272,20 +227,6 @@ export default function Home() {
           © 2026 BULEVİNİ — Şeffaf Bina Kültürü
         </footer>
       </main>
-
-      {/* CONFIRM MODAL */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-[#023E56]/30 backdrop-blur-md">
-          <div className="bg-white/90 backdrop-blur-3xl w-full max-w-md rounded-[4rem] overflow-hidden shadow-2xl border-2 border-white text-black">
-            <div className="p-12 text-center">
-              <div className="w-20 h-20 bg-[#e8f3fa] rounded-full flex items-center justify-center mx-auto mb-8"><AlertCircle size={44} className="text-blue-600" /></div>
-              <h3 className="text-[24px] font-black uppercase italic tracking-tighter mb-6 leading-none">BU BİNA HENÜZ <span className="text-blue-600">MÜHÜRLENMEMİŞ!</span></h3>
-              <button onClick={() => router.push(`/bina-olustur?binaAdi=${encodeURIComponent(pendingSelection.name)}`)} className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black uppercase italic text-[13px] shadow-xl shadow-blue-200/50 hover:bg-[#023E56] transition-all">EVET, BİNAYI MÜHÜRLE</button>
-              <button onClick={() => setShowConfirmModal(false)} className="mt-6 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-black transition-colors">ŞİMDİLİK KALSIN</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
