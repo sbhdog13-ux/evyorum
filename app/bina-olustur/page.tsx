@@ -341,9 +341,9 @@ function BinaOlusturForm() {
                   const k = (formData.koordinat || '').split(',').map(x => parseFloat(x.trim()));
                   if (k.length !== 2 || isNaN(k[0]) || isNaN(k[1])) return null;
                   return (
-                    <div className="absolute inset-x-3 bottom-3 z-[720] rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-black">
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[min(94%,480px)] z-[720] rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-black">
                       <div className="absolute top-2 right-3 z-10 bg-black/60 text-[10px] font-bold text-white px-2.5 py-1 rounded-full pointer-events-none">sürükle · gez</div>
-                      <SokakGorunumu lat={k[0]} lng={k[1]} className="w-full" style={{ height: '26vh', minHeight: 150, maxHeight: 230 }} />
+                      <SokakGorunumu lat={k[0]} lng={k[1]} className="w-full" style={{ height: 260 }} />
                     </div>
                   );
                 })()}
