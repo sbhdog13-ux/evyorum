@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { 
-  User, Trash2, Star, ArrowLeft, ChevronDown, CheckCircle, Trophy, Medal, MapPin, Lock, Activity, ShieldCheck, Zap, Radio, X, Map, Radar, Users, MessageSquare, ShieldCheck as ShieldIcon, LocateFixed, Award
+  User, Trash2, Star, ArrowLeft, ChevronDown, CheckCircle, Trophy, Medal, MapPin, Lock, Activity, ShieldCheck, Zap, Radio, X, Map, Radar, Users, MessageSquare, ShieldCheck as ShieldIcon, LocateFixed, Award, Pencil
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -247,7 +247,10 @@ function ProfilIcerik() {
                       <h4 className="text-[24px] font-black uppercase italic tracking-tighter group-hover:text-blue-600 text-black">{deneyim.bina_adi}</h4>
                       <p className="text-[11px] font-bold text-slate-400 uppercase italic">{deneyim.created_at?.toDate?.()?.toLocaleDateString('tr-TR') || ''}</p>
                     </div>
-                    <button onClick={() => silYorum(deneyim.id)} className="p-4 bg-[#023E56]/5 text-slate-300 rounded-2xl hover:text-red-500 transition-all"><Trash2 size={24} /></button>
+                    <div className="flex gap-2">
+                      <Link href={`/yorum-yap?duzenle=${deneyim.id}`} className="p-4 bg-[#023E56]/5 text-slate-400 rounded-2xl hover:text-blue-600 transition-all" title="Düzenle"><Pencil size={22} /></Link>
+                      <button onClick={() => silYorum(deneyim.id)} className="p-4 bg-[#023E56]/5 text-slate-300 rounded-2xl hover:text-red-500 transition-all" title="Sil"><Trash2 size={24} /></button>
+                    </div>
                   </div>
                   <div className="bg-white/40 backdrop-blur-md p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border-l-[10px] border-blue-600 mb-8 shadow-sm">
                     <p className="text-[17px] font-medium text-slate-700 italic leading-relaxed">"{deneyim.yorum_metni}"</p>

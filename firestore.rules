@@ -41,6 +41,12 @@ service cloud.firestore {
           // Yönetici: sadece fotoğraf onay durumunu (ve reddederken foto_url'i) değiştirebilir
           request.auth != null && request.auth.uid == 'mGJ9nLdCsgXvNXDZMGBWjtUIKuv1'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['foto_onay', 'foto_url'])
+        ) || (
+          // Sahibi kendi mührünün İÇERİĞİNİ düzeltebilir (yazı/puan/işaret). Kimlik, bina, oy sayacı DEĞİŞEMEZ.
+          request.auth != null
+          && request.auth.uid == resource.data.kullanici_id
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['yorum_metni', 'puan', 'puanlar', 'red_flags', 'green_flags', 'baglanti_tipi'])
         );
 
       // Oylar — gizli kasa: herkes yalnız KENDİ oyunu okuyabilir/oluşturabilir.

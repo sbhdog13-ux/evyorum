@@ -43,6 +43,7 @@ function YorumFormu() {
   const { user, loading: authLoading } = useAuth();
   const [binaAdi, setBinaAdi] = useState("");
   const [binaSlug, setBinaSlug] = useState(""); // belirli binanın tekil adresi (oluşturma/seçim akışından) — varsa deneyim buna bağlanır
+  const [duzenleId, setDuzenleId] = useState<string | null>(null); // varsa: mevcut mührü DÜZENLEME modu
   const [kayitliBinalar, setKayitliBinalar] = useState<any[]>([]); // {ad, slug, ilce, mahalle}
   const [filtrelenmişBinalar, setFiltrelenmişBinalar] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -117,6 +118,29 @@ function YorumFormu() {
     const querySlug = searchParams.get('binaSlug');
     if (querySlug) setBinaSlug(querySlug.trim());
   }, [searchParams]);
+
+  // DÜZENLEME modu: ?duzenle=<yorumId> → mevcut mührü çek, formu eski bilgilerle doldur (yalnız sahibi)
+  useEffect(() => {
+    const dz = searchParams.get('duzenle');
+    if (!dz || !user) return;
+    (async () => {
+      const { doc, getDoc } = await import('firebase/firestore');
+      const snap = await getDoc(doc(db, 'yorumlar', dz));
+      if (!snap.exists()) return;
+      const d = snap.data() as any;
+      if (d.kullanici_id !== user.uid) return; // sadece kendi mührü düzenlenebilir
+      setDuzenleId(dz);
+      setBinaAdi(trUpper(d.yeni_bina_adi || d.bina_adi || '').trim());
+      setBinaSlug(d.slug || '');
+      setYorum(d.yorum_metni === 'BİNA MÜHÜRLENDİ.' ? '' : (d.yorum_metni || ''));
+      if (d.baglanti_tipi) setBaglantiTipi(d.baglanti_tipi);
+      if (d.puanlar && typeof d.puanlar === 'object' && Object.keys(d.puanlar).length) {
+        setCategories(Object.entries(d.puanlar).map(([label, score], i) => ({ id: i + 1, label, score: Number(score) })));
+      }
+      setRedFlags(Array.isArray(d.red_flags) ? d.red_flags : []);
+      setGreenFlags(Array.isArray(d.green_flags) ? d.green_flags : []);
+    })();
+  }, [searchParams, user]);
 
   const handleBinaYazimi = (val: string) => {
     const uppercaseVal = trUpper(val);
@@ -195,6 +219,31 @@ function YorumFormu() {
     // ad çekme/GPS beklerken buton aktif kalıp ikinci gönderim başlatamaz.
     gonderiliyorRef.current = true;
     setLoading(true);
+
+    // DÜZENLEME modu: yeni mühür basma, mevcut mührün İÇERİĞİNİ güncelle (bina/kimlik değişmez).
+    if (duzenleId) {
+      const puanlar = categories.reduce((acc: any, c) => { acc[c.label] = c.score; return acc; }, {});
+      const ort = Number((categories.reduce((a, c) => a + c.score, 0) / categories.length).toFixed(1));
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        await updateDoc(doc(db, 'yorumlar', duzenleId), {
+          yorum_metni: yorum.trim(),
+          puan: ort,
+          puanlar,
+          baglanti_tipi: baglantiTipi,
+          red_flags: redFlags,
+          green_flags: greenFlags,
+        });
+        olay('muhur_duzenlendi', { bina: temizBinaAdi });
+        router.push(`/bina/${binaSlug || slugify(temizBinaAdi)}?muhur=1`);
+      } catch (err: any) {
+        alert('Hata: ' + err.message);
+      } finally {
+        gonderiliyorRef.current = false;
+        setLoading(false);
+      }
+      return;
+    }
 
     // Mahremiyet: yorumda gerçek isim değil kullanıcı adı görünür
     let gecerliKullaniciAdi = 'Anonim Sakin';
@@ -318,20 +367,26 @@ function YorumFormu() {
           <h1 className="text-[35px] md:text-[50px] font-black uppercase italic leading-[0.9] tracking-tighter mb-4 text-left">
             {t('muhurle.baslik1')} <span className="text-blue-600">{t('muhurle.baslik2')}</span>
           </h1>
-          <p className="text-slate-400 font-bold uppercase italic text-[12px] mb-12 tracking-tight text-left">
+          <p className="text-slate-400 font-bold uppercase italic text-[12px] mb-4 tracking-tight text-left">
             {t('muhurle.alt')}
           </p>
+          {duzenleId && (
+            <div className="mb-10 inline-flex items-center gap-2 bg-[#e8f3fa] border border-[#A1CDE9] text-[#023E56] px-4 py-2 rounded-2xl text-[11px] font-black italic uppercase tracking-tight">
+              ✏️ Mührünü düzenliyorsun · bina değişmez, fotoğraf bu ekranda değiştirilemez
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-10 text-left">
             <section className="relative text-left">
               <div className="bg-slate-50 p-1 rounded-[2rem] border border-slate-100 flex items-center px-6 focus-within:border-blue-600 transition-colors text-left">
                 <Building2 className="text-slate-300" size={24} />
-                <input 
-                  value={binaAdi} 
-                  onChange={(e) => handleBinaYazimi(e.target.value)} 
-                  onFocus={() => setShowDropdown(true)}
-                  placeholder={t('muhurle.binaSec')} 
-                  className="w-full p-6 bg-transparent font-black text-2xl uppercase italic outline-none placeholder:text-slate-200 text-left"
+                <input
+                  value={binaAdi}
+                  onChange={(e) => { if (!duzenleId) handleBinaYazimi(e.target.value); }}
+                  onFocus={() => { if (!duzenleId) setShowDropdown(true); }}
+                  readOnly={!!duzenleId}
+                  placeholder={t('muhurle.binaSec')}
+                  className={`w-full p-6 bg-transparent font-black text-2xl uppercase italic outline-none placeholder:text-slate-200 text-left ${duzenleId ? 'opacity-70 cursor-not-allowed' : ''}`}
                 />
               </div>
               {showDropdown && (filtrelenmişBinalar.length > 0 || binaAdi.length >= 2) && (
@@ -542,7 +597,7 @@ function YorumFormu() {
                 type="submit" disabled={loading}
                 className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-2xl uppercase italic hover:bg-[#023E56] transition-all flex items-center justify-center gap-4 shadow-2xl active:scale-95 text-left"
               >
-                {loading ? t('muhurle.gonderiliyor') : <>{t('muhurle.gonder')} <CheckCircle2 size={28} /></>}
+                {loading ? t('muhurle.gonderiliyor') : <>{duzenleId ? 'GÜNCELLE' : t('muhurle.gonder')} <CheckCircle2 size={28} /></>}
               </button>
             </div>
           </form>
