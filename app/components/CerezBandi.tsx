@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
 import { analyticsBaslat } from '@/app/lib/analytics';
+import { metaPixelBaslat } from '@/app/lib/metaPixel';
 
 export default function CerezBandi() {
   const { t } = useLang();
@@ -12,13 +13,13 @@ export default function CerezBandi() {
     try {
       const karar = localStorage.getItem('bulevini_cerez');
       if (!karar) setGoster(true);
-      else if (karar === 'kabul') analyticsBaslat();
+      else if (karar === 'kabul') { analyticsBaslat(); metaPixelBaslat(); }
     } catch {}
   }, []);
 
   const karar = (kabul: boolean) => {
     try { localStorage.setItem('bulevini_cerez', kabul ? 'kabul' : 'red'); } catch {}
-    if (kabul) analyticsBaslat();
+    if (kabul) { analyticsBaslat(); metaPixelBaslat(); }
     setGoster(false);
   };
 

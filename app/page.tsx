@@ -64,18 +64,22 @@ export default function AcilisSayfasi() {
       <section className="max-w-6xl mx-auto px-6 pt-8 md:pt-12 pb-14 grid md:grid-cols-2 gap-10 items-center">
         <div>
           <div className="text-[11px] font-black italic uppercase tracking-[3px] text-blue-600 mb-4">{t('nedir.etiket')}</div>
-          <h1 className="font-black italic uppercase tracking-tighter leading-[0.95] text-[clamp(32px,5.5vw,54px)]">
-            {t('acilis.motto1')} <span className="text-blue-600 underline">{t('acilis.motto2')}</span> {t('acilis.motto3')}
+          <h1 className="font-black italic uppercase tracking-tighter leading-[1.08] text-[clamp(30px,5.5vw,54px)]">
+            {t('acilis.motto1')} <span className="text-blue-600 underline underline-offset-2">{t('acilis.motto2')}</span> {t('acilis.motto3')}
           </h1>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-slate-500 font-medium">{t('acilis.aciklama')}</p>
 
-          <form onSubmit={ara} className="mt-8 flex items-center gap-2 bg-white border-2 border-slate-100 rounded-2xl p-1.5 shadow-xl shadow-slate-100/70 focus-within:border-blue-600 transition-all max-w-lg">
-            <Search size={18} className="text-slate-300 ml-3 shrink-0" />
-            <input value={aramaMetni} onChange={(e) => setAramaMetni(e.target.value)} placeholder={t('acilis.aramaPh')} className="flex-1 py-3 bg-transparent text-[14px] font-bold outline-none placeholder:text-slate-300 min-w-0" />
-            <button type="submit" className="bg-blue-600 text-white px-5 md:px-6 py-3 rounded-xl text-[12px] font-black uppercase italic tracking-wide hover:bg-[#023E56] transition-all shrink-0">{t('acilis.aramaBtn')}</button>
+          <form onSubmit={ara} className="mt-8 max-w-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-white border-2 border-slate-100 rounded-2xl p-1.5 shadow-xl shadow-slate-100/70 focus-within:border-blue-600 transition-all">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Search size={18} className="text-slate-300 ml-3 shrink-0" />
+                <input value={aramaMetni} onChange={(e) => setAramaMetni(e.target.value)} placeholder={t('acilis.aramaPh')} className="flex-1 py-3 bg-transparent text-[14px] font-bold outline-none placeholder:text-slate-300 min-w-0" />
+              </div>
+              <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded-xl text-[12px] font-black uppercase italic tracking-wide hover:bg-[#023E56] transition-all shrink-0 w-full sm:w-auto">{t('acilis.aramaBtn')}</button>
+            </div>
           </form>
 
-          <Link href="/giris" className="inline-block mt-5 text-[12px] font-black uppercase italic tracking-widest text-[#023E56] hover:text-blue-600 transition-colors">{t('acilis.hemenBasla')} →</Link>
+          <Link href="/giris" className="inline-block mt-5 text-[12px] font-black uppercase italic tracking-widest text-[#023E56] hover:text-blue-600 transition-colors">{t('acilis.hemenBasla')}</Link>
         </div>
 
         <div className="relative">
