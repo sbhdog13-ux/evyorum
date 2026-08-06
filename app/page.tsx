@@ -4,17 +4,43 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
+import { db } from '@/app/lib/firebase';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import LeafletHarita from '@/app/components/LeafletHarita';
+import { Search, Star, MapPin } from 'lucide-react';
 
 export default function AcilisSayfasi() {
   const { user, loading } = useAuth() as any;
   const router = useRouter();
   const { t } = useLang();
   const [muhtemelGirisli, setMuhtemelGirisli] = useState(false);
+  const [aramaMetni, setAramaMetni] = useState('');
+  const [feed, setFeed] = useState<any[]>([]);
+  const [ornekBina, setOrnekBina] = useState<any>(null);
 
   // Daha önce giriş yapmış tarayıcıda açılış flaşını atla
   useEffect(() => {
     try { if (localStorage.getItem('bulevini_girisli') === '1') { setMuhtemelGirisli(true); router.replace('/kesfet'); } } catch {}
   }, []);
+
+  // Canlı akış + örnek bina karnesi (isim gösterilmez)
+  useEffect(() => {
+    (async () => {
+      try {
+        const snap = await getDocs(query(collection(db, 'yorumlar'), orderBy('created_at', 'desc'), limit(15)));
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as any))
+          .filter(y => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0)));
+        setFeed(list.slice(0, 6));
+        const karneli = list.find(y => y.puanlar && Object.keys(y.puanlar).length >= 2);
+        if (karneli) setOrnekBina(karneli);
+      } catch { /* sessiz */ }
+    })();
+  }, []);
+
+  const ara = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (aramaMetni.trim()) router.push(`/arama?query=${encodeURIComponent(aramaMetni.trim())}`);
+  };
 
   // Giriş yapmış kullanıcı doğrudan uygulamaya geçer
   useEffect(() => {
@@ -34,21 +60,73 @@ export default function AcilisSayfasi() {
         </div>
       </header>
 
-      <section className="max-w-5xl mx-auto px-6 pt-16 pb-20 text-center">
-        <h1 className="font-black italic uppercase tracking-tighter leading-[1.05] text-[clamp(32px,6vw,56px)]">
-          {t('acilis.motto1')}<br /><span className="text-blue-600 underline">{t('acilis.motto2')}</span> {t('acilis.motto3')}
-        </h1>
-        <p className="mt-5 max-w-xl mx-auto text-[16px] leading-relaxed text-slate-400 font-medium">
-          {t('acilis.aciklama')}
-        </p>
-        <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link href="/giris" className="bg-blue-600 text-white px-9 py-4 rounded-2xl text-[13px] font-black uppercase italic tracking-wide hover:bg-[#023E56] transition-all shadow-xl shadow-blue-200">{t('acilis.hemenBasla')}</Link>
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4">
-            <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-            <span className="text-[11px] font-black uppercase italic text-blue-600 tracking-widest">{t('acilis.yakinda')}</span>
+      {/* HERO — iki sütun: sol başlık+arama, sağ harita+örnek karne */}
+      <section className="max-w-6xl mx-auto px-6 pt-8 md:pt-12 pb-14 grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <div className="text-[11px] font-black italic uppercase tracking-[3px] text-blue-600 mb-4">{t('nedir.etiket')}</div>
+          <h1 className="font-black italic uppercase tracking-tighter leading-[0.95] text-[clamp(32px,5.5vw,54px)]">
+            {t('acilis.motto1')} <span className="text-blue-600 underline">{t('acilis.motto2')}</span> {t('acilis.motto3')}
+          </h1>
+          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-slate-500 font-medium">{t('acilis.aciklama')}</p>
+
+          <form onSubmit={ara} className="mt-8 flex items-center gap-2 bg-white border-2 border-slate-100 rounded-2xl p-1.5 shadow-xl shadow-slate-100/70 focus-within:border-blue-600 transition-all max-w-lg">
+            <Search size={18} className="text-slate-300 ml-3 shrink-0" />
+            <input value={aramaMetni} onChange={(e) => setAramaMetni(e.target.value)} placeholder={t('acilis.aramaPh')} className="flex-1 py-3 bg-transparent text-[14px] font-bold outline-none placeholder:text-slate-300 min-w-0" />
+            <button type="submit" className="bg-blue-600 text-white px-5 md:px-6 py-3 rounded-xl text-[12px] font-black uppercase italic tracking-wide hover:bg-[#023E56] transition-all shrink-0">{t('acilis.aramaBtn')}</button>
+          </form>
+
+          <Link href="/giris" className="inline-block mt-5 text-[12px] font-black uppercase italic tracking-widest text-[#023E56] hover:text-blue-600 transition-colors">{t('acilis.hemenBasla')} →</Link>
+        </div>
+
+        <div className="relative">
+          <div className="relative z-0 h-[340px] md:h-[420px] rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl bg-slate-100 pointer-events-none">
+            <LeafletHarita binalar={[]} />
           </div>
+          {ornekBina && (
+            <div className="absolute top-4 right-4 z-[20] w-[230px] bg-white rounded-2xl shadow-2xl border border-slate-100 p-4">
+              <div className="font-black italic uppercase text-[13px] tracking-tighter leading-tight line-clamp-1">{ornekBina.yeni_bina_adi || ornekBina.bina_adi}</div>
+              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 mt-0.5"><MapPin size={11} className="text-blue-600" />{ornekBina.ilce || 'İSTANBUL'}</div>
+              <div className="mt-3 space-y-1.5">
+                {Object.entries(ornekBina.puanlar).slice(0, 4).map(([k, v]: any) => (
+                  <div key={k} className="flex items-center justify-between gap-2">
+                    <span className="text-[9px] font-black uppercase text-slate-500 truncate">{String(k).split(' ')[0]}</span>
+                    <div className="flex gap-0.5">{[1, 2, 3, 4, 5].map(s => (<Star key={s} size={9} fill={s <= Math.round(Number(v)) ? '#2563eb' : 'none'} className={s <= Math.round(Number(v)) ? 'text-blue-600' : 'text-slate-200'} />))}</div>
+                  </div>
+                ))}
+              </div>
+              <Link href="/giris" className="block mt-3 bg-[#023E56] text-white text-center py-2.5 rounded-xl text-[11px] font-black uppercase italic tracking-wide hover:bg-blue-600 transition-colors">{t('acilis.muhurleBtn')}</Link>
+            </div>
+          )}
         </div>
       </section>
+
+      {/* CANLI AKIŞ — tek satır, sürekli dönen şerit; isim gösterilmez, kartlar giriş kapısına götürür */}
+      {feed.length > 0 && (
+        <section className="pb-16 overflow-hidden">
+          <div className="max-w-6xl mx-auto px-6 flex items-center gap-3 mb-6">
+            <span className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-ping" />
+            <h2 className="font-black italic uppercase tracking-tighter text-[18px]">{t('acilis.sonMuhurler')}</h2>
+            <span className="text-[10px] font-black uppercase italic text-slate-300 tracking-widest">{t('acilis.canli')}</span>
+          </div>
+          <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_5%,#000_95%,transparent)]">
+            <div
+              className="flex gap-4 w-max hover:[animation-play-state:paused]"
+              style={{ animation: `bulevini-kay ${feed.length * 6}s linear infinite` }}
+            >
+              {[...feed, ...feed].map((y, i) => (
+                <Link key={i} href="/giris" className="shrink-0 w-[300px] bg-slate-50 border border-slate-100 rounded-[1.6rem] p-5 hover:border-blue-600 transition-all">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="font-black italic uppercase text-[13px] tracking-tighter leading-tight line-clamp-1">{y.yeni_bina_adi || y.bina_adi}</div>
+                    <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg text-blue-600 font-black text-[11px] shrink-0"><Star size={11} fill="currentColor" />{y.puan || '—'}</div>
+                  </div>
+                  <p className="mt-2 text-[12px] leading-relaxed text-slate-500 italic line-clamp-3">&quot;{y.yorum_metni}&quot;</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+          <style>{`@keyframes bulevini-kay{to{transform:translateX(-50%)}}`}</style>
+        </section>
+      )}
 
       <section className="max-w-5xl mx-auto px-6 pb-20 grid gap-4 md:grid-cols-3">
         {[
