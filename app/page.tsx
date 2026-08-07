@@ -17,6 +17,15 @@ export default function AcilisSayfasi() {
   const [aramaMetni, setAramaMetni] = useState('');
   const [feed, setFeed] = useState<any[]>([]);
   const [ornekBina, setOrnekBina] = useState<any>(null);
+  const [haritaGoster, setHaritaGoster] = useState(false);
+
+  // Harita ağır — önce yazı+arama çıksın, harita boşta yüklensin (mobil hızı için)
+  useEffect(() => {
+    const yukle = () => setHaritaGoster(true);
+    const ric = (window as any).requestIdleCallback;
+    if (ric) { const id = ric(yukle, { timeout: 1500 }); return () => (window as any).cancelIdleCallback?.(id); }
+    const t = setTimeout(yukle, 800); return () => clearTimeout(t);
+  }, []);
 
   // Daha önce giriş yapmış tarayıcıda açılış flaşını atla
   useEffect(() => {
@@ -84,7 +93,7 @@ export default function AcilisSayfasi() {
 
         <div className="relative">
           <div className="relative z-0 h-[340px] md:h-[420px] rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl bg-slate-100 pointer-events-none">
-            <LeafletHarita binalar={[]} />
+            {haritaGoster && <LeafletHarita binalar={[]} />}
           </div>
           {ornekBina && (
             <div className="absolute top-4 right-4 z-[20] w-[230px] bg-white rounded-2xl shadow-2xl border border-slate-100 p-4">
