@@ -215,14 +215,14 @@ function AramaIcerik({ initialBinalar = [] }: { initialBinalar?: any[] }) {
                 <SlidersHorizontal size={22} />
               </button>
 
-              <div className="relative flex-1">
-                <div className="bg-slate-50 border-2 border-black rounded-[2.5rem] p-2 flex items-center px-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                  <Search size={30} className="text-black" />
-                  <input 
+              <div className="relative flex-1 min-w-0">
+                <div className="bg-slate-50 border-2 border-black rounded-2xl md:rounded-[2.5rem] p-2 flex items-center gap-2 px-4 md:px-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                  <Search size={22} className="text-black shrink-0 md:w-[30px] md:h-[30px]" />
+                  <input
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
                     placeholder={t('arama.placeholder')}
-                    className="w-full p-6 bg-transparent font-black text-2xl uppercase italic outline-none"
+                    className="w-full min-w-0 p-3 md:p-6 bg-transparent font-black text-base md:text-2xl uppercase italic outline-none"
                   />
                 </div>
               </div>
