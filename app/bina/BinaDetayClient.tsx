@@ -1,8 +1,10 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
 
-import { Star, MapPin, ArrowLeft, Home, Wind, Shield, Users, MessageSquarePlus, Activity, Map as MapIcon, Camera, CheckCircle, AlertTriangle, Heart, Radio, Info, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Star, MapPin, ArrowLeft, Home, Wind, Shield, Users, MessageSquarePlus, Activity, Map as MapIcon, Camera, CheckCircle, AlertTriangle, Heart, Radio, Info, X, Share2 } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import StoryKart, { StoryVeri } from '@/app/components/StoryKart';
+import { storyPaylas } from '@/app/lib/storyPaylas';
 import { db } from '@/app/lib/firebase';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp, increment, writeBatch, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -67,13 +69,17 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
   const [poilar, setPoilar] = useState<{ ad: string; tur: string; mesafe: number }[]>([]);
   const [aktifKat, setAktifKat] = useState<string[]>(['saglik', 'egitim', 'ulasim', 'market']);
   const [muhurToast, setMuhurToast] = useState(false);
+  const kartRef = useRef<HTMLDivElement>(null);
+  const [paylasVerisi, setPaylasVerisi] = useState<StoryVeri | null>(null);
+  const [paylasiyor, setPaylasiyor] = useState(false);
+  const [kartAcik, setKartAcik] = useState(false);
 
   // Mühürleme sonrası anlık başarı bandı (bloklayan alert yerine) — ?muhur=1 ile gelir
   useEffect(() => {
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('muhur') === '1') {
       setMuhurToast(true);
       window.history.replaceState(null, '', window.location.pathname); // URL'i temizle
-      const z = setTimeout(() => setMuhurToast(false), 4000);
+      const z = setTimeout(() => setMuhurToast(false), 15000);
       return () => clearTimeout(z);
     }
   }, []);
@@ -93,6 +99,50 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
   }, [koordinat]);
 
   const binaIsmi = binaAdi ? trUpper(binaAdi).trim() : null;
+
+  // ── Story paylaşımı (bina karnesi görseli) ─────────────────────────────
+  const binaVerisi: StoryVeri = useMemo(() => {
+    const ort = dinamikKarne.length > 0
+      ? Number((dinamikKarne.reduce((a: number, k: any) => a + Number(k.score), 0) / dinamikKarne.length).toFixed(1))
+      : 0;
+    const sorun = dbYorumlar.reduce((a: number, y: any) => a + (y.red_flags?.length || 0), 0);
+    const arti = dbYorumlar.reduce((a: number, y: any) => a + (y.green_flags?.length || 0), 0);
+    return {
+      ad: binaIsmi || 'BİNA',
+      ilce: konumBilgisi.ilce,
+      mahalle: konumBilgisi.mahalle,
+      puan: ort,
+      muhurSayisi: dbYorumlar.length,
+      arti, sorun,
+      kategoriler: dinamikKarne.map((k: any) => ({ label: k.label, score: Number(k.score) })),
+    };
+  }, [dinamikKarne, dbYorumlar, konumBilgisi, binaIsmi]);
+
+  const yorumVerisi = (y: any): StoryVeri => {
+    const pv = y.puanlar && typeof y.puanlar === 'object' ? y.puanlar : {};
+    const kats = Object.entries(pv).map(([k, v]: any) => ({ label: k, score: Number(v) }));
+    const ort = kats.length > 0 ? Number((kats.reduce((a, k) => a + k.score, 0) / kats.length).toFixed(1)) : Number(y.puan) || 0;
+    return {
+      ad: binaIsmi || 'BİNA', ilce: konumBilgisi.ilce, mahalle: konumBilgisi.mahalle,
+      puan: ort, muhurSayisi: dbYorumlar.length,
+      arti: (y.green_flags?.length || 0), sorun: (y.red_flags?.length || 0),
+      kategoriler: kats,
+    };
+  };
+
+  const paylas = async (veri: StoryVeri) => {
+    if (paylasiyor) return;
+    setPaylasiyor(true);
+    setPaylasVerisi(veri);
+    setKartAcik(true);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r(null))));
+    try {
+      await storyPaylas(kartRef.current, { ad: veri.ad, url: typeof window !== 'undefined' ? window.location.href : undefined });
+    } finally {
+      setPaylasiyor(false);
+      setKartAcik(false);
+    }
+  };
 
   useEffect(() => {
     const verileriGetir = async () => {
@@ -297,9 +347,20 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
   return (
     <div className="lg:pl-80 min-h-screen bg-white font-sans text-black pb-24 text-left">
       <Sidebar />
+      {/* Ekran dışı paylaşım kartı (1080x1920) — sadece paylaşırken yüklenir, sıfır layout etkisi */}
+      {kartAcik && (
+        <div style={{ position: 'fixed', left: 0, top: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -1 }} aria-hidden="true">
+          <StoryKart ref={kartRef} veri={paylasVerisi || binaVerisi} />
+        </div>
+      )}
+
       {muhurToast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-green-600 text-white px-6 py-3 rounded-2xl shadow-2xl text-[13px] font-black italic uppercase tracking-tight flex items-center gap-2 animate-in fade-in slide-in-from-top duration-300">
-          <CheckCircle size={18} /> BİNA MÜHÜRLENDİ! 🎉
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-green-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top duration-300">
+          <span className="text-[13px] font-black italic uppercase tracking-tight flex items-center gap-2"><CheckCircle size={18} /> Mühürlendi! 🎉</span>
+          <button onClick={() => paylas(binaVerisi)} disabled={paylasiyor}
+            className="bg-white text-green-700 px-4 py-2 rounded-xl text-[11px] font-black italic uppercase flex items-center gap-1.5 hover:bg-green-50 transition-all disabled:opacity-60">
+            <Share2 size={14} /> {paylasiyor ? 'Hazırlanıyor…' : "Story'de Paylaş"}
+          </button>
         </div>
       )}
       <header className="p-4 border-b border-slate-50 sticky top-0 bg-white/80 backdrop-blur-md z-50">
@@ -536,9 +597,17 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-100">
-                      <Star size={12} fill="#2563eb" className="text-blue-600" />
-                      <span className="font-black text-[13px] text-blue-600">{y.puan ?? '—'}</span>
+                    <div className="flex items-center gap-2">
+                      {!bulanik && (
+                        <button onClick={() => paylas(yorumVerisi(y))} disabled={paylasiyor} title="Story'de paylaş"
+                          className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-all disabled:opacity-60">
+                          <Share2 size={14} />
+                        </button>
+                      )}
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-100">
+                        <Star size={12} fill="#2563eb" className="text-blue-600" />
+                        <span className="font-black text-[13px] text-blue-600">{y.puan ?? '—'}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="p-5 rounded-3xl text-[13px] font-medium italic border-l-4 bg-white border-blue-600 text-slate-700">
