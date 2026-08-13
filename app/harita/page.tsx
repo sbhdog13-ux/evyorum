@@ -4,6 +4,7 @@ import { ArrowLeft, Search, MapPin, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/app/lib/firebase';
 import { slugify } from '@/app/lib/slug';
+import { trUpper } from '@/app/lib/utils';
 import { collection, getDocs } from 'firebase/firestore';
 import { useLang } from '@/app/lib/i18n';
 import SokakGorunumu from '@/app/components/SokakGorunumu';
@@ -56,7 +57,23 @@ export default function HaritaPage() {
       // İlçe sınırları + İstanbul içi kontrolü (mobil ile aynı)
       let geo: any = null;
       try { geo = await fetch('/istanbul.json').then(r => r.json()); } catch {}
-      if (geo) L.geoJSON(geo, { style: { fillColor: '#94a3b8', fillOpacity: 0.15, color: '#1e293b', weight: 0.8 } }).addTo(map);
+
+      // Bina özetlerini oku → ilçe ORTALAMALARINI hesapla → ilçeyi puana göre boya (arama haritası gibi)
+      const binaSnap = await getDocs(collection(db, 'binalar'));
+      const binalar = binaSnap.docs.map(d => d.data() as any);
+      const ilcePuan: { [ilce: string]: { toplam: number; sayi: number } } = {};
+      binalar.forEach(b => {
+        const il = b.ilce ? trUpper(b.ilce.toString()).trim() : '';
+        if (!il || !(b.finalPuan > 0)) return;
+        if (!ilcePuan[il]) ilcePuan[il] = { toplam: 0, sayi: 0 };
+        ilcePuan[il].toplam += b.finalPuan; ilcePuan[il].sayi += 1;
+      });
+      const ilceRenk = (o: number) => o <= 0 ? '#94a3b8' : o >= 4 ? '#16a34a' : o >= 2.5 ? '#fbbf24' : '#dc2626';
+      if (geo) L.geoJSON(geo, { style: (f: any) => {
+        const il = trUpper(f.properties.name || '').trim();
+        const v = ilcePuan[il]; const o = v ? v.toplam / v.sayi : 0;
+        return { fillColor: ilceRenk(o), fillOpacity: o > 0 ? 0.28 : 0.12, color: '#1e293b', weight: 0.8 };
+      } }).addTo(map);
 
       const icinde = (lat: number, lng: number): boolean => {
         if (!geo?.features) return false;
@@ -95,12 +112,9 @@ export default function HaritaPage() {
         pinKoy(e.latlng.lat, e.latlng.lng);
       });
 
-      // Mühürlenmiş binalar (mobil renk skalası)
+      // Mühürlenmiş binalar (mobil renk skalası) — yukarıda okunan 'binalar'ı kullan
       const renk = (p: number) => p >= 4 ? '#16a34a' : p >= 2.5 ? '#eab308' : p >= 1 ? '#f97316' : '#dc2626';
-      // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar) oku
-      const snap = await getDocs(collection(db, 'binalar'));
-      snap.docs.forEach(d => {
-        const b: any = d.data();
+      binalar.forEach((b: any) => {
         if (!b.koordinat?.lat) return;
         const puan = (b.finalPuan || 0).toFixed(1);
         const icon = L.divIcon({ html: `<div style="width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${renk(Number(puan))};border:2px solid #fff;box-shadow:-1px 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.9);transform:rotate(45deg)"></div></div>`, className: '', iconAnchor: [12, 26] });

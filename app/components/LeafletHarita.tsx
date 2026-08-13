@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { slugify } from '@/app/lib/slug';
+import { trUpper } from '@/app/lib/utils';
 import SokakGorunumu from '@/app/components/SokakGorunumu';
 
 declare global { interface Window { L: any } }
@@ -26,7 +27,7 @@ export default function LeafletHarita({ binalar = [], ilcePuanlari = {}, legend 
       const ilceRenk = (o: number) => o <= 0 ? '#94a3b8' : o >= 4 ? '#16a34a' : o >= 2.5 ? '#fbbf24' : '#dc2626';
       fetch('/istanbul.json').then(r => r.json()).then(geo => {
         L.geoJSON(geo, { style: (f: any) => {
-          const ilce = (f.properties.name || '').toUpperCase().trim();
+          const ilce = trUpper(f.properties.name || '').trim();
           const v = (ilcePuanlari as any)[ilce];
           const o = v ? v.toplam / v.sayi : 0;
           return { fillColor: ilceRenk(o), fillOpacity: 0.25, color: '#1e293b', weight: 0.8 };
