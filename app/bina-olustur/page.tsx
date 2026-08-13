@@ -1,7 +1,7 @@
 "use client";
 import { trUpper } from '@/app/lib/utils';
 import { slugify } from '@/app/lib/slug';
-import { yakinAyniIsim, tekilSlugBul, type BinaOzet } from '@/app/lib/binaKimlik';
+import { yakinAyniIsim, tekilSlugBul, mesafeMetre, type BinaOzet } from '@/app/lib/binaKimlik';
 import React, { useState, Suspense, useEffect, useRef } from 'react';
 import { ArrowLeft, Wand2, Camera, UserCircle, UserX, UserCheck, History, Eye, MapPin, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -31,6 +31,8 @@ function BinaOlusturForm() {
   const [olusturulanBina, setOlusturulanBina] = useState('');
   const [olusturulanSlug, setOlusturulanSlug] = useState('');
   const [yakinUyari, setYakinUyari] = useState<BinaOzet | null>(null);
+  const [yakinFarkli, setYakinFarkli] = useState<BinaOzet | null>(null); // yakında FARKLI isimli bina (yumuşak uyarı)
+  const koordBypassRef = useRef(false); // "farklı bina, devam et" dendiyse koordinat kontrolünü atla
   const [aramaMetni, setAramaMetni] = useState('');
   const [aramaSonuclar, setAramaSonuclar] = useState<any[]>([]);
   const aramaTimer = useRef<any>(null);
@@ -178,6 +180,17 @@ function BinaOlusturForm() {
         const yakin = yakinAyniIsim(ayniIsimliler, koord.lat, koord.lng, 500);
         if (yakin) { setYakinUyari(yakin); setLoading(false); return; } // engelle + uyar
       }
+      // YAKIN-KOORDİNAT (FARKLI İSİM) yumuşak uyarısı: aynı yer başka sponsor/isimle açılmasın
+      // (ör. Şükrü Saraçoğlu=Chobani). ~50m içinde FARKLI isimli bina varsa sor; kullanıcı "farklı"
+      // derse geçer. Not: koleksiyon küçük (tüm binalar çekiliyor); ölçekte geohash gerekir.
+      if (koord && !koordBypassRef.current) {
+        const tumSnap = await getDocs(collection(db, 'binalar'));
+        const cokYakin = tumSnap.docs.map(d => d.data() as BinaOzet).find(b =>
+          b.adSlug !== adSlug && b.koordinat?.lat &&
+          mesafeMetre(koord.lat, koord.lng, b.koordinat.lat, b.koordinat.lng) <= 50);
+        if (cokYakin) { setYakinFarkli(cokYakin); setLoading(false); return; }
+      }
+      koordBypassRef.current = false; // tek seferlik kullanıldı
       // Tekil adres (aynı isim başka bölgede varsa çakışmayı çöz)
       const tekilSlug = tekilSlugBul(temizBinaAdi, formData.ilce, formData.mahalle, new Set(ayniIsimliler.map(b => b.slug)));
 
@@ -239,6 +252,31 @@ function BinaOlusturForm() {
               Gerçekten farklı bir binaysa → bize ulaş
             </button>
             <button onClick={() => setYakinUyari(null)} className="w-full text-slate-300 py-2 font-bold text-[11px] uppercase hover:text-slate-500">Vazgeç</button>
+          </div>
+        </div>
+      )}
+      {yakinFarkli && (
+        <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-8">
+          <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="text-[40px] mb-1">📍</div>
+            <h3 className="text-[17px] font-black italic uppercase tracking-tighter text-[#023E56] mb-2">Burası aynı yer mi?</h3>
+            <p className="text-[13px] font-medium text-slate-500 mb-1 leading-relaxed">
+              Tam bu konumda zaten bir bina var: <b>{yakinFarkli.ad}</b>. Aynı yeri farklı bir isimle mi ekliyorsun?
+            </p>
+            <p className="text-[12px] text-slate-400 mb-6">{yakinFarkli.ilce}{yakinFarkli.mahalle ? ` / ${yakinFarkli.mahalle}` : ''}</p>
+            <button
+              onClick={() => router.push(`/bina/${yakinFarkli.slug}`)}
+              className="w-full bg-blue-600 text-white rounded-2xl py-4 font-black text-[14px] uppercase italic tracking-tight hover:bg-[#023E56] transition-all mb-2"
+            >
+              EVET, AYNI YER → {yakinFarkli.ad}'A GİT
+            </button>
+            <button
+              onClick={() => { koordBypassRef.current = true; setYakinFarkli(null); handleSubmit({ preventDefault() {} } as any); }}
+              className="w-full text-slate-400 rounded-2xl py-2.5 font-bold text-[12px] uppercase italic hover:text-[#023E56] transition-all"
+            >
+              Hayır, farklı bir bina → devam et
+            </button>
+            <button onClick={() => setYakinFarkli(null)} className="w-full text-slate-300 py-2 font-bold text-[11px] uppercase hover:text-slate-500">Vazgeç</button>
           </div>
         </div>
       )}
