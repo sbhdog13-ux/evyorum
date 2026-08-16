@@ -216,10 +216,10 @@ export default function Home() {
                 Haritada keşfet, konumundan mühürle, radarından takip et.
               </p>
             </div>
-            <div className="relative z-10 flex items-center gap-3 bg-white/10 border border-white/20 px-8 py-4 rounded-2xl backdrop-blur-md">
+            <a href="https://apps.apple.com/tr/app/bulevini/id6797538388" target="_blank" rel="noopener noreferrer" className="relative z-10 flex items-center gap-3 bg-white/10 border border-white/20 px-8 py-4 rounded-2xl backdrop-blur-md hover:bg-white/20 transition-all cursor-pointer">
               <span className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse" />
               <span className="text-[12px] font-black uppercase italic tracking-widest">{t('acilis.yakinda')}</span>
-            </div>
+            </a>
           </div>
         </section>
 

@@ -74,7 +74,7 @@ export default function Footer() {
           <span className="text-[12px] text-[#A1CDE9]">{t('footer.telif')}</span>
           <div className="flex items-center gap-5 text-[12px]">
             <a href="https://instagram.com/bulevini" target="_blank" rel="noopener noreferrer" className="text-[#A1CDE9] hover:text-white transition-colors font-bold">Instagram @bulevini</a>
-            <span className="text-[#A1CDE9] italic">{t('acilis.yakinda')}</span>
+            <a href="https://apps.apple.com/tr/app/bulevini/id6797538388" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#A1CDE9] transition-colors font-black italic">{t('acilis.yakinda')}</a>
           </div>
         </div>
       </div>
