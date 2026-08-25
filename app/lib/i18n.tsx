@@ -16,7 +16,7 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'acilis.k2b': 'Haritada Keşfet', 'acilis.k2': 'Mühürlenmiş binaları harita üzerinde gör. İlçe, sokak ya da bina adıyla ara; çevresindeki okul, hastane ve ulaşım noktalarını incele.',
     'acilis.k3b': 'Radara Al', 'acilis.k3': 'İlgilendiğin binaları takip et — yeni bir sakin deneyimi paylaşıldığında anında haberin olsun.',
     // --- Açılış yolculuğu (ana sayfa aşağı akış) ---
-    'y.eyebrow': 'BİNALARIN ORTAK HAFIZASI',
+    'y.eyebrow': 'BİNALARIN ORTAK HAFIZASI', 'y.haritaKart': 'HARİTADAN BİR BİNA',
     'y.h1a': 'TAŞINMADAN ÖNCE', 'y.h1b': 'GERÇEKLERİ', 'y.h1c': 'ÖĞREN.',
     'y.alt': 'Haritadaki her işaret, birinin yaşayıp anlattığı bir bina. Gezin, sonra kendi binana in.',
     'y.nelerBaslik': 'HER BİNADA ŞUNLARA BAKARSIN',
@@ -245,7 +245,7 @@ const SOZLUK: { [dil: string]: { [k: string]: string } } = {
     'acilis.k2b': 'Explore on the Map', 'acilis.k2': 'See sealed buildings on the map. Search by district, street or building name; check nearby schools, hospitals and transit.',
     'acilis.k3b': 'Add to Radar', 'acilis.k3': 'Follow buildings you care about — get notified the moment a new resident experience is shared.',
     // --- Landing journey ---
-    'y.eyebrow': 'THE SHARED MEMORY OF BUILDINGS',
+    'y.eyebrow': 'THE SHARED MEMORY OF BUILDINGS', 'y.haritaKart': 'A BUILDING FROM THE MAP',
     'y.h1a': 'BEFORE YOU MOVE,', 'y.h1b': 'KNOW THE FACTS', 'y.h1c': '.',
     'y.alt': 'Every mark on the map is a building someone lived in and wrote about. Explore, then find your own.',
     'y.nelerBaslik': 'WHAT YOU CHECK IN EVERY BUILDING',

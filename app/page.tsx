@@ -90,12 +90,14 @@ export default function AcilisSayfasi() {
       .slice(0, 10),
     [ilcePuanlari]);
 
-  // Karne için örnek bina (özetten — mühür sayısı en yüksek olan)
-  const karneBina = useMemo(() => {
-    const adaylar = binalar.filter(b => b.kategoriOrt && Object.keys(b.kategoriOrt).length >= 2);
-    if (!adaylar.length) return null;
-    return adaylar.sort((a, b) => (b.muhurSayisi || 0) - (a.muhurSayisi || 0))[0];
-  }, [binalar]);
+  // Karne örnekleri (özetten — mühür sayısına göre sıralı)
+  const karneAdaylari = useMemo(() =>
+    binalar.filter(b => b.kategoriOrt && Object.keys(b.kategoriOrt).length >= 2)
+      .sort((a, b) => (b.muhurSayisi || 0) - (a.muhurSayisi || 0)),
+    [binalar]);
+  const karneBina = karneAdaylari[0] || null;
+  // Hero'daki kart 3. adımdakiyle aynı olmasın diye ikinci binayı seçiyoruz
+  const heroBina = karneAdaylari[1] || karneAdaylari[0] || null;
 
   // Kaydırdıkça beliren bölümler
   useEffect(() => {
@@ -160,7 +162,7 @@ export default function AcilisSayfasi() {
         </header>
 
         <div className="relative z-[10] flex-1 flex items-center py-10 md:py-14">
-          <div className="max-w-6xl w-full mx-auto px-6">
+          <div className="max-w-6xl w-full mx-auto px-6 lg:grid lg:grid-cols-[1.15fr_.85fr] lg:gap-12 lg:items-center">
             <div className="max-w-2xl">
               <div className="text-[11px] font-black italic uppercase tracking-[.22em] text-[#A1CDE9]">{t('y.eyebrow')}</div>
               <h1 className="mt-4 font-black italic uppercase tracking-tighter leading-[.92] text-[clamp(38px,6.4vw,80px)]">
@@ -191,6 +193,47 @@ export default function AcilisSayfasi() {
                 <div className="mt-4 text-[13px] text-[#A1CDE9]/80 font-medium">{t('y.nelerNot')}</div>
               </div>
             </div>
+
+            {/* Sağ sütun — sadece geniş ekranda; haritadaki bir pinin karnesi açılmış gibi */}
+            {heroBina && (
+              <div className="hidden lg:block">
+                <div className="relative bg-white text-[#011A25] rounded-2xl p-6 shadow-[0_40px_80px_-28px_rgba(0,0,0,.8)] max-w-[360px] ml-auto rotate-[-1.2deg]">
+                  <div className="flex items-center gap-2 text-[9.5px] font-black uppercase tracking-[.18em] text-blue-600 mb-3">
+                    <MapPin size={12} />{t('y.haritaKart')}
+                  </div>
+                  <div className="font-black italic uppercase text-[21px] tracking-tighter leading-none">{heroBina.ad}</div>
+                  <div className="mt-2 text-[10px] font-black uppercase tracking-[.16em] text-[#4A6B7C]">
+                    {heroBina.ilce}{heroBina.mahalle ? ` · ${heroBina.mahalle}` : ''}
+                  </div>
+                  <div className="flex items-end justify-between gap-3 mt-4 mb-3">
+                    <span className="font-black italic text-[42px] leading-[.85] text-blue-600 tracking-tighter tabular-nums">
+                      {Number(heroBina.finalPuan || 0).toFixed(1)}<span className="text-[17px] text-[#DCE9F1]">/5</span>
+                    </span>
+                    <span className="text-right">
+                      <b className="block font-black italic text-[22px] leading-none tabular-nums">{heroBina.muhurSayisi || 0}</b>
+                      <span className="text-[8.5px] font-black uppercase tracking-[.2em] text-[#4A6B7C]">{t('y.muhurler')}</span>
+                    </span>
+                  </div>
+                  <hr className="border-0 border-t border-dashed border-[#DCE9F1] mb-2.5" />
+                  {Object.entries(heroBina.kategoriOrt || {}).slice(0, 3).map(([k, v]: any) => (
+                    <div key={k} className="flex items-center justify-between gap-3 py-1">
+                      <span className="font-black uppercase text-[11px] tracking-wide truncate">{k}</span>
+                      <span className="flex gap-1 shrink-0">
+                        {[1, 2, 3, 4, 5].map(n => (
+                          <i key={n} className={`w-2.5 h-2.5 rounded-full ${n <= Math.round(Number(v)) ? 'bg-blue-600' : 'bg-[#DCE9F1]'}`} />
+                        ))}
+                      </span>
+                    </div>
+                  ))}
+                  <Link href={`/bina/${heroBina.slug || slugify(heroBina.ad || '')}`}
+                    className="block mt-4 bg-[#023E56] text-white text-center py-2.5 rounded-lg text-[10.5px] font-black uppercase italic tracking-wide hover:bg-blue-600 transition-colors">
+                    {t('acilis.muhurleBtn')}
+                  </Link>
+                  {/* haritaya bağlanan ipucu */}
+                  <span aria-hidden className="absolute -bottom-2 left-10 w-4 h-4 bg-white rotate-45 rounded-sm" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -208,7 +251,7 @@ export default function AcilisSayfasi() {
           <span aria-hidden className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,transparent,rgba(161,205,233,.26)_10%,rgba(161,205,233,.26)_90%,transparent)]" />
           <div className="relative max-w-6xl mx-auto px-6" data-belir>
             <Rozet n={1} yazi={t('y.a1rozet')} />
-            <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,46px)]">
+            <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)]">
               {t('y.a1b1')} <span className="text-[#4d86ff]">{t('y.a1b2')}</span>
             </h2>
             <p className="mt-4 text-[16.5px] text-[#A1CDE9] max-w-2xl">{t('y.a1alt')}</p>
@@ -240,7 +283,7 @@ export default function AcilisSayfasi() {
           <span aria-hidden className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,transparent,rgba(161,205,233,.26)_10%,rgba(161,205,233,.26)_90%,transparent)]" />
           <div className="relative max-w-6xl mx-auto px-6" data-belir>
             <Rozet n={2} yazi={t('y.a2rozet')} />
-            <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,46px)]">
+            <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)]">
               {t('y.a2b1')} <span className="text-[#4d86ff]">{t('y.a2b2')}</span>
             </h2>
             <p className="mt-4 text-[16.5px] text-[#A1CDE9] max-w-2xl">{t('y.a2alt')}</p>
@@ -271,7 +314,7 @@ export default function AcilisSayfasi() {
         <span aria-hidden className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,transparent,rgba(161,205,233,.26)_10%,rgba(161,205,233,.26)_90%,transparent)]" />
         <div className="relative max-w-6xl mx-auto px-6" data-belir>
           <Rozet n={3} yazi={t('y.a3rozet')} />
-          <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,46px)]">
+          <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)]">
             {t('y.a3b1')} <span className="text-[#4d86ff]">{t('y.a3b2')}</span>
           </h2>
           <p className="mt-4 text-[16.5px] text-[#A1CDE9] max-w-2xl">{t('y.a3alt')}</p>
@@ -334,40 +377,44 @@ export default function AcilisSayfasi() {
         <span aria-hidden className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,transparent,rgba(161,205,233,.26)_10%,rgba(161,205,233,.26)_90%,transparent)]" />
         <div className="relative max-w-6xl mx-auto px-6" data-belir>
           <Rozet n={4} yazi={t('y.a4rozet')} />
-          <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,46px)]">
+          <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)]">
             {t('y.a4b1')} <span className="text-[#4d86ff]">{t('y.a4b2')}</span>
           </h2>
           <p className="mt-4 text-[16.5px] text-[#A1CDE9] max-w-2xl">{t('y.a4alt')}</p>
 
-          <form onSubmit={ara} className="mt-8 max-w-2xl">
-            <div className="flex flex-col sm:flex-row border-2 border-[#A1CDE9]/45 bg-[#011A25]/70 rounded-sm shadow-[0_28px_58px_-24px_rgba(0,0,0,.8)] focus-within:border-[#4d86ff] transition-colors">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Search size={18} className="text-[#A1CDE9]/60 ml-4 shrink-0" />
-                <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)} placeholder={t('acilis.aramaPh')}
-                  className="flex-1 min-w-0 bg-transparent py-5 text-[16.5px] font-semibold outline-none placeholder:text-[#A1CDE9]/55" />
-              </div>
-              <button type="submit" className="bg-blue-600 text-white px-8 py-4 text-[13.5px] font-black uppercase italic tracking-wide hover:bg-[#4d86ff] transition-colors">
-                {t('acilis.aramaBtn')}
-              </button>
-            </div>
-          </form>
+          <div className="mt-8 lg:grid lg:grid-cols-[1.25fr_.75fr] lg:gap-10 lg:items-start">
+            <div>
+              <form onSubmit={ara}>
+                <div className="flex flex-col sm:flex-row border-2 border-[#A1CDE9]/45 bg-[#011A25]/70 rounded-sm shadow-[0_28px_58px_-24px_rgba(0,0,0,.8)] focus-within:border-[#4d86ff] transition-colors">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Search size={18} className="text-[#A1CDE9]/60 ml-4 shrink-0" />
+                    <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)} placeholder={t('acilis.aramaPh')}
+                      className="flex-1 min-w-0 bg-transparent py-5 text-[16.5px] font-semibold outline-none placeholder:text-[#A1CDE9]/55" />
+                  </div>
+                  <button type="submit" className="bg-blue-600 text-white px-8 py-4 text-[13.5px] font-black uppercase italic tracking-wide hover:bg-[#4d86ff] transition-colors">
+                    {t('acilis.aramaBtn')}
+                  </button>
+                </div>
+              </form>
 
-          {ilceler.length > 0 && (
-            <div className="mt-5 flex flex-wrap gap-2 max-w-2xl">
-              {ilceler.slice(0, 6).map(il => (
-                <Link key={il.ad} href={`/arama?query=${encodeURIComponent(il.ad)}`}
-                  className="border border-[#A1CDE9]/28 rounded-full px-4 py-2 text-[12.5px] font-semibold text-[#A1CDE9] hover:bg-[#A1CDE9]/12 hover:text-white transition-colors">
-                  {il.ad}
-                </Link>
-              ))}
+              {ilceler.length > 0 && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {ilceler.slice(0, 8).map(il => (
+                    <Link key={il.ad} href={`/arama?query=${encodeURIComponent(il.ad)}`}
+                      className="border border-[#A1CDE9]/28 rounded-full px-4 py-2 text-[12.5px] font-semibold text-[#A1CDE9] hover:bg-[#A1CDE9]/12 hover:text-white transition-colors">
+                      {il.ad}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
 
-          <div className="mt-7 max-w-2xl border border-dashed border-[#A1CDE9]/35 rounded-xl px-6 py-5 flex items-center gap-5 flex-wrap justify-between">
-            <p className="text-[14.5px] text-[#A1CDE9] flex-1 min-w-[240px]">{t('y.yoksa')}</p>
-            <Link href="/bina-olustur" className="shrink-0 border border-[#A1CDE9]/45 px-5 py-3 rounded-sm text-[12px] font-black italic uppercase tracking-wide hover:bg-[#A1CDE9]/12 transition-colors">
-              {t('y.binaEkle')}
-            </Link>
+            <div className="mt-7 lg:mt-0 border border-dashed border-[#A1CDE9]/35 rounded-xl px-6 py-5 lg:py-7 flex items-center lg:items-start lg:flex-col gap-5 flex-wrap justify-between">
+              <p className="text-[14.5px] leading-relaxed text-[#A1CDE9] flex-1 min-w-[240px] lg:flex-none">{t('y.yoksa')}</p>
+              <Link href="/bina-olustur" className="shrink-0 lg:w-full lg:text-center border border-[#A1CDE9]/45 px-5 py-3 rounded-sm text-[12px] font-black italic uppercase tracking-wide hover:bg-[#A1CDE9]/12 transition-colors">
+                {t('y.binaEkle')}
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -377,7 +424,7 @@ export default function AcilisSayfasi() {
         <span aria-hidden className="hidden md:block absolute left-1/2 top-0 h-1/2 w-px -translate-x-1/2 bg-[linear-gradient(180deg,rgba(161,205,233,.26),transparent)]" />
         <div className="relative max-w-6xl mx-auto px-6" data-belir>
           <Rozet n={5} yazi={t('y.a5rozet')} />
-          <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,46px)] max-w-[16ch] mx-auto">
+          <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)] max-w-[16ch] mx-auto">
             {t('y.a5b1')}<br /><span className="text-[#4d86ff]">{t('y.a5b2')}</span>
           </h2>
           <p className="mt-4 text-[16.5px] text-[#A1CDE9] max-w-xl mx-auto">{t('y.a5alt')}</p>
