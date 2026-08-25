@@ -132,7 +132,7 @@ export default function AcilisSayfasi() {
   );
 
   return (
-    <div className="text-white bg-[linear-gradient(180deg,#02202E_0%,#023E56_18%,#02384E_36%,#012C3E_54%,#023E56_72%,#02202E_90%,#011A25_100%)]">
+    <div className="text-white bg-[linear-gradient(180deg,#02202E_0%,#023E56_18%,#02384E_36%,#012C3E_54%,#023E56_74%,#02202E_100%)]">
       <style>{`
         [data-belir]{opacity:0;transform:translateY(24px)}
         [data-belir].belirdi{opacity:1;transform:none;transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.3,1)}
@@ -378,36 +378,37 @@ export default function AcilisSayfasi() {
           </h2>
           <p className="mt-4 text-[16.5px] text-[#A1CDE9] max-w-2xl">{t('y.a4alt')}</p>
 
-          <div className="mt-8 lg:grid lg:grid-cols-[1.25fr_.75fr] lg:gap-10 lg:items-start">
-            <div>
-              <form onSubmit={ara}>
-                <div className="flex flex-col sm:flex-row border-2 border-[#A1CDE9]/45 bg-[#011A25]/70 rounded-sm shadow-[0_28px_58px_-24px_rgba(0,0,0,.8)] focus-within:border-[#4d86ff] transition-colors">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Search size={18} className="text-[#A1CDE9]/60 ml-4 shrink-0" />
-                    <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)} placeholder={t('acilis.aramaPh')}
-                      className="flex-1 min-w-0 bg-transparent py-5 text-[16.5px] font-semibold outline-none placeholder:text-[#A1CDE9]/55" />
-                  </div>
-                  <button type="submit" className="bg-blue-600 text-white px-8 py-4 text-[13.5px] font-black uppercase italic tracking-wide hover:bg-[#4d86ff] transition-colors">
-                    {t('acilis.aramaBtn')}
-                  </button>
+          {/* Tek sütun, tam genişlik: arama → ilçe kısayolları → bina ekle şeridi.
+              Dağınık iki sütun yerine üst üste hizalı üç satır. */}
+          <div className="mt-8 max-w-4xl">
+            <form onSubmit={ara}>
+              <div className="flex flex-col sm:flex-row border-2 border-[#A1CDE9]/45 bg-[#011A25]/70 rounded-lg overflow-hidden shadow-[0_28px_58px_-24px_rgba(0,0,0,.8)] focus-within:border-[#4d86ff] transition-colors">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Search size={18} className="text-[#A1CDE9]/60 ml-5 shrink-0" />
+                  <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)} placeholder={t('acilis.aramaPh')}
+                    className="flex-1 min-w-0 bg-transparent py-5 text-[16.5px] font-semibold outline-none placeholder:text-[#A1CDE9]/55" />
                 </div>
-              </form>
+                <button type="submit" className="bg-blue-600 text-white px-9 py-4 text-[13.5px] font-black uppercase italic tracking-wide hover:bg-[#4d86ff] transition-colors">
+                  {t('acilis.aramaBtn')}
+                </button>
+              </div>
+            </form>
 
-              {ilceler.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {ilceler.slice(0, 8).map(il => (
-                    <Link key={il.ad} href={`/arama?query=${encodeURIComponent(il.ad)}`}
-                      className="border border-[#A1CDE9]/28 rounded-full px-4 py-2 text-[12.5px] font-semibold text-[#A1CDE9] hover:bg-[#A1CDE9]/12 hover:text-white transition-colors">
-                      {il.ad}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            {ilceler.length > 0 && (
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                <span className="text-[10.5px] font-black italic uppercase tracking-[.18em] text-[#A1CDE9]/60 mr-1">{t('y.hizli')}</span>
+                {ilceler.slice(0, 7).map(il => (
+                  <Link key={il.ad} href={`/arama?query=${encodeURIComponent(il.ad)}`}
+                    className="border border-[#A1CDE9]/28 rounded-full px-4 py-2 text-[12.5px] font-semibold text-[#A1CDE9] hover:bg-[#A1CDE9]/12 hover:text-white transition-colors">
+                    {il.ad}
+                  </Link>
+                ))}
+              </div>
+            )}
 
-            <div className="mt-7 lg:mt-0 border border-dashed border-[#A1CDE9]/35 rounded-xl px-6 py-5 lg:py-7 flex items-center lg:items-start lg:flex-col gap-5 flex-wrap justify-between">
-              <p className="text-[14.5px] leading-relaxed text-[#A1CDE9] flex-1 min-w-[240px] lg:flex-none">{t('y.yoksa')}</p>
-              <Link href="/bina-olustur" className="shrink-0 lg:w-full lg:text-center border border-[#A1CDE9]/45 px-5 py-3 rounded-sm text-[12px] font-black italic uppercase tracking-wide hover:bg-[#A1CDE9]/12 transition-colors">
+            <div className="mt-8 border-t border-[#A1CDE9]/20 pt-6 flex items-center gap-6 flex-wrap justify-between">
+              <p className="text-[14.5px] leading-relaxed text-[#A1CDE9] flex-1 min-w-[260px]">{t('y.yoksa')}</p>
+              <Link href="/bina-olustur" className="shrink-0 border border-[#A1CDE9]/45 px-6 py-3.5 rounded-lg text-[12px] font-black italic uppercase tracking-wide hover:bg-[#A1CDE9]/12 transition-colors">
                 {t('y.binaEkle')}
               </Link>
             </div>
@@ -430,12 +431,11 @@ export default function AcilisSayfasi() {
         </div>
       </section>
 
-      {/* Laciverten aydınlığa yumuşak geçiş — sert kesik olmasın */}
-      <div aria-hidden className="h-28 md:h-40 bg-[linear-gradient(180deg,#011A25_0%,#03293A_28%,#2C5468_58%,#9DBDD0_82%,#EDF4F8_100%)]" />
-
       {/* ============ SEO — BULEVİNİ NEDİR ============ */}
       <section className="bg-[#EDF4F8] text-[#0f172a]">
-        <div className="max-w-6xl mx-auto px-6 py-14 md:py-20">
+        {/* Geçiş: koyu renk açık zeminin üstünde şeffaflaşıyor — ara ton/çamur oluşmuyor */}
+        <div aria-hidden className="h-24 md:h-32 bg-[linear-gradient(180deg,#02202E_0%,rgba(2,32,46,.55)_45%,rgba(2,32,46,0)_100%)]" />
+        <div className="max-w-6xl mx-auto px-6 pb-14 md:pb-20 pt-6 md:pt-8">
           {/* Geniş ekranda başlık solda sabit, metin sağda — sayfa dolu dursun */}
           <div className="lg:grid lg:grid-cols-[.85fr_1.15fr] lg:gap-14">
             <div className="lg:sticky lg:top-10 lg:self-start">
