@@ -248,7 +248,6 @@ export default function AcilisSayfasi() {
       {/* ============ 1 · TANIDIK GELDİ ============ */}
       {ilceler.length > 0 && (
         <section className="relative py-12 md:py-24">
-          <span aria-hidden className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,transparent,rgba(161,205,233,.26)_10%,rgba(161,205,233,.26)_90%,transparent)]" />
           <div className="relative max-w-6xl mx-auto px-6" data-belir>
             <Rozet n={1} yazi={t('y.a1rozet')} />
             <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)]">
@@ -280,7 +279,6 @@ export default function AcilisSayfasi() {
       {/* ============ 2 · MÜHÜRLERİ OKU ============ */}
       {feed.length > 0 && (
         <section className="relative py-12 md:py-24">
-          <span aria-hidden className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,transparent,rgba(161,205,233,.26)_10%,rgba(161,205,233,.26)_90%,transparent)]" />
           <div className="relative max-w-6xl mx-auto px-6" data-belir>
             <Rozet n={2} yazi={t('y.a2rozet')} />
             <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)]">
@@ -311,7 +309,6 @@ export default function AcilisSayfasi() {
 
       {/* ============ 3 · KARNEYE YAKLAŞ ============ */}
       <section className="relative py-12 md:py-24">
-        <span aria-hidden className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,transparent,rgba(161,205,233,.26)_10%,rgba(161,205,233,.26)_90%,transparent)]" />
         <div className="relative max-w-6xl mx-auto px-6" data-belir>
           <Rozet n={3} yazi={t('y.a3rozet')} />
           <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)]">
@@ -374,7 +371,6 @@ export default function AcilisSayfasi() {
 
       {/* ============ 4 · KENDİ BİNAN ============ */}
       <section className="relative py-12 md:py-24">
-        <span aria-hidden className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,transparent,rgba(161,205,233,.26)_10%,rgba(161,205,233,.26)_90%,transparent)]" />
         <div className="relative max-w-6xl mx-auto px-6" data-belir>
           <Rozet n={4} yazi={t('y.a4rozet')} />
           <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)]">
@@ -421,7 +417,6 @@ export default function AcilisSayfasi() {
 
       {/* ============ 5 · SEN DE MÜHÜRLE ============ */}
       <section className="relative py-12 md:py-24 text-center">
-        <span aria-hidden className="hidden md:block absolute left-1/2 top-0 h-1/2 w-px -translate-x-1/2 bg-[linear-gradient(180deg,rgba(161,205,233,.26),transparent)]" />
         <div className="relative max-w-6xl mx-auto px-6" data-belir>
           <Rozet n={5} yazi={t('y.a5rozet')} />
           <h2 className="font-black italic uppercase tracking-tighter leading-[1.02] text-[clamp(26px,4vw,56px)] max-w-[16ch] mx-auto">
@@ -435,48 +430,59 @@ export default function AcilisSayfasi() {
         </div>
       </section>
 
+      {/* Laciverten aydınlığa yumuşak geçiş — sert kesik olmasın */}
+      <div aria-hidden className="h-28 md:h-40 bg-[linear-gradient(180deg,#011A25_0%,#03293A_28%,#2C5468_58%,#9DBDD0_82%,#EDF4F8_100%)]" />
+
       {/* ============ SEO — BULEVİNİ NEDİR ============ */}
-      <section className="bg-white text-[#0f172a]">
-        <div className="max-w-3xl mx-auto px-6 py-16">
-          <div className="text-[11px] font-black italic uppercase tracking-[2px] text-slate-400">{t('nedir.etiket')}</div>
-          <h2 className="font-black italic uppercase tracking-tighter text-[30px] leading-[1.1] mt-2">
-            {t('nedir.baslik1')}<br /><span className="text-[#023E56]">{t('nedir.baslik2')}</span>
-          </h2>
-          <p className="text-[14px] leading-relaxed text-slate-600 mt-5">{t('nedir.p1')}</p>
-          <p className="text-[14px] leading-relaxed text-slate-600 mt-3">{t('nedir.p2')}</p>
-          <div className="bg-[#023E56] rounded-[2rem] p-7 mt-5">
-            <p className="text-[14px] leading-relaxed text-[#e0f2fe]">{t('nedir.p3')}</p>
-            <p className="text-[14px] leading-relaxed text-[#e0f2fe] mt-3">{t('nedir.p4a')}<b className="text-white">{t('nedir.p4b')}</b></p>
+      <section className="bg-[#EDF4F8] text-[#0f172a]">
+        <div className="max-w-6xl mx-auto px-6 py-14 md:py-20">
+          {/* Geniş ekranda başlık solda sabit, metin sağda — sayfa dolu dursun */}
+          <div className="lg:grid lg:grid-cols-[.85fr_1.15fr] lg:gap-14">
+            <div className="lg:sticky lg:top-10 lg:self-start">
+              <div className="text-[11px] font-black italic uppercase tracking-[2px] text-slate-400">{t('nedir.etiket')}</div>
+              <h2 className="font-black italic uppercase tracking-tighter text-[clamp(28px,3.4vw,44px)] leading-[1.05] mt-2">
+                {t('nedir.baslik1')}<br /><span className="text-[#023E56]">{t('nedir.baslik2')}</span>
+              </h2>
+            </div>
+
+            <div className="mt-6 lg:mt-0">
+              <p className="text-[15px] leading-relaxed text-slate-600">{t('nedir.p1')}</p>
+              <p className="text-[15px] leading-relaxed text-slate-600 mt-3">{t('nedir.p2')}</p>
+              <div className="bg-[#023E56] rounded-[1.75rem] p-7 mt-6">
+                <p className="text-[14.5px] leading-relaxed text-[#e0f2fe]">{t('nedir.p3')}</p>
+                <p className="text-[14.5px] leading-relaxed text-[#e0f2fe] mt-3">{t('nedir.p4a')}<b className="text-white">{t('nedir.p4b')}</b></p>
+              </div>
+            </div>
           </div>
 
-          <h3 className="font-black italic uppercase tracking-tighter text-[18px] mt-9">{t('nedir.sorunBaslik')}</h3>
-          <div className="grid gap-3 md:grid-cols-2 mt-4">
+          <h3 className="font-black italic uppercase tracking-tighter text-[20px] mt-14">{t('nedir.sorunBaslik')}</h3>
+          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4 mt-5">
             {[[t('nedir.s1b'), t('nedir.s1')], [t('nedir.s2b'), t('nedir.s2')], [t('nedir.s3b'), t('nedir.s3')], [t('nedir.s4b'), t('nedir.s4')]].map(([b, m]) => (
-              <div key={b} className="border border-slate-200 rounded-2xl p-5">
-                <div className="text-[12px] font-black italic text-[#023E56]">{b}</div>
-                <p className="text-[12px] leading-relaxed text-slate-500 mt-2">{m}</p>
+              <div key={b} className="bg-white border border-slate-200/70 rounded-2xl p-5">
+                <div className="text-[12.5px] font-black italic text-[#023E56]">{b}</div>
+                <p className="text-[12.5px] leading-relaxed text-slate-500 mt-2">{m}</p>
               </div>
             ))}
           </div>
 
-          <h3 className="font-black italic uppercase tracking-tighter text-[18px] mt-9">{t('nedir.degilBaslik')}</h3>
-          <div className="space-y-2.5 mt-3">
+          <h3 className="font-black italic uppercase tracking-tighter text-[20px] mt-14">{t('nedir.degilBaslik')}</h3>
+          <div className="grid gap-3 md:grid-cols-3 mt-5">
             {[[t('nedir.d1b'), t('nedir.d1')], [t('nedir.d2b'), t('nedir.d2')], [t('nedir.d3b'), t('nedir.d3')]].map(([b, m]) => (
-              <div key={b} className="flex gap-2.5 items-baseline text-[13px] leading-relaxed text-slate-600">
-                <span className="text-red-600 font-black">✕</span>
-                <span><b className="text-black">{b}</b> — {m}</span>
+              <div key={b} className="flex gap-2.5 items-baseline text-[13.5px] leading-relaxed text-slate-600 bg-white border border-slate-200/70 rounded-2xl p-5">
+                <span className="text-red-500 font-black shrink-0">✕</span>
+                <span><b className="text-[#0f172a]">{b}</b> — {m}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* SSS */}
-        <div className="max-w-3xl mx-auto px-6 pb-16" id="sss">
+        <div className="max-w-4xl mx-auto px-6 pb-16 md:pb-24" id="sss">
           <h2 className="font-black italic uppercase tracking-tighter text-[26px] mb-6 border-l-4 border-blue-600 pl-4">{t('seo.sssBaslik')}</h2>
-          <div className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2">
             {[1, 2, 3, 4, 5, 6].map(n => (
-              <details key={n} className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 group">
-                <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center">{t(`sss.s${n}`)}<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px]">+</span></summary>
+              <details key={n} className="bg-white border border-slate-200/70 rounded-2xl px-6 py-4 group h-fit">
+                <summary className="font-black italic text-[15px] cursor-pointer list-none flex justify-between items-center gap-3">{t(`sss.s${n}`)}<span className="text-blue-600 group-open:rotate-45 transition-transform text-[18px] shrink-0">+</span></summary>
                 <p className="mt-3 text-[14px] leading-relaxed text-slate-500">{t(`sss.c${n}`)}</p>
               </details>
             ))}
