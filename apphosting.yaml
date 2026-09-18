@@ -47,6 +47,11 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_CARTO_KEY
+    value: cb1_3i9f_1_95c31b347c3b6f6b4ad34c88
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: NEXT_PUBLIC_SUPABASE_URL
     value: https://teakxifsmctudlpzuwkn.supabase.co
     availability:

@@ -1,4 +1,5 @@
 "use client";
+import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Search, MapPin, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -51,7 +52,7 @@ export default function HaritaPage() {
       const map = L.map(mapDivRef.current, { minZoom: 9, maxZoom: 17, maxBounds: bounds, maxBoundsViscosity: 1.0, zoomControl: false });
       L.control.zoom({ position: 'bottomleft' }).addTo(map);
       map.fitBounds(bounds);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+      L.tileLayer(KARO_ADRES, { maxZoom: 19, attribution: KARO_KATKI }).addTo(map);
       mapRef.current = map;
 
       // İlçe sınırları + İstanbul içi kontrolü (mobil ile aynı)

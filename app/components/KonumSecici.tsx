@@ -1,4 +1,5 @@
 "use client";
+import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 import { useEffect, useRef } from 'react';
 
 declare global { interface Window { L: any } }
@@ -47,7 +48,7 @@ export default function KonumSecici({ koordinat, onSec, salt = false }: { koordi
       const bounds = L.latLngBounds(L.latLng(40.55, 27.9), L.latLng(41.65, 29.95));
       const map = L.map(divRef.current, { minZoom: 9, maxZoom: 17, maxBounds: bounds, maxBoundsViscosity: 1.0, zoomControl: false, dragging: !salt, scrollWheelZoom: !salt, touchZoom: !salt, doubleClickZoom: !salt });
       if (!salt) L.control.zoom({ position: 'bottomright' }).addTo(map);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+      L.tileLayer(KARO_ADRES, { maxZoom: 19, attribution: KARO_KATKI }).addTo(map);
       mapRef.current = map;
       // Mevcut koordinat varsa oraya odaklan, yoksa İstanbul geneli
       const k = (koordinat || '').split(',').map(x => parseFloat(x.trim()));

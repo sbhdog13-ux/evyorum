@@ -1,4 +1,5 @@
 "use client";
+import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 import { useEffect, useRef, useState } from 'react';
 import { slugify } from '@/app/lib/slug';
 import { trUpper } from '@/app/lib/utils';
@@ -22,7 +23,7 @@ export default function LeafletHarita({ binalar = [], ilcePuanlari = {}, legend 
       const map = L.map(divRef.current, { minZoom: 9, maxZoom: 17, maxBounds: bounds, maxBoundsViscosity: 1.0, zoomControl: false });
       L.control.zoom({ position: 'bottomleft' }).addTo(map);
       map.fitBounds(bounds);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+      L.tileLayer(KARO_ADRES, { maxZoom: 19, attribution: KARO_KATKI }).addTo(map);
       mapRef.current = map;
       const ilceRenk = (o: number) => o <= 0 ? '#94a3b8' : o >= 4 ? '#16a34a' : o >= 2.5 ? '#fbbf24' : '#dc2626';
       fetch('/istanbul.json').then(r => r.json()).then(geo => {
