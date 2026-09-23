@@ -158,7 +158,8 @@ export default function AcilisSayfasi() {
         {/* Perde: mobilde yazı haritanın üstünde okunsun diye kalın; masaüstünde sağa doğru açılıyor */}
         <div className="absolute inset-0 z-[5] pointer-events-none bg-[linear-gradient(to_bottom,rgba(2,32,46,.93)_0%,rgba(2,32,46,.86)_45%,rgba(2,32,46,.96)_100%)] md:bg-[linear-gradient(100deg,rgba(2,32,46,.97)_0%,rgba(2,32,46,.88)_34%,rgba(2,32,46,.3)_64%,rgba(2,32,46,.6)_100%),linear-gradient(to_bottom,rgba(2,32,46,.55),transparent_24%,rgba(2,32,46,.92)_94%)]" />
 
-        <header className="relative z-[10] max-w-6xl w-full mx-auto flex items-center justify-between px-6 pt-6">
+        {/* z: alttaki bölümlerle aynı katta olursa şehir/dil menüsü onların ARKASINDA kalır ve tıklanamaz */}
+        <header className="relative z-[60] max-w-6xl w-full mx-auto flex items-center justify-between px-6 pt-6">
           {/* Logo + şehir bir bütün: logo koyu renkli, afişteki gibi beyaz kutuda; şehir hemen yanında sabit.
               Giriş yapmamış kişinin menüsü olmadığı için şehir burada seçilebilir. */}
           <div className="flex items-center gap-2">
