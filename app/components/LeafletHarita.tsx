@@ -1,39 +1,48 @@
 "use client";
-import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 import { useEffect, useRef, useState } from 'react';
 import { slugify } from '@/app/lib/slug';
 import { trUpper } from '@/app/lib/utils';
+import { useSehir } from '@/app/lib/sehir';
+import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 import SokakGorunumu from '@/app/components/SokakGorunumu';
 
 declare global { interface Window { L: any } }
 
 type SeciliBina = { ad: string; lat: number; lng: number; finalPuan: number; sayi: number; slug: string };
 
-// Mobildeki IstanbulHarita'nın web karşılığı — ilçe sınırları + puan renkli bina pinleri
+// Mobildeki IstanbulHarita'nın web karşılığı — ilçe sınırları + puan renkli bina pinleri.
+// Kutu ve ilçe sınırları seçili şehirden gelir (app/lib/sehirler.ts).
 export default function LeafletHarita({ binalar = [], ilcePuanlari = {}, legend = false }: { binalar?: { ad: string; koordinat: string; finalPuan: number; sayi: number }[]; ilcePuanlari?: { [ilce: string]: { toplam: number; sayi: number } }; legend?: boolean }) {
   const divRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const [secili, setSecili] = useState<SeciliBina | null>(null);
+  const { sehir, sehirKod } = useSehir();
 
   useEffect(() => {
+    let iptal = false;
     const init = () => {
-      if (!window.L || !divRef.current || mapRef.current) return;
+      if (iptal || !window.L || !divRef.current || mapRef.current) return;
       const L = window.L;
-      const bounds = L.latLngBounds(L.latLng(40.55, 27.9), L.latLng(41.65, 29.95));
+      // Seçili şehrin kutusu — harita bu kutunun dışına kaydırılamaz
+      const { guney, bati, kuzey, dogu } = sehir.kutu;
+      const bounds = L.latLngBounds(L.latLng(guney, bati), L.latLng(kuzey, dogu));
       const map = L.map(divRef.current, { minZoom: 9, maxZoom: 17, maxBounds: bounds, maxBoundsViscosity: 1.0, zoomControl: false });
       L.control.zoom({ position: 'bottomleft' }).addTo(map);
       map.fitBounds(bounds);
       L.tileLayer(KARO_ADRES, { maxZoom: 19, attribution: KARO_KATKI }).addTo(map);
       mapRef.current = map;
       const ilceRenk = (o: number) => o <= 0 ? '#94a3b8' : o >= 4 ? '#16a34a' : o >= 2.5 ? '#fbbf24' : '#dc2626';
-      fetch('/istanbul.json').then(r => r.json()).then(geo => {
-        L.geoJSON(geo, { style: (f: any) => {
-          const ilce = trUpper(f.properties.name || '').trim();
-          const v = (ilcePuanlari as any)[ilce];
-          const o = v ? v.toplam / v.sayi : 0;
-          return { fillColor: ilceRenk(o), fillOpacity: 0.25, color: '#1e293b', weight: 0.8 };
-        } }).addTo(map);
-      }).catch(() => {});
+      if (sehir.ilceSinirlari) {
+        fetch(sehir.ilceSinirlari).then(r => r.json()).then(geo => {
+          if (iptal || mapRef.current !== map) return;
+          L.geoJSON(geo, { style: (f: any) => {
+            const ilce = trUpper(f.properties.name || '').trim();
+            const v = (ilcePuanlari as any)[ilce];
+            const o = v ? v.toplam / v.sayi : 0;
+            return { fillColor: ilceRenk(o), fillOpacity: 0.25, color: '#1e293b', weight: 0.8 };
+          } }).addTo(map);
+        }).catch(() => {});
+      }
       const renk = (p: number) => p >= 4 ? '#16a34a' : p >= 2.5 ? '#eab308' : p >= 1 ? '#f97316' : '#dc2626';
       binalar.forEach(b => {
         if (!b.koordinat) return;
@@ -45,6 +54,7 @@ export default function LeafletHarita({ binalar = [], ilcePuanlari = {}, legend 
       });
     };
 
+    let bekleyen: HTMLScriptElement | null = null;
     if (window.L) { init(); }
     else {
       if (!document.querySelector('link[href*="leaflet.css"]')) {
@@ -52,13 +62,22 @@ export default function LeafletHarita({ binalar = [], ilcePuanlari = {}, legend 
         css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
         document.head.appendChild(css);
       }
-      const s = document.createElement('script');
-      s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      s.onload = init;
-      document.head.appendChild(s);
+      const mevcut = document.querySelector('script[src*="leaflet.js"]') as HTMLScriptElement | null;
+      if (mevcut) { mevcut.addEventListener('load', init); bekleyen = mevcut; }
+      else {
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        s.onload = init;
+        document.head.appendChild(s);
+      }
     }
-    return () => { mapRef.current?.remove(); mapRef.current = null; };
-  }, [binalar]);
+    return () => {
+      iptal = true;
+      bekleyen?.removeEventListener('load', init);
+      mapRef.current?.remove(); mapRef.current = null;
+      setSecili(null);
+    };
+  }, [binalar, sehirKod]);
 
   return (
     <div className="w-full h-full relative">

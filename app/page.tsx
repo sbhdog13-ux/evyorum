@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
+import { SehirSecici, useSehir, useSehirMetni } from '@/app/lib/sehir';
+import { sehreAit } from '@/app/lib/sehirler';
 import { db } from '@/app/lib/firebase';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { trUpper } from '@/app/lib/utils';
@@ -20,10 +22,16 @@ export default function AcilisSayfasi() {
   const { t } = useLang();
   const [muhtemelGirisli, setMuhtemelGirisli] = useState(false);
   const [aramaMetni, setAramaMetni] = useState('');
-  const [feed, setFeed] = useState<any[]>([]);
+  const [tumFeed, setFeed] = useState<any[]>([]);
   const [ornekBina, setOrnekBina] = useState<any>(null);
   const [haritaGoster, setHaritaGoster] = useState(false);
-  const [binalar, setBinalar] = useState<any[]>([]);
+  const [tumBinalar, setBinalar] = useState<any[]>([]);
+  // Sayfadaki her şey seçili şehrin verisinden: harita, ilçe şeridi, mühürler, karne
+  // (eski kayıtlarda il yok → İSTANBUL sayılır, bkz. sehirler.ts)
+  const { sehirKod } = useSehir();
+  const ts = useSehirMetni(); // şehre göre değişen yazılar
+  const binalar = useMemo(() => tumBinalar.filter(b => sehreAit(b, sehirKod)), [tumBinalar, sehirKod]);
+  const feed = useMemo(() => tumFeed.filter(y => sehreAit(y, sehirKod)).slice(0, 3), [tumFeed, sehirKod]);
 
   // Harita ağır — önce yazı çıksın, harita boşta yüklensin
   useEffect(() => {
@@ -57,7 +65,8 @@ export default function AcilisSayfasi() {
         const snap = await getDocs(query(collection(db, 'yorumlar'), orderBy('created_at', 'desc'), limit(20)));
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as any))
           .filter(y => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0)));
-        setFeed(list.filter(y => y.yorum_metni && y.yorum_metni !== 'BİNA MÜHÜRLENDİ.').slice(0, 3));
+        // 3'e kesme şehir süzgecinden SONRA yapılır (yukarıdaki feed hesabı) — yoksa başka şehrin mühürleri kaybolur
+        setFeed(list.filter(y => y.yorum_metni && y.yorum_metni !== 'BİNA MÜHÜRLENDİ.'));
         const karneli = list.find(y => y.puanlar && Object.keys(y.puanlar).length >= 2);
         if (karneli) setOrnekBina(karneli);
       } catch { /* sessiz */ }
@@ -150,10 +159,14 @@ export default function AcilisSayfasi() {
         <div className="absolute inset-0 z-[5] pointer-events-none bg-[linear-gradient(to_bottom,rgba(2,32,46,.93)_0%,rgba(2,32,46,.86)_45%,rgba(2,32,46,.96)_100%)] md:bg-[linear-gradient(100deg,rgba(2,32,46,.97)_0%,rgba(2,32,46,.88)_34%,rgba(2,32,46,.3)_64%,rgba(2,32,46,.6)_100%),linear-gradient(to_bottom,rgba(2,32,46,.55),transparent_24%,rgba(2,32,46,.92)_94%)]" />
 
         <header className="relative z-[10] max-w-6xl w-full mx-auto flex items-center justify-between px-6 pt-6">
-          {/* Logo koyu renkli — afişteki gibi beyaz kutuda taşınıyor ki lacivert zeminde okunsun */}
-          <span className="bg-white rounded-xl px-3 py-2 inline-flex items-center shadow-lg shadow-black/20">
-            <img src="/logo.png" alt="Bulevini" className="h-8 w-auto" onError={(e: any) => { e.target.outerHTML = '<span class="text-lg font-black italic tracking-tighter uppercase text-[#011A25]">BULEVİNİ</span>'; }} />
-          </span>
+          {/* Logo + şehir bir bütün: logo koyu renkli, afişteki gibi beyaz kutuda; şehir hemen yanında sabit.
+              Giriş yapmamış kişinin menüsü olmadığı için şehir burada seçilebilir. */}
+          <div className="flex items-center gap-2">
+            <span className="bg-white rounded-xl px-3 py-2 inline-flex items-center shadow-lg shadow-black/20">
+              <img src="/logo.png" alt="Bulevini" className="h-8 w-auto" onError={(e: any) => { e.target.outerHTML = '<span class="text-lg font-black italic tracking-tighter uppercase text-[#011A25]">BULEVİNİ</span>'; }} />
+            </span>
+            <SehirSecici />
+          </div>
           <div className="flex items-center gap-3">
             <LangSwitcher />
             <Link href="/gizlilik" className="hidden md:block text-[11px] font-black uppercase italic text-[#A1CDE9] hover:text-white tracking-wide">{t('acilis.gizlilik')}</Link>
@@ -190,7 +203,7 @@ export default function AcilisSayfasi() {
                   </span>
                 </div>
 
-                <div className="mt-4 text-[13px] text-[#A1CDE9]/80 font-medium">{t('y.nelerNot')}</div>
+                <div className="mt-4 text-[13px] text-[#A1CDE9]/80 font-medium">{ts('y.nelerNot')}</div>
               </div>
             </div>
 
@@ -491,8 +504,8 @@ export default function AcilisSayfasi() {
       </section>
 
       {/* Yapılandırılmış veri */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Bulevini nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız bir platformdur. Bir binayla yolu kesişmiş herkes deneyimini mühürler; bu kayıtlar birikir ve binanın karnesine dönüşür. Evini tutmadan önce o karneye bakarsın. Şu an İstanbul'da hizmet veriyor."}}, {"@type": "Question", "name": "Bina yorumları güvenilir mi?", "acceptedAnswer": {"@type": "Answer", "text": "Yorumlar bağlantı tipine göre ağırlıklandırılır: mevcut sakinin puanı en yüksek etkiye sahiptir; eski sakin ve ziyaretçi yorumları daha düşük ağırlıkla hesaba katılır. Kanıt fotoğrafı da eklenebilir."}}, {"@type": "Question", "name": "Yorum yazmak için kimliğim görünür mü?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, istersen tamamen anonim paylaşabilirsin. Kimliğin hiçbir zaman ev sahibi veya üçüncü kişilerle paylaşılmaz."}}, {"@type": "Question", "name": "Mühür nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Mühür, bir binada yaşamış birinin o bina hakkında bıraktığı puanlı deneyim kaydıdır: ısınma, deprem dayanıklılığı, komşuluk, yönetim gibi kategorilerde."}}, {"@type": "Question", "name": "Hangi şehirlerde çalışıyor?", "acceptedAnswer": {"@type": "Answer", "text": "Şu an İstanbul'un tüm ilçelerinde derinlemesine çalışıyoruz: her bina gerçek adres ve koordinatla haritada."}}, {"@type": "Question", "name": "Ücretli mi?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, Bulevini tamamen ücretsizdir."}}]}) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "WebSite", "name": "Bulevini", "url": "https://bulevini.com", "description": "İstanbul bina ve mahalle yorumları — kiralamadan önce binanın karnesini gör."}) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Bulevini nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız bir platformdur. Bir binayla yolu kesişmiş herkes deneyimini mühürler; bu kayıtlar birikir ve binanın karnesine dönüşür. Evini tutmadan önce o karneye bakarsın. Şu an İstanbul ve Kahramanmaraş'ta hizmet veriyor."}}, {"@type": "Question", "name": "Bina yorumları güvenilir mi?", "acceptedAnswer": {"@type": "Answer", "text": "Yorumlar bağlantı tipine göre ağırlıklandırılır: mevcut sakinin puanı en yüksek etkiye sahiptir; eski sakin ve ziyaretçi yorumları daha düşük ağırlıkla hesaba katılır. Kanıt fotoğrafı da eklenebilir."}}, {"@type": "Question", "name": "Yorum yazmak için kimliğim görünür mü?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, istersen tamamen anonim paylaşabilirsin. Kimliğin hiçbir zaman ev sahibi veya üçüncü kişilerle paylaşılmaz."}}, {"@type": "Question", "name": "Mühür nedir?", "acceptedAnswer": {"@type": "Answer", "text": "Mühür, bir binada yaşamış birinin o bina hakkında bıraktığı puanlı deneyim kaydıdır: ısınma, deprem dayanıklılığı, komşuluk, yönetim gibi kategorilerde."}}, {"@type": "Question", "name": "Hangi şehirlerde çalışıyor?", "acceptedAnswer": {"@type": "Answer", "text": "Şu an İstanbul ve Kahramanmaraş'ın tüm ilçelerinde derinlemesine çalışıyoruz: her bina gerçek adres ve koordinatla haritada."}}, {"@type": "Question", "name": "Ücretli mi?", "acceptedAnswer": {"@type": "Answer", "text": "Hayır, Bulevini tamamen ücretsizdir."}}]}) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context": "https://schema.org", "@type": "WebSite", "name": "Bulevini", "url": "https://bulevini.com", "description": "İstanbul ve Kahramanmaraş bina ve mahalle yorumları — kiralamadan önce binanın karnesini gör."}) }} />
     </div>
   );
 }

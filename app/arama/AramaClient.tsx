@@ -10,6 +10,8 @@ import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import LeafletHarita from '@/app/components/LeafletHarita';
 import { useLang } from '@/app/lib/i18n';
+import { SehirEtiketi, useSehir } from '@/app/lib/sehir';
+import { sehreAit } from '@/app/lib/sehirler';
 import Sidebar from '@/app/components/Sidebar';
 
 // Saf hesap: özet kayıtları → kart verisi (süzülmüş, sıralı). Hem ilk render (SSR)
@@ -58,23 +60,31 @@ function AramaIcerik({ initialBinalar = [] }: { initialBinalar?: any[] }) {
     kategori: ""
   });
 
+  // Sadece seçili şehrin binaları (eski kayıtlarda il yok → İSTANBUL sayılır, bkz. sehirler.ts)
+  const { sehirKod, sehir } = useSehir();
+  const sehirBinalari = useMemo(() => allReviews.filter((b: any) => sehreAit(b, sehirKod)), [allReviews, sehirKod]);
+
   useEffect(() => {
     // Sunucudan hazır veri geldiyse tarayıcıda tekrar çekme (reCAPTCHA/auth beklemesi yok)
-    if (initialBinalar.length > 0) {
-      gruplaVeFiltrele(initialBinalar, searchTerm, filters);
-      return;
-    }
+    if (initialBinalar.length > 0) return;
     // Yedek: sunucu boş döndüyse tarayıcıda çek (ölçek: özet defteri 'binalar')
     const verileriGetir = async () => {
       setLoading(true);
       const snap = await getDocs(collection(db, 'binalar'));
-      const data = snap.docs.map(d => d.data());
-      setAllReviews(data);
-      gruplaVeFiltrele(data, searchTerm, filters);
+      setAllReviews(snap.docs.map(d => d.data()));
       setLoading(false);
     };
     verileriGetir();
   }, []);
+
+  // Şehir ya da veri değişince liste o şehrin binalarıyla yeniden hesaplanır;
+  // başka şehre ait kalan ilçe süzgeci temizlenir (yoksa liste boş kalırdı)
+  useEffect(() => {
+    const ilceGecerli = !filters.ilce || sehirBinalari.some((b: any) => trUpper((b.ilce || '').toString()).trim() === filters.ilce);
+    const yeniFiltre = ilceGecerli ? filters : { ...filters, ilce: "" };
+    if (!ilceGecerli) setFilters(yeniFiltre);
+    setResults(hesaplaSonuclar(sehirBinalari, searchTerm, yeniFiltre));
+  }, [sehirBinalari]);
 
   // binalar zaten bina-başına özettir — süzülmüş sonucu hesapla + göster
   const gruplaVeFiltrele = (data: any[], search: string, activeFilters: any) => {
@@ -83,22 +93,22 @@ function AramaIcerik({ initialBinalar = [] }: { initialBinalar?: any[] }) {
 
   const handleSearch = (val: string) => {
     setSearchTerm(val);
-    gruplaVeFiltrele(allReviews, val, filters);
+    gruplaVeFiltrele(sehirBinalari, val, filters);
   };
 
   const handleFilterChange = (newFilters: any) => {
     setFilters(newFilters);
-    gruplaVeFiltrele(allReviews, searchTerm, newFilters);
+    gruplaVeFiltrele(sehirBinalari, searchTerm, newFilters);
   };
 
-  // allReviews artık binalar özet kayıtları
+  // İlçe listesi, harita boyaması ve kriterler de sadece seçili şehrin binalarından
   const ilceListesi = useMemo(() => {
-    return Array.from(new Set(allReviews.map((b: any) => b.ilce ? trUpper(b.ilce.toString()).trim() : null))).filter(Boolean);
-  }, [allReviews]);
+    return Array.from(new Set(sehirBinalari.map((b: any) => b.ilce ? trUpper(b.ilce.toString()).trim() : null))).filter(Boolean);
+  }, [sehirBinalari]);
 
   const ilcePuanlari = useMemo(() => {
     const ozet: { [ilce: string]: { toplam: number; sayi: number } } = {};
-    allReviews.forEach((b: any) => {
+    sehirBinalari.forEach((b: any) => {
       const ilce = b.ilce ? trUpper(b.ilce.toString()).trim() : '';
       if (!ilce || !(b.finalPuan > 0)) return;
       if (!ozet[ilce]) ozet[ilce] = { toplam: 0, sayi: 0 };
@@ -106,11 +116,11 @@ function AramaIcerik({ initialBinalar = [] }: { initialBinalar?: any[] }) {
       ozet[ilce].sayi += 1;
     });
     return ozet;
-  }, [allReviews]);
+  }, [sehirBinalari]);
 
   const dinamikKriterler = useMemo(() => {
-    return Array.from(new Set(allReviews.flatMap((b: any) => Object.keys(b.kategoriOrt || {}).map(k => trUpper(k)))));
-  }, [allReviews]);
+    return Array.from(new Set(sehirBinalari.flatMap((b: any) => Object.keys(b.kategoriOrt || {}).map(k => trUpper(k)))));
+  }, [sehirBinalari]);
 
   return (
     <div className="lg:pl-80 min-h-screen bg-white text-black font-sans text-left relative overflow-x-hidden">
@@ -190,9 +200,13 @@ function AramaIcerik({ initialBinalar = [] }: { initialBinalar?: any[] }) {
 
       <div className="max-w-6xl mx-auto p-4 md:p-8">
         <header className="mb-8 md:mb-16 flex justify-between items-center border-b border-slate-100 pb-5 md:pb-8">
-          <Link href="/" className="flex items-center gap-2 lg:hidden">
-            <img src="/logo.png" alt="Bulevini" className="h-10 md:h-12" />
-          </Link>
+          {/* Logo + şehir (masaüstünde ikisi yan menüde) */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <Link href="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="Bulevini" className="h-10 md:h-12" />
+            </Link>
+            <SehirEtiketi />
+          </div>
           <button 
             onClick={() => router.push('/bina-olustur')} 
             className="bg-[#023E56] text-white px-4 md:px-8 py-3 md:py-4 rounded-full font-black uppercase italic text-[10px] md:text-xs hover:bg-blue-600 transition-all shadow-xl active:scale-95"
@@ -279,7 +293,7 @@ function AramaIcerik({ initialBinalar = [] }: { initialBinalar?: any[] }) {
           ) : (
             <div className="relative h-[650px] w-full rounded-[3.5rem] overflow-hidden border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom-4 duration-500 z-10 bg-slate-50">
               <div className="absolute top-6 left-6 z-20 flex items-center gap-3 bg-[#023E56]/90 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 text-white shadow-2xl">
-                <span className="text-blue-600 font-black italic text-[11px] uppercase tracking-widest">İSTANBUL</span>
+                <span className="text-blue-600 font-black italic text-[11px] uppercase tracking-widest">{sehir.ad}</span>
                 <ChevronRight size={14} className="text-slate-600" />
                 <span className="font-black italic text-[11px] uppercase tracking-widest">{filters.ilce || "TÜM İLÇELER"}</span>
               </div>

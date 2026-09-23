@@ -10,12 +10,15 @@ import { db } from '@/app/lib/firebase';
 import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
+import { SehirEtiketi } from '@/app/lib/sehir';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import Sidebar from '@/app/components/Sidebar';
 import KonumSecici from '@/app/components/KonumSecici';
 import SokakGorunumu from '@/app/components/SokakGorunumu';
 import { adresOnerileri, adresKoordinat } from '@/app/lib/googleMaps';
 import { adGetir } from '@/app/lib/kullaniciadi';
+import { useSehir } from '@/app/lib/sehir';
+import { sehirIcindeMi } from '@/app/lib/sehirIcinde';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
@@ -24,6 +27,7 @@ function BinaOlusturForm() {
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const { t } = useLang();
+  const { sehir } = useSehir(); // kayıt bu ile yazılır; konum bu ilin sınırında olmalı
   const [loading, setLoading] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
   const [haritaAcik, setHaritaAcik] = useState(false);
@@ -42,7 +46,7 @@ function BinaOlusturForm() {
     clearTimeout(aramaTimer.current);
     if (!m.trim()) { setAramaSonuclar([]); return; }
     aramaTimer.current = setTimeout(async () => {
-      try { setAramaSonuclar(await adresOnerileri(m)); } catch { setAramaSonuclar([]); }
+      try { setAramaSonuclar(await adresOnerileri(m, sehir)); } catch { setAramaSonuclar([]); }
     }, 300);
   };
 
@@ -159,7 +163,8 @@ function BinaOlusturForm() {
 
     setLoading(true);
     try {
-      const paketliAdres = `${formData.mahalle} MAH. ${formData.ilce}/${formData.il} | ADRES: ${formData.acik_adres_ham} | KOORD: ${formData.koordinat}`;
+      // İL = seçili il (kullanıcı zaten ili seçerek geliyor; adresten okumaya gerek yok)
+      const paketliAdres = `${formData.mahalle} MAH. ${formData.ilce}/${sehir.ad} | ADRES: ${formData.acik_adres_ham} | KOORD: ${formData.koordinat}`;
       let kullaniciAdi = 'Anonim Sakin';
       if (!isAnonymous && user) {
         const kadi = await adGetir(user.uid);
@@ -171,6 +176,15 @@ function BinaOlusturForm() {
       // Mobil ile aynı şema: yapısal konum alanları + standart oluşturma metni
       const [koordLat, koordLng] = formData.koordinat.split(',').map((c: string) => parseFloat(c.trim()));
       const koord = (!isNaN(koordLat) && !isNaN(koordLng)) ? { lat: koordLat, lng: koordLng } : null;
+
+      // SON KAPI: konum seçili ilin sınırı içinde mi? Haritaya tıklama zaten kontrol ediyor ama
+      // adres araması / elle koordinat / linkten gelen koordinat bu kapıdan geçmek zorunda.
+      // (Aksi halde Maraş seçiliyken İstanbul'daki bir adres "KAHRAMANMARAŞ" diye kaydedilirdi.)
+      if (koord && !(await sehirIcindeMi(sehir, koord.lat, koord.lng))) {
+        alert(t('sehir.olusturDisarida').split('{sehir}').join(sehir.ad));
+        setLoading(false);
+        return;
+      }
 
       // KİMLİK: aynı isimli binalar arasında 500 m yakında var mı? (muhtemelen aynı bina)
       const adSlug = slugify(temizBinaAdi);
@@ -199,7 +213,7 @@ function BinaOlusturForm() {
         yeni_bina_adi: temizBinaAdi,
         slug: tekilSlug,
         acik_adres: paketliAdres,
-        il: formData.il,
+        il: sehir.ad, // seçili il (yukarıdaki sınır kapısından geçti)
         ilce: formData.ilce,
         mahalle: formData.mahalle,
         koordinat: koord,
@@ -303,6 +317,7 @@ function BinaOlusturForm() {
           </Link>
           <div className="flex items-center gap-2 font-bold text-blue-600 italic text-left">
             <MapPin size={20} /> BULEVİNİ <span className="text-[9px] bg-blue-600 text-white px-2 py-0.5 rounded-full ml-1 uppercase tracking-tighter">{t('olustur.oda')}</span>
+            <SehirEtiketi className="ml-1" />
           </div>
         </header>
 

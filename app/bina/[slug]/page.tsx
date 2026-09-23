@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic'; // her istekte taze veri (canlı skor/yo
 
 type BinaOzet = {
   ad: string;
+  il: string;
   ilce: string;
   mahalle: string;
   muhurSayisi: number;
@@ -31,6 +32,8 @@ const binaOzetiGetir = cache(async (slug: string): Promise<BinaOzet | null> => {
       || yorumlar[0].bina_adi
       || slug;
     const konumlu = yorumlar.find((y) => y.ilce || y.mahalle) || {};
+    // Binanın ili kendi mühürlerinden — eski kayıtlarda il yok, o dönem hepsi İstanbul'du
+    const il = trUpper(String(yorumlar.find((y) => y.il)?.il || 'İSTANBUL')).trim();
 
     // Ağırlıklı karne ortalaması — istemciyle aynı mantık (sakin sözü daha ağır)
     const topl: { [k: string]: number } = {};
@@ -56,7 +59,8 @@ const binaOzetiGetir = cache(async (slug: string): Promise<BinaOzet | null> => {
 
     return {
       ad: trUpper(String(ad)).trim(),
-      ilce: konumlu.ilce || 'İSTANBUL',
+      il,
+      ilce: konumlu.ilce || il,
       mahalle: konumlu.mahalle || '',
       muhurSayisi: yorumlar.length,
       sakinSayisi: yorumlar.filter((y) => y.baglanti_tipi === 'sakin').length,
@@ -121,7 +125,7 @@ export default async function BinaSlugSayfasi({ params }: { params: Promise<{ sl
               '@type': 'Residence',
               name: ozet.ad,
               url: `https://bulevini.com/bina/${slug}`,
-              address: { '@type': 'PostalAddress', addressLocality: ozet.ilce, addressRegion: 'İstanbul', addressCountry: 'TR' },
+              address: { '@type': 'PostalAddress', addressLocality: ozet.ilce, addressRegion: ozet.il, addressCountry: 'TR' },
               ...(ozet.ortalama > 0 && ozet.muhurSayisi > 0
                 ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: ozet.ortalama, bestRating: 5, ratingCount: ozet.muhurSayisi } }
                 : {}),

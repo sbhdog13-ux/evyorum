@@ -8,16 +8,20 @@ import { trUpper } from '@/app/lib/utils';
 import { slugify } from '@/app/lib/slug';
 import { agirlik } from '@/app/lib/skor';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
+import { SehirEtiketi, useSehir, useSehirMetni } from '@/app/lib/sehir';
+import { sehreAit } from '@/app/lib/sehirler';
 
 export default function IlcelerSayfasi() {
   const { t } = useLang();
+  const { sehirKod } = useSehir();
+  const ts = useSehirMetni(); // şehre göre değişen yazılar
   const [istatistik, setIstatistik] = useState({ muhur: 0, bina: 0, ilce: 0 });
   const [ornekler, setOrnekler] = useState<any[]>([]);
 
   useEffect(() => {
-    // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar)
+    // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar) — sadece seçili şehir
     getDocs(collection(db, 'binalar')).then(snap => {
-      const binalar = snap.docs.map(d => d.data() as any);
+      const binalar = snap.docs.map(d => d.data() as any).filter(b => sehreAit(b, sehirKod));
       const ilceler = new Set(binalar.map(b => trUpper(b.ilce || '')).filter(Boolean));
       const muhur = binalar.reduce((a, b) => a + (b.muhurSayisi || 0), 0);
       const liste = binalar
@@ -28,7 +32,8 @@ export default function IlcelerSayfasi() {
       setIstatistik({ muhur, bina: binalar.length, ilce: ilceler.size });
       setOrnekler(liste);
     }).catch(() => {});
-  }, []);
+    // Şehir değişince (ve hafıza okunup varsayılandan gerçek şehre geçince) yeniden hesapla
+  }, [sehirKod]);
 
   const skorRenk = (s: number) => s >= 4 ? 'text-green-600' : s >= 3 ? 'text-[#BA7517]' : 'text-red-600';
 
@@ -36,17 +41,17 @@ export default function IlcelerSayfasi() {
     <div className="min-h-screen bg-white text-[#0f172a] font-sans flex flex-col">
       <header className="max-w-3xl w-full mx-auto flex items-center justify-between px-6 py-7">
         <GeriButonu />
-        <Link href="/"><img src="/logo.png" alt="Bulevini" className="h-11" /></Link>
+        <div className="flex items-center gap-2"><Link href="/"><img src="/logo.png" alt="Bulevini" className="h-11" /></Link><SehirEtiketi /></div>
         <LangSwitcher />
       </header>
 
       <section className="max-w-3xl w-full mx-auto px-6 pb-20 flex-1">
         <div className="text-[11px] font-black italic uppercase tracking-[2px] text-slate-400">{t('ilc.eyebrow')}</div>
         <h1 className="font-black italic uppercase tracking-tighter text-[30px] leading-[1.1] mt-2">
-          {t('ilc.h1a')}<br /><span className="text-[#023E56]">{t('ilc.h1b')}</span>
+          {ts('ilc.h1a')}<br /><span className="text-[#023E56]">{t('ilc.h1b')}</span>
         </h1>
-        <p className="text-[15px] leading-[1.8] text-slate-600 mt-5">{t('ilc.g1')}</p>
-        <p className="text-[15px] leading-[1.8] text-slate-600 mt-3">{t('ilc.g2a')}<b className="text-[#023E56]">{t('ilc.g2b')}</b>{t('ilc.g2c')}</p>
+        <p className="text-[15px] leading-[1.8] text-slate-600 mt-5">{ts('ilc.g1')}</p>
+        <p className="text-[15px] leading-[1.8] text-slate-600 mt-3">{ts('ilc.g2a')}<b className="text-[#023E56]">{t('ilc.g2b')}</b>{t('ilc.g2c')}</p>
 
         {/* Canlı istatistik kartları — keşfetteki üçlü */}
         <div className="grid grid-cols-3 gap-3 mt-7">
@@ -99,7 +104,7 @@ export default function IlcelerSayfasi() {
         </div>
 
         <div className="bg-[#023E56] rounded-[2rem] p-7 mt-6 text-center">
-          <p className="text-[14px] leading-relaxed text-[#e0f2fe]"><b className="text-white">{t('ilc.davet1')}</b>{t('ilc.davet2')}</p>
+          <p className="text-[14px] leading-relaxed text-[#e0f2fe]"><b className="text-white">{t('ilc.davet1')}</b>{ts('ilc.davet2')}</p>
           <Link href="/yorum-yap" className="inline-block bg-white text-[#023E56] text-[12px] font-black italic tracking-widest px-7 py-3.5 rounded-xl mt-4">{t('ilc.cta')}</Link>
         </div>
       </section>

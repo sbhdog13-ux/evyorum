@@ -1,12 +1,14 @@
 "use client";
 import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
+import { useSehirMetni } from '@/app/lib/sehir';
 
 // Site geneli zengin footer — sahibinden benzeri çok sütun, marka diliyle.
 // İçerik sayfaları (nedir/nasil-calisir/binalari-kesfet/skor-nedir/ilceler) SEO yüzeyidir;
 // araç sayfalarına buradaki içerik sayfaları üzerinden yönlendirilir.
 export default function Footer() {
   const { t } = useLang();
+  const ts = useSehirMetni(); // şehre göre değişen yazılar
 
   const sutunlar: { baslik: string; linkler: { ad: string; href: string }[] }[] = [
     {
@@ -36,7 +38,7 @@ export default function Footer() {
     {
       baslik: t('fo.ilcelerBaslik'),
       linkler: [
-        { ad: t('fo.ilceler'), href: '/ilceler' },
+        { ad: ts('fo.ilceler'), href: '/ilceler' },
       ],
     },
     {

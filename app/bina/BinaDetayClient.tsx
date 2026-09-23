@@ -10,6 +10,8 @@ import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimest
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useLang } from '@/app/lib/i18n';
+import { SehirEtiketi } from '@/app/lib/sehir';
+import SehirGecisUyarisi from '@/app/components/SehirGecisUyarisi';
 import { puanHesapla, radarHakki } from '@/app/lib/seviye';
 import { agirlik } from '@/app/lib/skor';
 import { olay } from '@/app/lib/analytics';
@@ -363,11 +365,16 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
           </button>
         </div>
       )}
+      {/* Binanın ili seçili ilden farklıysa site o ile geçer + uyarı (il: bu binanın mühür kayıtlarından) */}
+      <SehirGecisUyarisi ilAdi={(dbYorumlar.find((y: any) => y.il) as any)?.il} />
       <header className="p-4 border-b border-slate-50 sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Link href="/arama" className="flex items-center gap-2 text-slate-400 hover:text-black transition-all text-[12px] font-bold uppercase tracking-tight italic">
-            <ArrowLeft size={14} /> <span className="hidden md:inline">{t('bina.aramayaDon')}</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/arama" className="flex items-center gap-2 text-slate-400 hover:text-black transition-all text-[12px] font-bold uppercase tracking-tight italic">
+              <ArrowLeft size={14} /> <span className="hidden md:inline">{t('bina.aramayaDon')}</span>
+            </Link>
+            <SehirEtiketi />
+          </div>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">

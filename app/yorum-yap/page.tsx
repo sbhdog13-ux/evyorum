@@ -9,6 +9,8 @@ import { collection, getDocs, addDoc, serverTimestamp, query, where, limit } fro
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
+import { SehirEtiketi, useSehir } from '@/app/lib/sehir';
+import { sehreAit } from '@/app/lib/sehirler';
 import DogrulamaKapisi from '@/app/components/DogrulamaKapisi';
 import { kufurVarMi } from '@/app/lib/kufur';
 import { adGetir } from '@/app/lib/kullaniciadi';
@@ -44,7 +46,10 @@ function YorumFormu() {
   const [binaAdi, setBinaAdi] = useState("");
   const [binaSlug, setBinaSlug] = useState(""); // belirli binanın tekil adresi (oluşturma/seçim akışından) — varsa deneyim buna bağlanır
   const [duzenleId, setDuzenleId] = useState<string | null>(null); // varsa: mevcut mührü DÜZENLEME modu
-  const [kayitliBinalar, setKayitliBinalar] = useState<any[]>([]); // {ad, slug, ilce, mahalle}
+  const [tumKayitliBinalar, setKayitliBinalar] = useState<any[]>([]); // {ad, slug, ilce, mahalle, il}
+  // Mühürlerken önerilen binalar sadece seçili şehirden (eski kayıtlarda il yok → İSTANBUL sayılır)
+  const { sehirKod, sehir } = useSehir();
+  const kayitliBinalar = React.useMemo(() => tumKayitliBinalar.filter(b => sehreAit(b, sehirKod)), [tumKayitliBinalar, sehirKod]);
   const [filtrelenmişBinalar, setFiltrelenmişBinalar] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [yorum, setYorum] = useState("");
@@ -103,7 +108,7 @@ function YorumFormu() {
       const snap = await getDocs(collection(db, 'binalar'));
       const liste = snap.docs.map(d => {
         const b: any = d.data();
-        return { ad: trUpper((b.ad || '').toString()).trim(), slug: b.slug, ilce: trUpper(b.ilce || '').trim(), mahalle: trUpper(b.mahalle || '').trim() };
+        return { ad: trUpper((b.ad || '').toString()).trim(), slug: b.slug, ilce: trUpper(b.ilce || '').trim(), mahalle: trUpper(b.mahalle || '').trim(), il: b.il || '' };
       }).filter(b => b.ad && b.slug);
       setKayitliBinalar(liste);
     };
@@ -315,7 +320,7 @@ function YorumFormu() {
         bina_adi: temizBinaAdi,
         yeni_bina_adi: temizBinaAdi,
         slug: binaSlug || slugify(temizBinaAdi),
-        il: konum.il || 'İSTANBUL',
+        il: konum.il || sehir.ad, // binanın kaydı yoksa seçili il
         ilce: konum.ilce || '',
         mahalle: konum.mahalle || '',
         koordinat: konum.koordinat || null,
@@ -357,6 +362,7 @@ function YorumFormu() {
           <Link href="/" className="flex items-center gap-2 group text-left">
             <Home size={20} className="text-blue-600 group-hover:scale-110 transition-transform text-left" /> 
             <span className="text-xl font-black uppercase italic tracking-tighter text-left">BULEVİNİ</span>
+            <SehirEtiketi className="ml-1" />
           </Link>
           <div className="text-[10px] font-black uppercase italic text-slate-400 bg-slate-50 px-3 py-1 rounded-full text-left">
             Güvenli Mühürleme Odası

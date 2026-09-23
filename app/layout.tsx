@@ -10,6 +10,7 @@ import { AuthProvider } from "@/app/contexts/AuthContext";
 // Bloklamayan, kendi kendine barındırılan font — hız optimizasyonu (eski manuel link/script numarasının yerine).
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 import { LangProvider } from "@/app/lib/i18n";
+import { SehirProvider, SehirSecimPenceresi } from "@/app/lib/sehir";
 import BottomNav from "@/app/components/BottomNav";
 import KullaniciAdiKapisi from "@/app/components/KullaniciAdiKapisi";
 import CerezBandi from "@/app/components/CerezBandi";
@@ -77,13 +78,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={inter.className}>
         <LangProvider>
+        <SehirProvider>
         <AuthProvider>
           {children}
           <Footer />
           <BottomNav />
           <KullaniciAdiKapisi />
           <CerezBandi />
+          <SehirSecimPenceresi />
         </AuthProvider>
+        </SehirProvider>
         </LangProvider>
       </body>
     </html>

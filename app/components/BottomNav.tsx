@@ -8,6 +8,8 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase-auth';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
+import { useSehir, SehirEtiketi } from '@/app/lib/sehir';
+import { SEHIR_LISTESI } from '@/app/lib/sehirler';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -16,6 +18,8 @@ export default function BottomNav() {
   const [menuAcik, setMenuAcik] = useState(false);
   const { dil, setDil, t } = useLang();
   const [dilAcik, setDilAcik] = useState(false);
+  const { sehir, sehirKod, setSehir } = useSehir();
+  const [sehirAcik, setSehirAcik] = useState(false);
 
   // Açılış (tanıtım) sayfasında alt menü gösterilmez
   if (pathname === '/') return null;
@@ -44,7 +48,10 @@ export default function BottomNav() {
         <div className="fixed inset-0 z-[550] bg-black/45 lg:hidden" onClick={() => setMenuAcik(false)}>
           <div className="absolute left-0 top-0 bottom-0 w-72 bg-white flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="px-6 pt-8 pb-4 border-b border-slate-100 flex items-center justify-between">
-              <img src="/logo.png" alt="Bulevini" className="h-10" />
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="Bulevini" className="h-10" />
+                <SehirEtiketi />
+              </div>
               <button onClick={() => setMenuAcik(false)} className="p-2 bg-slate-50 rounded-xl"><X size={18} /></button>
             </div>
             <nav className="flex-1">
@@ -59,6 +66,20 @@ export default function BottomNav() {
                 );
               })}
             </nav>
+            {/* Şehir — dil seçicinin hemen üstünde, aynı görünüm */}
+            <button onClick={() => setSehirAcik(v => !v)} aria-expanded={sehirAcik} className="flex items-center gap-3 px-6 py-4 border-t border-slate-100">
+              <span>📍</span>
+              <span className="flex-1 text-left text-[12px] font-black uppercase tracking-wide">{t('sehir.menu')}</span>
+              <span className="text-[11px] font-black text-blue-600">{sehir.kisaAd} ▾</span>
+            </button>
+            {sehirAcik && (
+              <div className="mx-6 mb-2 bg-slate-50 rounded-xl overflow-hidden">
+                {SEHIR_LISTESI.map(s => (
+                  <button key={s.kod} onClick={() => { setSehir(s.kod); setSehirAcik(false); }}
+                    className={`w-full px-4 py-2.5 text-left text-[12px] font-black ${sehirKod === s.kod ? 'bg-[#e8f3fa] text-blue-600' : 'text-slate-600'}`}>{s.ad}</button>
+                ))}
+              </div>
+            )}
             <button onClick={() => setDilAcik(v => !v)} className="flex items-center gap-3 px-6 py-4 border-t border-slate-100">
               <span>🌐</span>
               <span className="flex-1 text-left text-[12px] font-black uppercase tracking-wide">DİL / LANGUAGE</span>

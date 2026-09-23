@@ -8,6 +8,8 @@ import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { useLang } from '@/app/lib/i18n';
+import { SehirEtiketi, SehirAdi, useSehir } from '@/app/lib/sehir';
+import { sehreAit } from '@/app/lib/sehirler';
 import { agirlik } from '@/app/lib/skor';
 import Sidebar from '@/app/components/Sidebar';
 
@@ -33,7 +35,10 @@ function SkorIcerik() {
 
   const [mod, setMod] = useState<'skorlar' | 'binalar'>('skorlar');
   const [loading, setLoading] = useState(true);
-  const [binaKayitlari, setBinaKayitlari] = useState<any[]>([]);
+  const [tumBinaKayitlari, setBinaKayitlari] = useState<any[]>([]);
+  // Sayfadaki her hesap seçili şehrin binalarından (eski kayıtlarda il yok → İSTANBUL sayılır, bkz. sehirler.ts)
+  const { sehirKod } = useSehir();
+  const binaKayitlari = useMemo(() => tumBinaKayitlari.filter(b => sehreAit(b, sehirKod)), [tumBinaKayitlari, sehirKod]);
   const [filtreler, setFiltreler] = useState<{ [k: string]: number }>({});
   const [filtreAcik, setFiltreAcik] = useState(false);
 
@@ -126,10 +131,11 @@ function SkorIcerik() {
         <div className="max-w-3xl mx-auto flex items-center gap-4">
           <button onClick={() => seciliIlce ? router.push('/skor') : router.push('/')} className="p-3 bg-slate-50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all"><ArrowLeft size={18} /></button>
           <div className="flex-1">
-            <h1 className="font-black uppercase italic tracking-tighter text-[18px] leading-none">{seciliIlce || 'İSTANBUL'}</h1>
+            <h1 className="font-black uppercase italic tracking-tighter text-[18px] leading-none">{seciliIlce || <SehirAdi />}</h1>
             <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{seciliIlce ? t('skor.mahalleAlt') : t('skor.altBaslik')}</p>
           </div>
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-[10px] font-black text-blue-600 uppercase"><MapPin size={11} /> İSTANBUL</div>
+          {/* Elle yazılı "İSTANBUL" yerine seçili şehir */}
+          <SehirEtiketi />
         </div>
       </header>
 

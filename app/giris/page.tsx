@@ -6,6 +6,7 @@ import { auth } from '@/app/lib/firebase-auth';
 import { LogIn, ArrowRight, UserPlus, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
+import { SehirEtiketi } from '@/app/lib/sehir';
 import { adTuret, adGecerliMi, adMusaitMi, adKaydet } from '@/app/lib/kullaniciadi';
 import { olay } from '@/app/lib/analytics';
 import { dogrulamaMailiGonder, sifreSifirlamaMailiGonder } from '@/app/lib/mailler';
@@ -68,7 +69,8 @@ export default function GirisKayitSayfasi() {
         
         <div className="absolute top-5 right-5"><LangSwitcher /></div>
         <div className="text-center mb-10">
-          <img src="/logo.png" alt="Bulevini" className="h-20 mx-auto mb-6" />
+          <img src="/logo.png" alt="Bulevini" className="h-20 mx-auto mb-3" />
+          <div className="flex justify-center mb-6"><SehirEtiketi /></div>
           <h1 className="text-[28px] font-black uppercase italic tracking-tighter mb-2">
             {mode === 'giris' ? t('giris.hosgeldin') : t('giris.yeniHesap')}
           </h1>

@@ -147,9 +147,11 @@ async function binaOzetiYazSlug(slug) {
   const ad = trUst(yorumlar.find(y => y.yeni_bina_adi || y.bina_adi)?.yeni_bina_adi
     || yorumlar[0].bina_adi || slug).trim();
 
-  let ilce = '', mahalle = '', koordinat = null, muhurSayisi = 0, dogrulanmis = 0, sorun = 0, arti = 0;
+  let il = '', ilce = '', mahalle = '', koordinat = null, muhurSayisi = 0, dogrulanmis = 0, sorun = 0, arti = 0;
   const katT = {}; // kategori -> {t: ağırlıklı toplam, s: ağırlık toplamı}
   yorumlar.forEach(y => {
+    // İl mühürden kopyalanır — robot şehir listesini bilmez, yeni il eklemek robota dokunmayı gerektirmez
+    if (!il && y.il && String(y.il).trim()) il = trUst(y.il).trim();
     if (!ilce) { const i = ilceOku(y); if (i) ilce = i; }
     if (!mahalle) { const m = mahalleOku(y); if (m) mahalle = m; }
     if (!koordinat && y.koordinat && y.koordinat.lat) koordinat = { lat: y.koordinat.lat, lng: y.koordinat.lng };
@@ -173,8 +175,9 @@ async function binaOzetiYazSlug(slug) {
   const katVals = Object.values(kategoriOrt);
   const finalPuan = katVals.length ? Number((katVals.reduce((a, b) => a + b, 0) / katVals.length).toFixed(1)) : 0;
 
+  if (!il) il = 'İSTANBUL'; // eski mühürlerde il yoksa (hepsi İstanbul dönemi)
   await db.collection('binalar').doc(slug).set({
-    slug, adSlug: slugYap(ad), ad, ilce: ilce || 'İSTANBUL', mahalle, koordinat,
+    slug, adSlug: slugYap(ad), ad, il, ilce: ilce || il, mahalle, koordinat,
     finalPuan, kategoriOrt, muhurSayisi, dogrulanmis, sorun, arti,
     guncelleme: new Date(),
   });

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GeriButonu from '@/app/components/GeriButonu';
+import { SehirEtiketi } from '@/app/lib/sehir';
 
 export const metadata: Metadata = {
   title: 'Kullanım Koşulları | Bulevini',
@@ -13,7 +14,7 @@ export default function KullanimKosullariSayfasi() {
     <div className="min-h-screen bg-white text-[#0f172a] font-sans">
       <header className="max-w-3xl mx-auto flex items-center gap-4 px-6 py-7">
         <GeriButonu />
-        <Link href="/"><img src="/logo.png" alt="Bulevini" className="h-11" /></Link>
+        <div className="flex items-center gap-2"><Link href="/"><img src="/logo.png" alt="Bulevini" className="h-11" /></Link><SehirEtiketi /></div>
       </header>
       <article className="max-w-3xl mx-auto px-6 pb-24 leading-relaxed text-[15px] text-slate-700">
         <div className="text-[11px] font-black italic uppercase tracking-[2px] text-slate-400">Yasal</div>

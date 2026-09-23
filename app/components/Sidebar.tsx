@@ -6,6 +6,8 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase-auth';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useLang } from '@/app/lib/i18n';
+import { useSehir, SehirEtiketi } from '@/app/lib/sehir';
+import { SEHIR_LISTESI } from '@/app/lib/sehirler';
 import { useState } from 'react';
 
 // Mobildeki hamburger menünün (Drawer) web karşılığı — aynı sıra, aynı öğeler
@@ -13,6 +15,8 @@ export default function Sidebar() {
   const { user } = useAuth();
   const { dil, setDil, t } = useLang();
   const [dilAcik, setDilAcik] = useState(false);
+  const { sehir, sehirKod, setSehir } = useSehir();
+  const [sehirAcik, setSehirAcik] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -31,7 +35,10 @@ export default function Sidebar() {
   return (
     <aside className="w-80 h-screen bg-white text-black flex-col border-r border-slate-100 fixed left-0 top-0 z-[250] hidden lg:flex">
       <div className="px-6 pt-10 pb-5 border-b border-slate-100">
-        <Link href="/kesfet"><img src="/logo.png" alt="Bulevini" className="h-12" /></Link>
+        <div className="flex items-center gap-3">
+          <Link href="/kesfet"><img src="/logo.png" alt="Bulevini" className="h-12" /></Link>
+          <SehirEtiketi />
+        </div>
         <div className="h-[5px] w-10 bg-blue-600 mt-1.5 rounded-full" />
       </div>
 
@@ -60,6 +67,19 @@ export default function Sidebar() {
             <Link href="/profil" className="text-[10px] font-black text-blue-600 tracking-widest">{t('ortak.profilim')}</Link>
           </div>
         </div>
+        <button onClick={() => setSehirAcik(v => !v)} aria-expanded={sehirAcik} className="w-full flex items-center gap-3 px-6 py-3 hover:bg-slate-50 transition-colors">
+          <span>📍</span>
+          <span className="flex-1 text-left text-[12px] font-black uppercase tracking-wide">{t('sehir.menu')}</span>
+          <span className="text-[11px] font-black text-blue-600">{sehir.kisaAd} ▾</span>
+        </button>
+        {sehirAcik && (
+          <div className="mx-6 mb-2 bg-slate-50 rounded-xl overflow-hidden">
+            {SEHIR_LISTESI.map(s => (
+              <button key={s.kod} onClick={() => { setSehir(s.kod); setSehirAcik(false); }}
+                className={`w-full px-4 py-2.5 text-left text-[12px] font-black ${sehirKod === s.kod ? 'bg-[#e8f3fa] text-blue-600' : 'text-slate-600'}`}>{s.ad}</button>
+            ))}
+          </div>
+        )}
         <button onClick={() => setDilAcik(v => !v)} className="w-full flex items-center gap-3 px-6 py-3 hover:bg-slate-50 transition-colors">
           <span>🌐</span>
           <span className="flex-1 text-left text-[12px] font-black uppercase tracking-wide">DİL / LANGUAGE</span>

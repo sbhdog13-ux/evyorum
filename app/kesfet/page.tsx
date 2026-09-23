@@ -10,6 +10,8 @@ import { collection, query, orderBy, limit, getDocs, where } from 'firebase/fire
 import { useAuth } from '@/app/contexts/AuthContext';
 import LeafletHarita from '@/app/components/LeafletHarita';
 import { useLang } from '@/app/lib/i18n';
+import { SehirEtiketi, useSehir, HaritaSehirPenceresi } from '@/app/lib/sehir';
+import { sehreAit } from '@/app/lib/sehirler';
 import Sidebar from '@/app/components/Sidebar';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase-auth';
@@ -23,19 +25,24 @@ export default function Home() {
   const [stats, setStats] = useState({ muhur: 0, bina: 0, ilce: 0 });
   const router = useRouter();
   const { t } = useLang();
+  const { sehirKod } = useSehir();
+  // "Haritayı Aç" → önce il sorulur, seçince harita açılır
+  const [haritaPencere, setHaritaPencere] = useState(false);
   const [haritaGoster, setHaritaGoster] = useState(false);
   useEffect(() => { const z = setTimeout(() => setHaritaGoster(true), 600); return () => clearTimeout(z); }, []);
 
   useEffect(() => {
     const veriGetir = async () => {
+      setCurrentIndex(0);
       const yorumlarRef = collection(db, 'yorumlar');
       const q = query(yorumlarRef, orderBy('created_at', 'desc'), limit(15));
       const snap = await getDocs(q);
+      // Mühür akışı iki il için ORTAK (karar 11 Eyl) — şehre göre süzülmez; istatistikler aşağıda şehre göre
       setGercekYorumlar(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((y: any) => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0))));
 
-      // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar) — öneriler + istatistik
+      // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar) — öneriler + istatistik, sadece seçili şehir
       const binaSnap = await getDocs(collection(db, 'binalar'));
-      const binaKayit = binaSnap.docs.map(d => d.data() as any);
+      const binaKayit = binaSnap.docs.map(d => d.data() as any).filter(b => sehreAit(b, sehirKod));
       const ilceler = new Set(binaKayit.map(b => b.ilce).filter(Boolean));
       setStats({ muhur: binaKayit.reduce((a, b) => a + (b.muhurSayisi || 0), 0), bina: binaKayit.length, ilce: ilceler.size });
 
@@ -47,7 +54,8 @@ export default function Home() {
       }
     };
     veriGetir();
-  }, [user]);
+    // Şehir değişince de yeniden oku — yoksa ilk açılıştaki varsayılan şehirde (İstanbul) kalabilir
+  }, [user, sehirKod]);
 
   const karuselRef = useRef<HTMLDivElement>(null);
   const [elleKaydirdi, setElleKaydirdi] = useState(0);
@@ -96,14 +104,25 @@ export default function Home() {
       {/* SIDEBAR */}
       <Sidebar />
 
+      {/* "Haritayı Aç" → il penceresi; seçilen il tüm siteye uygulanır, sonra harita açılır */}
+      <HaritaSehirPenceresi
+        acik={haritaPencere}
+        kapat={() => setHaritaPencere(false)}
+        sonra={() => { setHaritaPencere(false); router.push('/harita'); }}
+      />
+
       {/* ANA İÇERİK */}
       <main className="flex-1 lg:ml-80 min-w-0 relative bg-transparent z-10 pb-32">
         <header className="fixed top-0 left-0 lg:left-80 right-0 z-[200] bg-white/40 backdrop-blur-2xl px-8 py-4 border-b border-black/5 flex justify-between items-center shadow-sm">
-          <Link href="/" className="flex flex-col items-start lg:hidden text-black">
-            <img src="/logo.png" alt="Bulevini" className="h-10" />
-          </Link>
+          {/* Logo + şehir (masaüstünde ikisi yan menüde) */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <Link href="/" className="flex flex-col items-start text-black">
+              <img src="/logo.png" alt="Bulevini" className="h-10" />
+            </Link>
+            <SehirEtiketi />
+          </div>
           <div className="hidden lg:block"></div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/profil" className={`p-3 rounded-2xl transition-all border-2 border-white bg-white/60 backdrop-blur-md shadow-sm ${radarBinalar.length > 0 ? 'text-blue-600 border-[#A1CDE9] animate-pulse' : 'text-slate-300'}`}>
               <Radio size={20} />
             </Link>
@@ -142,7 +161,7 @@ export default function Home() {
                 <Map size={30} className="opacity-70" />
                 <div className="font-black uppercase italic text-[17px]">{t('kesfet.haritaBaslik')}</div>
                 <div className="text-[12px] font-medium opacity-70">{t('kesfet.haritaAlt')}</div>
-                <button onClick={() => router.push('/harita')} className="mt-2 bg-blue-600 px-8 py-3.5 rounded-2xl font-black uppercase italic text-[13px] tracking-wide hover:bg-white hover:text-blue-600 transition-all shadow-xl">{t('kesfet.haritayiAc')}</button>
+                <button onClick={() => setHaritaPencere(true)} className="mt-2 bg-blue-600 px-8 py-3.5 rounded-2xl font-black uppercase italic text-[13px] tracking-wide hover:bg-white hover:text-blue-600 transition-all shadow-xl">{t('kesfet.haritayiAc')}</button>
               </div>
             </div>
             <div className="flex bg-[#023E56] rounded-2xl overflow-hidden mb-3">

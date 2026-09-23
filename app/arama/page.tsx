@@ -21,6 +21,7 @@ async function binalariGetir(): Promise<any[]> {
         dogrulanmis: b.dogrulanmis || 0,
         ilce: b.ilce || '',
         mahalle: b.mahalle || '',
+        il: b.il || '', // şehir süzgeci için (boşsa İSTANBUL sayılır)
         koordinat: b.koordinat?.lat != null ? { lat: b.koordinat.lat, lng: b.koordinat.lng } : null,
         kategoriOrt: b.kategoriOrt || {},
       };

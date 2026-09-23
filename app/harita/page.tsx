@@ -1,5 +1,4 @@
 "use client";
-import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Search, MapPin, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -8,14 +7,18 @@ import { slugify } from '@/app/lib/slug';
 import { trUpper } from '@/app/lib/utils';
 import { collection, getDocs } from 'firebase/firestore';
 import { useLang } from '@/app/lib/i18n';
+import { useSehir, SehirEtiketi } from '@/app/lib/sehir';
+import { sehreAit } from '@/app/lib/sehirler';
 import SokakGorunumu from '@/app/components/SokakGorunumu';
 import { adresOnerileri, adresKoordinat } from '@/app/lib/googleMaps';
+import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 
 declare global { interface Window { L: any } }
 
 export default function HaritaPage() {
   const router = useRouter();
   const { t } = useLang();
+  const { sehir, sehirKod } = useSehir();
   const mapRef = useRef<any>(null);
   const aktifPinRef = useRef<any>(null);
   const mapDivRef = useRef<HTMLDivElement>(null);
@@ -41,27 +44,29 @@ export default function HaritaPage() {
   };
 
   useEffect(() => {
-    const css = document.createElement('link');
-    css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(css);
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = async () => {
+    let iptal = false;
+    const kur = async () => {
+      if (iptal || !window.L || !mapDivRef.current || mapRef.current) return;
       const L = window.L;
-      const bounds = L.latLngBounds(L.latLng(40.55, 27.9), L.latLng(41.65, 29.95));
+      // Seçili şehrin kutusu — harita bu kutunun dışına kaydırılamaz
+      const { guney, bati, kuzey, dogu } = sehir.kutu;
+      const bounds = L.latLngBounds(L.latLng(guney, bati), L.latLng(kuzey, dogu));
       const map = L.map(mapDivRef.current, { minZoom: 9, maxZoom: 17, maxBounds: bounds, maxBoundsViscosity: 1.0, zoomControl: false });
       L.control.zoom({ position: 'bottomleft' }).addTo(map);
       map.fitBounds(bounds);
       L.tileLayer(KARO_ADRES, { maxZoom: 19, attribution: KARO_KATKI }).addTo(map);
       mapRef.current = map;
 
-      // İlçe sınırları + İstanbul içi kontrolü (mobil ile aynı)
+      // İlçe sınırları + şehir içi kontrolü (mobil ile aynı). Dosyası olmayan şehirde sınır/kısıt yok.
       let geo: any = null;
-      try { geo = await fetch('/istanbul.json').then(r => r.json()); } catch {}
+      if (sehir.ilceSinirlari) { try { geo = await fetch(sehir.ilceSinirlari).then(r => r.json()); } catch {} }
+      if (iptal || mapRef.current !== map) return;
 
       // Bina özetlerini oku → ilçe ORTALAMALARINI hesapla → ilçeyi puana göre boya (arama haritası gibi)
       const binaSnap = await getDocs(collection(db, 'binalar'));
-      const binalar = binaSnap.docs.map(d => d.data() as any);
+      if (iptal || mapRef.current !== map) return;
+      // Sadece seçili şehrin binaları (pinler + ilçe boyaması)
+      const binalar = binaSnap.docs.map(d => d.data() as any).filter(b => sehreAit(b, sehir.kod));
       const ilcePuan: { [ilce: string]: { toplam: number; sayi: number } } = {};
       binalar.forEach(b => {
         const il = b.ilce ? trUpper(b.ilce.toString()).trim() : '';
@@ -93,11 +98,12 @@ export default function HaritaPage() {
         return false;
       };
 
-      // Tarayıcı konumu — mobil KonumSecim gibi konuma odaklan
+      // Tarayıcı konumu — mobil KonumSecim gibi konuma odaklan (sadece seçili şehrin kutusundaysa)
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
+          if (iptal || mapRef.current !== map) return;
           const { latitude: la, longitude: lo } = pos.coords;
-          if (la < 40.55 || la > 41.65 || lo < 27.9 || lo > 29.95) return;
+          if (la < guney || la > kuzey || lo < bati || lo > dogu) return;
           const kIcon = L.divIcon({ html: '<div style="width:16px;height:16px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 4px rgba(37,99,235,0.3)"></div>', className: '', iconAnchor: [8, 8] });
           L.marker([la, lo], { icon: kIcon }).addTo(map);
           map.setView([la, lo], 15);
@@ -105,9 +111,9 @@ export default function HaritaPage() {
       }
 
       map.on('click', (e: any) => {
-        if (!icinde(e.latlng.lat, e.latlng.lng)) {
-          map.flyTo([41.0082, 28.9784], 11);
-          alert('Sadece İstanbul: Şimdilik yalnızca İstanbul içindeki binaları mühürleyebilirsin. Harita İstanbul’a döndürüldü.');
+        if (geo && !icinde(e.latlng.lat, e.latlng.lng)) {
+          map.flyTo(sehir.merkez, 11);
+          alert(t('sehir.disarida').split('{sehir}').join(sehir.ad));
           return;
         }
         pinKoy(e.latlng.lat, e.latlng.lng);
@@ -123,16 +129,37 @@ export default function HaritaPage() {
           .bindPopup(`<div style="padding:10px;min-width:150px;font-family:sans-serif"><div style="font-weight:900;font-style:italic;font-size:13px">${b.ad}</div><div style="font-size:11px;color:#94a3b8;margin:4px 0 8px">⭐ ${puan} • ${b.muhurSayisi || 0} mühür</div><a href="/bina/${b.slug || slugify(b.ad)}" style="display:block;background:#2563eb;color:#fff;text-align:center;border-radius:10px;padding:7px;font-size:11px;font-weight:900;text-decoration:none">DETAYA GİT →</a></div>`);
       });
     };
-    document.head.appendChild(script);
-    return () => { mapRef.current?.remove(); };
-  }, []);
+    let bekleyen: HTMLScriptElement | null = null;
+    if (window.L) { kur(); }
+    else {
+      if (!document.querySelector('link[href*="leaflet.css"]')) {
+        const css = document.createElement('link');
+        css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(css);
+      }
+      const mevcut = document.querySelector('script[src*="leaflet.js"]') as HTMLScriptElement | null;
+      if (mevcut) { mevcut.addEventListener('load', kur); bekleyen = mevcut; }
+      else {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = () => { kur(); };
+        document.head.appendChild(script);
+      }
+    }
+    // Şehir değişince eski harita kaldırılır, seçili şehirle yeniden kurulur
+    return () => {
+      iptal = true;
+      bekleyen?.removeEventListener('load', kur);
+      mapRef.current?.remove(); mapRef.current = null; aktifPinRef.current = null;
+    };
+  }, [sehirKod]);
 
   const aramaYap = (m: string) => {
     setAramaMetni(m);
     clearTimeout(aramaTimer.current);
     if (!m.trim()) { setSonuclar([]); return; }
     aramaTimer.current = setTimeout(async () => {
-      try { setSonuclar(await adresOnerileri(m)); } catch { setSonuclar([]); }
+      try { setSonuclar(await adresOnerileri(m, sehir)); } catch { setSonuclar([]); }
     }, 300);
   };
 
@@ -150,10 +177,12 @@ export default function HaritaPage() {
       <div className="absolute top-4 left-4 right-4 z-[1000] max-w-xl mx-auto space-y-2">
         <div className="flex items-center gap-3 bg-white rounded-2xl shadow-xl px-4 py-3">
           <button onClick={() => router.push('/')} className="p-1"><ArrowLeft size={18} /></button>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="font-black uppercase italic text-[13px] leading-none">{t('harita.baslik')}</div>
             <div className="text-[10px] font-bold text-slate-400 mt-0.5">{t('harita.alt')}</div>
           </div>
+          {/* Hangi şehirde olduğun (değiştirmek için menü) */}
+          <SehirEtiketi />
         </div>
         <div className="flex items-center gap-2 bg-white rounded-2xl shadow-xl px-4 py-3">
           <Search size={15} className="text-slate-400" />

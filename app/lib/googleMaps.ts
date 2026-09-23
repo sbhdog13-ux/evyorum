@@ -1,10 +1,13 @@
 // Tek noktadan Google Maps JS (+ Places) yükleyici ve adres arama yardımcıları.
 // Sokak görünümü ve Places araması AYNI script'i paylaşır — çift yükleme "included multiple times" hatasını önler.
+import type { Sehir } from './sehirler';
+
 declare global { interface Window { google: any } }
 
 const KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-// İstanbul çevresi — arama sonuçlarını bölgeye yasla
-const IST_BIAS = { south: 40.55, west: 27.9, north: 41.65, east: 29.95 };
+
+// Harf farklarını yok say: "İstanbul" / "Istanbul" / "istanbul" hepsi aynı sayılsın
+const sadelestir = (s: string) => s.toLocaleLowerCase('tr').replace(/ı/g, 'i');
 
 let yukleme: Promise<void> | null = null;
 export function loadGoogleMaps(): Promise<void> {
@@ -28,9 +31,11 @@ export type AramaOneri = { id: string; metin: string };
 
 let acSvc: any = null;
 let acToken: any = null;
-// Yazarken öneri getir (Google Places Autocomplete) — İstanbul'a yaslı, Türkiye kısıtlı.
-export async function adresOnerileri(sorgu: string): Promise<AramaOneri[]> {
+// Yazarken öneri getir (Google Places Autocomplete) — seçili şehrin kutusuna kısıtlı, Türkiye içi.
+export async function adresOnerileri(sorgu: string, sehir: Sehir): Promise<AramaOneri[]> {
   if (!sorgu.trim()) return [];
+  const { guney, bati, kuzey, dogu } = sehir.kutu;
+  const ilAdi = sadelestir(sehir.ad);
   await loadGoogleMaps();
   const g = window.google;
   if (!acSvc) acSvc = new g.maps.places.AutocompleteService();
@@ -42,16 +47,16 @@ export async function adresOnerileri(sorgu: string): Promise<AramaOneri[]> {
         sessionToken: acToken,
         componentRestrictions: { country: 'tr' },
         bounds: new g.maps.LatLngBounds(
-          new g.maps.LatLng(IST_BIAS.south, IST_BIAS.west),
-          new g.maps.LatLng(IST_BIAS.north, IST_BIAS.east),
+          new g.maps.LatLng(guney, bati),
+          new g.maps.LatLng(kuzey, dogu),
         ),
-        strictBounds: true, // yalnızca İstanbul içi — mobil ile aynı
+        strictBounds: true, // yalnızca seçili şehrin kutusu — mobil ile aynı
       },
       (preds: any, status: string) => {
         if (status !== g.maps.places.PlacesServiceStatus.OK || !preds) return resolve([]);
-        // Kesin İstanbul-only: strictBounds kenar illeri (Kocaeli/Sakarya) sızdırabiliyor → açıklamada "İstanbul" şartı
+        // Kutu komşu illeri de sızdırabiliyor (İstanbul→Kocaeli, Maraş→Osmaniye) → açıklamada il adı şartı
         resolve(preds
-          .filter((p: any) => (p.description || '').toLowerCase().includes('stanbul'))
+          .filter((p: any) => sadelestir(p.description || '').includes(ilAdi))
           .map((p: any) => ({ id: p.place_id, metin: p.description })));
       },
     );

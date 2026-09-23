@@ -12,6 +12,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Sidebar from '@/app/components/Sidebar';
 import ProfilKimlik from '@/app/components/ProfilKimlik';
 import { useLang } from '@/app/lib/i18n';
+import { SehirEtiketi } from '@/app/lib/sehir';
 import { puanHesapla, rutbeBul, ROZETLER, RUTBELER } from '@/app/lib/seviye';
 
 function ProfilIcerik() {
@@ -117,6 +118,7 @@ function ProfilIcerik() {
               <ArrowLeft size={20} />
             </Link>
             <h1 className="text-[16px] md:text-[24px] tracking-tighter border-l-[6px] md:border-l-[10px] border-blue-600 pl-5 text-black">{t('profil.panel')}</h1>
+            <SehirEtiketi />
           </div>
           <div className="bg-white/50 px-5 py-2.5 rounded-2xl border border-white/50 backdrop-blur-md shadow-sm flex items-center gap-3">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>

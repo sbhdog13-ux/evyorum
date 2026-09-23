@@ -1,10 +1,13 @@
 "use client";
-import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 import { useEffect, useRef } from 'react';
+import { useSehir } from '@/app/lib/sehir';
+import { useLang } from '@/app/lib/i18n';
+import { KARO_ADRES, KARO_KATKI } from '@/app/lib/harita';
 
 declare global { interface Window { L: any } }
 
-// Bina Oluştur içine gömülü "dokun-seç" haritası — /harita sayfasının küçük kardeşi
+// Bina Oluştur içine gömülü "dokun-seç" haritası — /harita sayfasının küçük kardeşi.
+// Kutu, merkez ve ilçe sınırları seçili şehirden gelir (app/lib/sehirler.ts).
 export default function KonumSecici({ koordinat, onSec, salt = false }: { koordinat?: string; onSec: (lat: number, lng: number) => void; salt?: boolean }) {
   const mapRef = useRef<any>(null);
   const pinRef = useRef<any>(null);
@@ -12,9 +15,11 @@ export default function KonumSecici({ koordinat, onSec, salt = false }: { koordi
   const geoRef = useRef<any>(null);
   const onSecRef = useRef(onSec);
   onSecRef.current = onSec;
+  const { sehir, sehirKod } = useSehir();
+  const { t } = useLang();
 
-  // Nokta İstanbul poligonu içinde mi (harita/mobil ile aynı kontrol)
-  const istanbulIcinde = (lat: number, lng: number): boolean => {
+  // Nokta seçili şehrin ilçe poligonları içinde mi (harita/mobil ile aynı kontrol)
+  const sehirIcinde = (lat: number, lng: number): boolean => {
     const geo = geoRef.current;
     if (!geo?.features) return false;
     const nokta = (x: number, y: number, poly: number[][]) => {
@@ -42,15 +47,17 @@ export default function KonumSecici({ koordinat, onSec, salt = false }: { koordi
   };
 
   useEffect(() => {
+    let iptal = false;
     const kur = () => {
-      if (!divRef.current || mapRef.current) return;
+      if (iptal || !window.L || !divRef.current || mapRef.current) return;
       const L = window.L;
-      const bounds = L.latLngBounds(L.latLng(40.55, 27.9), L.latLng(41.65, 29.95));
+      const { guney, bati, kuzey, dogu } = sehir.kutu;
+      const bounds = L.latLngBounds(L.latLng(guney, bati), L.latLng(kuzey, dogu));
       const map = L.map(divRef.current, { minZoom: 9, maxZoom: 17, maxBounds: bounds, maxBoundsViscosity: 1.0, zoomControl: false, dragging: !salt, scrollWheelZoom: !salt, touchZoom: !salt, doubleClickZoom: !salt });
       if (!salt) L.control.zoom({ position: 'bottomright' }).addTo(map);
       L.tileLayer(KARO_ADRES, { maxZoom: 19, attribution: KARO_KATKI }).addTo(map);
       mapRef.current = map;
-      // Mevcut koordinat varsa oraya odaklan, yoksa İstanbul geneli
+      // Mevcut koordinat varsa oraya odaklan, yoksa seçili şehrin geneli
       const k = (koordinat || '').split(',').map(x => parseFloat(x.trim()));
       if (k.length === 2 && !isNaN(k[0]) && !isNaN(k[1])) {
         map.setView([k[0], k[1]], 16);
@@ -60,36 +67,49 @@ export default function KonumSecici({ koordinat, onSec, salt = false }: { koordi
       }
       if (!salt) map.on('click', (e: any) => {
         const { lat, lng } = e.latlng;
-        if (geoRef.current && !istanbulIcinde(lat, lng)) {
-          map.flyTo([41.0082, 28.9784], 11);
-          alert('Sadece İstanbul: Şimdilik yalnızca İstanbul içindeki binaları mühürleyebilirsin. Harita İstanbul’a döndürüldü.');
+        if (geoRef.current && !sehirIcinde(lat, lng)) {
+          map.flyTo(sehir.merkez, 11);
+          alert(t('sehir.disarida').split('{sehir}').join(sehir.ad));
           return;
         }
         pinKoy(lat, lng);
         onSecRef.current(lat, lng);
       });
-      // İlçe sınırları — keşfet haritasıyla aynı görünüm
-      fetch('/istanbul.json').then(r => r.json()).then(geo => {
-        geoRef.current = geo;
-        if (geo && mapRef.current) L.geoJSON(geo, { style: { fillColor: '#94a3b8', fillOpacity: 0.12, color: '#1e293b', weight: 0.8 } }).addTo(mapRef.current);
-      }).catch(() => {});
+      // İlçe sınırları — keşfet haritasıyla aynı görünüm (şehrin dosyası yoksa sınır çizilmez, kısıt da uygulanmaz)
+      geoRef.current = null;
+      if (sehir.ilceSinirlari) {
+        fetch(sehir.ilceSinirlari).then(r => r.json()).then(geo => {
+          if (iptal || mapRef.current !== map) return;
+          geoRef.current = geo;
+          L.geoJSON(geo, { style: { fillColor: '#94a3b8', fillOpacity: 0.12, color: '#1e293b', weight: 0.8 } }).addTo(map);
+        }).catch(() => {});
+      }
     };
 
-    if (window.L) { kur(); return; }
-    if (!document.querySelector('link[href*="leaflet.css"]')) {
-      const css = document.createElement('link');
-      css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(css);
+    let bekleyen: HTMLScriptElement | null = null;
+    if (window.L) { kur(); }
+    else {
+      if (!document.querySelector('link[href*="leaflet.css"]')) {
+        const css = document.createElement('link');
+        css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(css);
+      }
+      const mevcut = document.querySelector('script[src*="leaflet.js"]') as HTMLScriptElement | null;
+      if (mevcut) { mevcut.addEventListener('load', kur); bekleyen = mevcut; }
+      else {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = kur;
+        document.body.appendChild(script);
+      }
     }
-    const mevcut = document.querySelector('script[src*="leaflet.js"]') as HTMLScriptElement | null;
-    if (mevcut) { mevcut.addEventListener('load', kur); return; }
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = kur;
-    document.body.appendChild(script);
 
-    return () => { mapRef.current?.remove(); mapRef.current = null; };
-  }, []);
+    return () => {
+      iptal = true;
+      bekleyen?.removeEventListener('load', kur);
+      mapRef.current?.remove(); mapRef.current = null; pinRef.current = null;
+    };
+  }, [sehirKod]);
 
   // Dışarıdan koordinat değişirse (elle yazma / ADRES ÇEK) pini güncelle
   useEffect(() => {
