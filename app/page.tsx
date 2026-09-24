@@ -163,15 +163,19 @@ export default function AcilisSayfasi() {
           {/* Logo + şehir bir bütün: logo koyu renkli, afişteki gibi beyaz kutuda; şehir hemen yanında sabit.
               Giriş yapmamış kişinin menüsü olmadığı için şehir burada seçilebilir. */}
           <div className="flex items-center gap-2">
-            <span className="bg-white rounded-xl px-3 py-2 inline-flex items-center shadow-lg shadow-black/20">
-              <img src="/logo.png" alt="Bulevini" className="h-8 w-auto" onError={(e: any) => { e.target.outerHTML = '<span class="text-lg font-black italic tracking-tighter uppercase text-[#011A25]">BULEVİNİ</span>'; }} />
+            <span className="bg-white rounded-xl px-3 py-2 inline-flex items-center shadow-lg shadow-black/20 shrink-0">
+              <img src="/logo.png" alt="Bulevini" className="h-8 w-auto shrink-0" onError={(e: any) => { e.target.outerHTML = '<span class="text-lg font-black italic tracking-tighter uppercase text-[#011A25]">BULEVİNİ</span>'; }} />
             </span>
             <SehirSecici />
           </div>
           <div className="flex items-center gap-3">
             <LangSwitcher />
             <Link href="/gizlilik" className="hidden md:block text-[11px] font-black uppercase italic text-[#A1CDE9] hover:text-white tracking-wide">{t('acilis.gizlilik')}</Link>
-            <Link href="/giris" className="bg-white text-[#011A25] px-5 py-3 rounded-sm text-[11px] font-black uppercase italic tracking-wide hover:bg-blue-600 hover:text-white transition-colors">{t('acilis.girisKayit')}</Link>
+            {/* Telefonda kısa etiket: dört öğe yan yana sığmayınca sıkışan logo oluyordu */}
+            <Link href="/giris" className="bg-white text-[#011A25] px-4 sm:px-5 py-3 rounded-sm text-[11px] font-black uppercase italic tracking-wide whitespace-nowrap shrink-0 hover:bg-blue-600 hover:text-white transition-colors">
+              <span className="sm:hidden">{t('acilis.girisKisa')}</span>
+              <span className="hidden sm:inline">{t('acilis.girisKayit')}</span>
+            </Link>
           </div>
         </header>
 
