@@ -62,6 +62,8 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
   const [dinamikKarne, setDinamikKarne] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [binaFotosu, setBinaFotosu] = useState<string | null>(null);
+  const [fotoGaleri, setFotoGaleri] = useState<string[]>([]); // [0] = Google sokak görünümü
+  const [galeriIndeks, setGaleriIndeks] = useState<number | null>(null); // null = kapalı
   const [koordinat, setKoordinat] = useState<string>("41.0082, 28.9784");
   const [konumBilgisi, setKonumBilgisi] = useState({ ilce: "İSTANBUL", mahalle: "Bilinmiyor" });
   const [isFollowing, setIsFollowing] = useState(false);
@@ -192,7 +194,21 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
 
         // FOTOĞRAF VE KONUM
         const sonYorum = yorumlar[yorumlar.length - 1] as any;
-        if (sonYorum?.foto_url) setBinaFotosu(sonYorum.foto_url);
+        // Galeri: ilk sırada Google sokak görünümü, sonra ONAYLANMIŞ kullanıcı fotoğrafları (yeniden eskiye).
+        // Onay bekleyen fotoğraf ne kapak olur ne galeriye girer.
+        const zaman = (y: any) => y?.created_at?.seconds ?? 0;
+        const googleFoto = (yorumlar as any[])
+          .map(y => y.foto_url)
+          .find(u => typeof u === 'string' && u.includes('maps.googleapis.com/maps/api/streetview')) || null;
+        const kullaniciFotolari = (yorumlar as any[])
+          .filter(y => y.foto_url && y.foto_onay === 'onaylandi'
+            && !String(y.foto_url).includes('maps.googleapis.com/maps/api/streetview'))
+          .sort((a, b) => zaman(b) - zaman(a))
+          .map(y => y.foto_url as string);
+        const galeri = [...(googleFoto ? [googleFoto] : []), ...kullaniciFotolari];
+        setFotoGaleri(galeri);
+        // Kapak: en son onaylanan kullanıcı fotoğrafı, yoksa Google görünümü
+        setBinaFotosu(kullaniciFotolari[0] || googleFoto || (sonYorum?.foto_url ?? null));
 
         // Konum — önce yapısal alanlar, sonra acik_adres fallback (mobil ile aynı öncelik)
         const konumluKayit = yorumlar.find((y: any) => y.ilce || y.koordinat) as any || sonYorum;
@@ -456,13 +472,26 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
 
         <div className="flex flex-col md:flex-row gap-8 mb-12 border-b border-slate-50 pb-8">
           <div className="relative self-start">
-            <img
-              src={binaFotosu || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80"}
-              onError={(e: any) => { e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80"; e.currentTarget.onerror = null; }}
-              className="w-full md:w-64 h-64 object-cover rounded-[2.5rem] border border-slate-100 shadow-sm"
-              alt="Bina"
-            />
-            <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm p-2 rounded-2xl text-blue-600 shadow-sm"><Camera size={16} /></div>
+            <button
+              type="button"
+              onClick={() => fotoGaleri.length > 0 && setGaleriIndeks(Math.max(0, fotoGaleri.indexOf(binaFotosu || '')))}
+              disabled={fotoGaleri.length === 0}
+              aria-label={t('bina.galeriAc')}
+              className="block w-full md:w-64 cursor-pointer disabled:cursor-default"
+            >
+              <img
+                src={binaFotosu || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80"}
+                onError={(e: any) => { e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80"; e.currentTarget.onerror = null; }}
+                className="w-full md:w-64 h-64 object-cover rounded-[2.5rem] border border-slate-100 shadow-sm"
+                alt="Bina"
+              />
+            </button>
+            <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm p-2 rounded-2xl text-blue-600 shadow-sm pointer-events-none"><Camera size={16} /></div>
+            {fotoGaleri.length > 1 && (
+              <div className="absolute bottom-3 right-3 bg-[#011A25]/80 text-white text-[10px] font-black tracking-wide px-2.5 py-1.5 rounded-xl pointer-events-none">
+                {fotoGaleri.length} FOTOĞRAF
+              </div>
+            )}
           </div>
 
           <div className="flex-1 flex flex-col justify-between">
@@ -670,6 +699,52 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
           </div>
         </div>
       </main>
+
+      {/* Fotoğraf galerisi — ilk sırada Google sokak görünümü, sonra onaylı kullanıcı fotoğrafları */}
+      {galeriIndeks !== null && fotoGaleri.length > 0 && (() => {
+        const son = fotoGaleri.length - 1;
+        const git = (yon: number) => setGaleriIndeks(i => {
+          const k = (i ?? 0) + yon;
+          return k < 0 ? son : k > son ? 0 : k;
+        });
+        const googleKaresi = galeriIndeks === 0 && fotoGaleri[0]?.includes('streetview');
+        return (
+          <div
+            role="dialog" aria-modal="true" aria-label={t('bina.galeri')}
+            onClick={() => setGaleriIndeks(null)}
+            className="fixed inset-0 z-[980] bg-[#011A25]/95 backdrop-blur-sm flex flex-col items-center justify-center p-4"
+          >
+            <button onClick={() => setGaleriIndeks(null)} aria-label={t('sehir.kapat')}
+              className="absolute top-5 right-5 bg-white/10 hover:bg-white/20 text-white rounded-2xl w-11 h-11 text-xl leading-none">✕</button>
+
+            <img
+              src={fotoGaleri[galeriIndeks]}
+              alt={`${binaIsmi} ${galeriIndeks + 1}/${fotoGaleri.length}`}
+              onClick={e => e.stopPropagation()}
+              className="max-h-[75vh] max-w-full object-contain rounded-3xl"
+            />
+
+            <div className="mt-4 flex items-center gap-4" onClick={e => e.stopPropagation()}>
+              {fotoGaleri.length > 1 && (
+                <button onClick={() => git(-1)} aria-label={t('bina.oncekiFoto')}
+                  className="bg-white/10 hover:bg-white/20 text-white rounded-2xl w-11 h-11 text-lg">‹</button>
+              )}
+              <div className="text-center">
+                <div className="text-white text-[12px] font-black tracking-wide">
+                  {galeriIndeks + 1} / {fotoGaleri.length}
+                </div>
+                <div className="text-[#A1CDE9] text-[11px] mt-1">
+                  {googleKaresi ? t('bina.googleFoto') : t('bina.sakinFoto')}
+                </div>
+              </div>
+              {fotoGaleri.length > 1 && (
+                <button onClick={() => git(1)} aria-label={t('bina.sonrakiFoto')}
+                  className="bg-white/10 hover:bg-white/20 text-white rounded-2xl w-11 h-11 text-lg">›</button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
