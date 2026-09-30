@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["next", "dev", "--turbopack"],
       "port": 3000
+    },
+    {
+      "name": "test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/private/tmp/bulevini-test", "run", "dev"],
+      "port": 3000
     }
   ]
 }
