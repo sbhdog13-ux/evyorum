@@ -189,6 +189,9 @@ function YorumFormu() {
     }
     setNewCatName("");
   };
+  // Kriter kaldır — varsayılan dört kriter dahil. Her bina her başlıkta puanlanmak zorunda değil.
+  const kriterKaldir = (id: number) => setCategories(prev => prev.filter(c => c.id !== id));
+
   // Sorun ekle — aynı kanonikleştirme
   const sorunEkle = (adInput?: string) => {
     const ham = (adInput ?? yeniRedFlag).trim();
@@ -214,6 +217,8 @@ function YorumFormu() {
     const temizBinaAdi = trUpper(binaAdi).trim();
     if (!temizBinaAdi || !yorum.trim()) return alert("Bina adı ve deneyim metni zorunludur!");
     if (kufurVarMi(yorum)) return alert(t('yorum.kufurUyari'));
+    // Kriterler kaldırılabilir ama hepsi kaldırılamaz: puansız mühür karneyi bozar (ortalama NaN olur)
+    if (categories.length === 0) return alert(t('muhurle.enAzBirKriter'));
     if (!user && !isAnonymous) {
       alert("Yorum yapmak için giriş yapman gerekiyor!");
       router.push('/giris');
@@ -453,9 +458,20 @@ function YorumFormu() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 text-left">
               {categories.map((cat) => (
                 <div key={cat.id} className="space-y-4 text-left">
-                  <div className="flex justify-between items-end text-left">
+                  <div className="flex justify-between items-end text-left gap-3">
                     <label className="text-[11px] font-black uppercase italic text-black tracking-widest text-left">{cat.label}</label>
-                    <span className="text-2xl font-black italic text-blue-600 text-left">{cat.score.toFixed(1)}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-2xl font-black italic text-blue-600 text-left">{cat.score.toFixed(1)}</span>
+                      <button
+                        type="button"
+                        onClick={() => kriterKaldir(cat.id)}
+                        title={t('muhurle.kriterSil')}
+                        aria-label={`${cat.label} — ${t('muhurle.kriterSil')}`}
+                        className="w-7 h-7 rounded-xl border border-slate-200 text-slate-400 hover:border-red-300 hover:text-red-500 transition-colors text-[13px] leading-none"
+                      >
+                        ×
+                      </button>
+                    </div>
                   </div>
                   <input 
                     type="range" min="1" max="5" step="0.5"
@@ -466,6 +482,14 @@ function YorumFormu() {
                 </div>
               ))}
             </div>
+
+            {/* Tüm kriterler kaldırıldıysa ekranda uyar ve göndermeyi kapat (puansız mühür karneyi bozar) */}
+            {categories.length === 0 && (
+              <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-5 text-left">
+                <div className="text-[11px] font-black uppercase italic tracking-widest text-red-600">{t('muhurle.kriterYok')}</div>
+                <p className="mt-1 text-[13px] leading-relaxed text-red-500">{t('muhurle.enAzBirKriter')}</p>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch text-left">
               <div className="flex flex-col gap-3 bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 justify-center text-left">
@@ -599,9 +623,9 @@ function YorumFormu() {
                 </div>
               </button>
 
-              <button 
-                type="submit" disabled={loading}
-                className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-2xl uppercase italic hover:bg-[#023E56] transition-all flex items-center justify-center gap-4 shadow-2xl active:scale-95 text-left"
+              <button
+                type="submit" disabled={loading || categories.length === 0}
+                className="flex-[2] w-full bg-blue-600 text-white p-8 rounded-[2.5rem] font-black text-2xl uppercase italic hover:bg-[#023E56] transition-all flex items-center justify-center gap-4 shadow-2xl active:scale-95 text-left disabled:opacity-40 disabled:hover:bg-blue-600 disabled:active:scale-100 disabled:cursor-not-allowed"
               >
                 {loading ? t('muhurle.gonderiliyor') : <>{duzenleId ? 'GÜNCELLE' : t('muhurle.gonder')} <CheckCircle2 size={28} /></>}
               </button>
