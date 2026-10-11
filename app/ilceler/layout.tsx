@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { sehirlerMetni } from "@/app/lib/sehirler";
 
 export const metadata: Metadata = {
-  title: "İstanbul İlçeleri | Bulevini",
-  description: "İstanbul ilçelerinde bina ve mahalle deneyimleri — sakinlerin gözünden ilçe rehberi.",
+  title: `${sehirlerMetni()} İlçeleri | Bulevini`,
+  description: `${sehirlerMetni()} ilçelerinde bina ve mahalle deneyimleri — sakinlerin gözünden ilçe rehberi.`,
   alternates: { canonical: "https://bulevini.com/ilceler" },
 };
 

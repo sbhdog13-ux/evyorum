@@ -8,6 +8,7 @@ export type Sehir = {
   kod: SehirKodu;
   ad: string;            // kayıtlarda tutulan hali (büyük harf, Türkçe İ)
   duzAd: string;         // cümle içinde okunur hali ("İstanbul")
+  bulunmaAd: string;     // "-da/-de" ekli hali ("İstanbul'da", "Kahramanmaraş'ta") — ek Türkçede değişir, elle yazılır
   kisaAd: string;        // dar ekranda seçicide
   kutu: { guney: number; bati: number; kuzey: number; dogu: number };
   merkez: [number, number];
@@ -17,14 +18,14 @@ export type Sehir = {
 
 export const SEHIRLER: Record<SehirKodu, Sehir> = {
   istanbul: {
-    kod: 'istanbul', ad: 'İSTANBUL', duzAd: 'İstanbul', kisaAd: 'İSTANBUL',
+    kod: 'istanbul', ad: 'İSTANBUL', duzAd: 'İstanbul', bulunmaAd: "İstanbul'da", kisaAd: 'İSTANBUL',
     kutu: { guney: 40.55, bati: 27.9, kuzey: 41.65, dogu: 29.95 },
     merkez: [41.0082, 28.9784],
     ilceSinirlari: '/istanbul.json',
     yeni: false,
   },
   kahramanmaras: {
-    kod: 'kahramanmaras', ad: 'KAHRAMANMARAŞ', duzAd: 'Kahramanmaraş', kisaAd: 'K.MARAŞ',
+    kod: 'kahramanmaras', ad: 'KAHRAMANMARAŞ', duzAd: 'Kahramanmaraş', bulunmaAd: "Kahramanmaraş'ta", kisaAd: 'K.MARAŞ',
     // İl sınır kutusu: Nominatim (OSM) idari sınır, dışa doğru yuvarlandı
     kutu: { guney: 37.19, bati: 36.2, kuzey: 38.61, dogu: 37.76 },
     merkez: [37.5813, 36.9275],
@@ -40,6 +41,13 @@ export const VARSAYILAN_SEHIR: SehirKodu = 'istanbul';
 // Metinlerde {sehirler} yerine bu geçer — yeni şehir eklenince yazıları elle düzeltmek gerekmez.
 export function sehirlerMetni(baglac = 've'): string {
   const adlar = SEHIR_LISTESI.map(s => s.duzAd);
+  if (adlar.length <= 1) return adlar[0] || '';
+  return `${adlar.slice(0, -1).join(', ')} ${baglac} ${adlar[adlar.length - 1]}`;
+}
+
+// Aynısının "-da/-de" ekli hali: "İstanbul'da ve Kahramanmaraş'ta". SEO metinlerinde kullanılır.
+export function sehirlerBulunmaMetni(baglac = 've'): string {
+  const adlar = SEHIR_LISTESI.map(s => s.bulunmaAd);
   if (adlar.length <= 1) return adlar[0] || '';
   return `${adlar.slice(0, -1).join(', ')} ${baglac} ${adlar[adlar.length - 1]}`;
 }

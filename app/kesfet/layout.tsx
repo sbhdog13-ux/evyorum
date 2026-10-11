@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { sehirlerBulunmaMetni } from "@/app/lib/sehirler";
 
 export const metadata: Metadata = {
   title: "Keşfet — Mühürlenmiş Binalar ve Son Sakin Yorumları | Bulevini",
-  description: "İstanbul'da mühürlenmiş binaları keşfet: son sakin yorumları, bina karneleri ve canlı akış. Haritadan veya listeden binanı bul.",
+  description: `${sehirlerBulunmaMetni()} mühürlenmiş binaları keşfet: son sakin yorumları, bina karneleri ve canlı akış. Haritadan veya listeden binanı bul.`,
   alternates: { canonical: "https://bulevini.com/kesfet" },
 };
 

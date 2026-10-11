@@ -11,6 +11,7 @@ import { AuthProvider } from "@/app/contexts/AuthContext";
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 import { LangProvider } from "@/app/lib/i18n";
 import { SehirProvider, SehirSecimPenceresi } from "@/app/lib/sehir";
+import { SEHIR_LISTESI, sehirlerBulunmaMetni } from "@/app/lib/sehirler";
 import BottomNav from "@/app/components/BottomNav";
 import KullaniciAdiKapisi from "@/app/components/KullaniciAdiKapisi";
 import CerezBandi from "@/app/components/CerezBandi";
@@ -19,8 +20,8 @@ import Footer from "@/app/components/Footer";
 export const metadata: Metadata = {
   metadataBase: new URL("https://bulevini.com"),
   title: "Bulevini | Binanı, Yaşamış Olandan Öğren — Bina Yorumları ve Karneleri",
-  description: "Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız platformdur. Evini tutmadan önce binanın karnesine bak: ısınma, deprem güveni, yönetim, komşuluk. Şu an İstanbul'da.",
-  keywords: ["bina yorumları", "apartman yorumları", "kiralık daire İstanbul", "mahalle yorumları", "bina puanı", "ev tutmadan önce", "kiracı deneyimi", "bina karnesi", "bina sicili"],
+  description: `Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız platformdur. Evini tutmadan önce binanın karnesine bak: ısınma, deprem güveni, yönetim, komşuluk. Şu an ${sehirlerBulunmaMetni()}.`,
+  keywords: ["bina yorumları", "apartman yorumları", "kiralık daire İstanbul", "kiralık daire Kahramanmaraş", "mahalle yorumları", "bina puanı", "ev tutmadan önce", "kiracı deneyimi", "bina karnesi", "bina sicili"],
   alternates: { canonical: "https://bulevini.com" },
   openGraph: {
     title: "Bulevini — Binaların Ortak Hafızası",
@@ -59,9 +60,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           "name": "Bulevini",
           "url": "https://bulevini.com",
           "logo": "https://bulevini.com/icons/icon-512.png",
-          "description": "Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız bir platformdur. Evini tutmadan önce binanın karnesine bakarsın; şu an İstanbul'da.",
+          "description": `Bulevini, binaların gerçek sakin deneyimlerinden oluşan ortak hafızasını tutan bağımsız bir platformdur. Evini tutmadan önce binanın karnesine bakarsın; şu an ${sehirlerBulunmaMetni()}.`,
           "foundingDate": "2026",
-          "areaServed": { "@type": "City", "name": "İstanbul" },
+          "areaServed": SEHIR_LISTESI.map(s => ({ "@type": "City", "name": s.duzAd })),
           "email": "sbhdog13@gmail.com"
         }) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
