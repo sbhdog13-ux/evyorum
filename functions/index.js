@@ -472,7 +472,7 @@ function mailSablon({ baslik, altBaslik, metin, ctaYazi, ctaUrl, guvenlikNotu })
       <p style="font-size:11.5px;color:#5f7686;text-align:center;word-break:break-all;margin:0 0 20px;">Buton çalışmazsa: <a href="${ctaUrl}" style="color:#2563eb;text-decoration:none;">${ctaUrl}</a></p>
       <div style="background:#eaf4fb;border:1px solid #d6e7f4;border-radius:12px;padding:13px 16px;font-size:12.5px;color:#3a5064;text-align:center;">🔒 ${guvenlikNotu}</div>
       <hr style="border:none;border-top:1px solid #e4ebf1;margin:24px 0 16px;" />
-      <p style="text-align:center;font-size:11.5px;font-weight:900;font-style:italic;text-transform:uppercase;color:#023E56;margin:0 0 6px;">Bugün İstanbul'dayız. <span style="color:#A1CDE9;">Yarın, sokağında.</span></p>
+      <p style="text-align:center;font-size:11.5px;font-weight:900;font-style:italic;text-transform:uppercase;color:#023E56;margin:0 0 6px;">Bugün İstanbul ve Kahramanmaraş'tayız. <span style="color:#A1CDE9;">Yarın, sokağında.</span></p>
       <p style="text-align:center;font-size:11px;color:#5f7686;margin:0;">Bulevini — binaların ortak hafızası · bulevini.com</p>
     </div>
   </div></body></html>`;
@@ -569,5 +569,37 @@ exports.iletisimBildirimi = onDocumentCreated(
       })
     );
     console.log(`[mail] iletişim bildirimi → ${ADMIN_MAIL}`);
+  }
+);
+
+// 4) Onay bekleyen fotoğraf bildirimi — yeni fotoğraf yüklenince admin'e mail.
+// Elle /admin'e bakmak yerine haber gelsin diye eklendi.
+// Hem yeni mühürde (created) hem sonradan foto eklenmesinde (updated) tetiklenir;
+// sadece "bekliyor"a GEÇİŞTE mail gider, her kayıt değişikliğinde değil.
+exports.fotoBekliyorAdminBildirimi = onDocumentWritten(
+  { document: 'yorumlar/{yorumId}', region: 'us-central1', secrets: [RESEND_API_KEY] },
+  async (event) => {
+    const once = event.data?.before?.data();
+    const sonra = event.data?.after?.data();
+    if (!sonra) return;
+    if (sonra.foto_onay !== 'bekliyor') return;
+    if (once && once.foto_onay === 'bekliyor') return; // zaten bildirildi
+    if (!sonra.foto_url) return;
+
+    const esc = (s) => String(s || '').replace(/</g, '&lt;');
+    const binaAdi = esc(sonra.yeni_bina_adi || sonra.bina_adi || 'bilinmeyen bina');
+    await resendMailGonder(
+      ADMIN_MAIL,
+      `📷 Onay bekleyen fotoğraf: ${binaAdi.slice(0, 60)}`,
+      mailSablon({
+        baslik: 'Onay bekleyen fotoğraf',
+        altBaslik: `${binaAdi} · ${esc(sonra.kullanici_adi || 'Anonim')}`,
+        metin: 'Bir sakin mührüne fotoğraf ekledi. Yönetim panelinden onaylayabilir veya reddedebilirsin.',
+        ctaYazi: 'YÖNETİM PANELİNİ AÇ →',
+        ctaUrl: 'https://bulevini.com/admin',
+        guvenlikNotu: 'Bu mail, Bulevini\'ye onay bekleyen bir fotoğraf yüklendiği için sana gönderildi.',
+      })
+    );
+    console.log(`[mail] foto onay bildirimi → ${ADMIN_MAIL} (${binaAdi})`);
   }
 );
