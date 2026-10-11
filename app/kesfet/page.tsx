@@ -12,6 +12,7 @@ import LeafletHarita from '@/app/components/LeafletHarita';
 import { useLang } from '@/app/lib/i18n';
 import { SehirEtiketi, useSehir, HaritaSehirPenceresi } from '@/app/lib/sehir';
 import { sehreAit } from '@/app/lib/sehirler';
+import { engellenenleriGetir } from '@/app/lib/engelleme';
 import Sidebar from '@/app/components/Sidebar';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase-auth';
@@ -37,8 +38,12 @@ export default function Home() {
       const yorumlarRef = collection(db, 'yorumlar');
       const q = query(yorumlarRef, orderBy('created_at', 'desc'), limit(15));
       const snap = await getDocs(q);
+      // Engellediklerim akışta da görünmesin
+      const engellenenler = user ? await engellenenleriGetir(user.uid) : [];
       // Mühür akışı iki il için ORTAK (karar 11 Eyl) — şehre göre süzülmez; istatistikler aşağıda şehre göre
-      setGercekYorumlar(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((y: any) => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0))));
+      setGercekYorumlar(snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .filter((y: any) => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0)))
+        .filter((y: any) => !engellenenler.includes(y.kullanici_id)));
 
       // Ölçek: tüm yorumlar yerine hazır özet defteri (binalar) — öneriler + istatistik, sadece seçili şehir
       const binaSnap = await getDocs(collection(db, 'binalar'));

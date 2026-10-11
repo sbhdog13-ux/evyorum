@@ -16,6 +16,7 @@ import { puanHesapla, radarHakki } from '@/app/lib/seviye';
 import { agirlik } from '@/app/lib/skor';
 import { olay } from '@/app/lib/analytics';
 import CevapBolumu from '@/app/components/CevapBolumu';
+import { engellenenleriGetir, kullaniciEngelle } from '@/app/lib/engelleme';
 import Sidebar from '@/app/components/Sidebar';
 
 export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string; binaSlug?: string }) {
@@ -53,6 +54,23 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
         yorum_id: yorumId, bina_adi: binaIsmi, kullanici_id: user.uid, created_at: serverTimestamp(),
       });
       alert(t('yorum.sikayetTesekkur'));
+    } catch { alert(t('giris.hataGenel')); }
+  };
+
+  // Engellediğim kullanıcılar — mühürleri ve cevapları bana gösterilmez (mobille aynı)
+  const [engellenenler, setEngellenenler] = useState<string[]>([]);
+  useEffect(() => {
+    if (user) engellenenleriGetir(user.uid).then(setEngellenenler); else setEngellenenler([]);
+  }, [user]);
+
+  const engelle = async (kullaniciId?: string) => {
+    if (!user) { window.location.href = '/giris'; return; }
+    if (!kullaniciId || kullaniciId === user.uid) return;
+    if (!confirm(t('yorum.engelleSor'))) return;
+    try {
+      await kullaniciEngelle(user.uid, kullaniciId);
+      setEngellenenler(prev => prev.includes(kullaniciId) ? prev : [...prev, kullaniciId]);
+      alert(t('yorum.engellendi'));
     } catch { alert(t('giris.hataGenel')); }
   };
 
@@ -604,6 +622,7 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
           <div className="grid md:grid-cols-2 gap-4">
             {dbYorumlar.filter((y: any) =>
               !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0))
+              && !engellenenler.includes(y.kullanici_id)
             ).map((y: any, i) => {
               const bulanik = !!kapiDurumu && i >= 1; // ilk deneyim herkese açık — SEO + tadımlık
               return (
@@ -690,9 +709,15 @@ export default function BinaDetayClient({ binaAdi, binaSlug }: { binaAdi: string
                         className="px-3 py-2 rounded-xl text-[10px] font-black italic uppercase text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all">
                         🚩 {t('yorum.sikayet')}
                       </button>
+                      {y.kullanici_id && y.kullanici_id !== user?.uid && (
+                        <button onClick={() => engelle(y.kullanici_id)}
+                          className="px-3 py-2 rounded-xl text-[10px] font-black italic uppercase text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                          🚫 {t('yorum.engelle')}
+                        </button>
+                      )}
                     </div>
                   )}
-                  {!bulanik && y.id && <CevapBolumu yorumId={y.id} binaAdi={binaIsmi} />}
+                  {!bulanik && y.id && <CevapBolumu yorumId={y.id} binaAdi={binaIsmi} engellenenler={engellenenler} />}
                 </div>
               );
             })}

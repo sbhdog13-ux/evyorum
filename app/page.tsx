@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { engellenenleriGetir } from '@/app/lib/engelleme';
 import { useLang, LangSwitcher } from '@/app/lib/i18n';
 import { SehirSecici, useSehir, useSehirMetni } from '@/app/lib/sehir';
 import { sehreAit } from '@/app/lib/sehirler';
@@ -63,15 +64,17 @@ export default function AcilisSayfasi() {
     (async () => {
       try {
         const snap = await getDocs(query(collection(db, 'yorumlar'), orderBy('created_at', 'desc'), limit(20)));
+        const engellenenler = user ? await engellenenleriGetir(user.uid) : [];
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as any))
-          .filter(y => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0)));
+          .filter(y => !(y.yorum_metni === 'BİNA MÜHÜRLENDİ.' && (!y.puanlar || Object.keys(y.puanlar).length === 0)))
+          .filter(y => !engellenenler.includes(y.kullanici_id));
         // 3'e kesme şehir süzgecinden SONRA yapılır (yukarıdaki feed hesabı) — yoksa başka şehrin mühürleri kaybolur
         setFeed(list.filter(y => y.yorum_metni && y.yorum_metni !== 'BİNA MÜHÜRLENDİ.'));
         const karneli = list.find(y => y.puanlar && Object.keys(y.puanlar).length >= 2);
         if (karneli) setOrnekBina(karneli);
       } catch { /* sessiz */ }
     })();
-  }, []);
+  }, [user]);
 
   // Haritaya verilecek pinler
   // LeafletHarita "lat, lng" metni bekliyor; özet kayıtta koordinat {lat,lng} nesnesi

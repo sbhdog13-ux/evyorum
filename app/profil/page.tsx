@@ -14,6 +14,7 @@ import ProfilKimlik from '@/app/components/ProfilKimlik';
 import { useLang } from '@/app/lib/i18n';
 import { SehirEtiketi } from '@/app/lib/sehir';
 import { puanHesapla, rutbeBul, ROZETLER, RUTBELER } from '@/app/lib/seviye';
+import { engellenenlerDetayli, engelKaldir } from '@/app/lib/engelleme';
 
 function ProfilIcerik() {
   const router = useRouter();
@@ -26,6 +27,20 @@ function ProfilIcerik() {
   const [silModal, setSilModal] = useState(false);
   const [silOnayMetni, setSilOnayMetni] = useState('');
   const [silLoading, setSilLoading] = useState(false);
+  const [engellenenler, setEngellenenler] = useState<{ uid: string; ad: string }[]>([]);
+
+  // Engellediklerim — listeden çıkınca o kullanıcının içeriği yeniden görünür olur
+  useEffect(() => {
+    if (user) engellenenlerDetayli(user.uid).then(setEngellenenler);
+  }, [user]);
+
+  const engeliKaldir = async (hedefUid: string) => {
+    if (!user) return;
+    try {
+      await engelKaldir(user.uid, hedefUid);
+      setEngellenenler(prev => prev.filter(k => k.uid !== hedefUid));
+    } catch { alert(t('giris.hataGenel')); }
+  };
 
   // Y3 — Apple 5.1.1: uygulama içi hesap silme.
   // Sunucudaki hesabiSil robotu: mühürler 'Anonim Sakin' olur (içerik kalır),
@@ -270,6 +285,24 @@ function ProfilIcerik() {
               </button>
             )}
           </section>
+
+          {/* ENGELLEDİKLERİM — mobildeki profil bölümünün webdeki karşılığı */}
+          {engellenenler.length > 0 && (
+            <section className="mt-16 border-t border-slate-100 pt-10 text-left">
+              <h3 className="text-[12px] font-black italic uppercase tracking-widest text-slate-300 mb-4">{t('profil.engellediklerim')}</h3>
+              <div className="space-y-2 max-w-md">
+                {engellenenler.map(k => (
+                  <div key={k.uid} className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-slate-100 bg-white">
+                    <span className="text-[12px] font-black italic text-slate-600">{k.ad}</span>
+                    <button onClick={() => engeliKaldir(k.uid)}
+                      className="px-3 py-1.5 rounded-xl text-[10px] font-black italic uppercase text-blue-600 border border-blue-200 hover:bg-blue-50 transition-all">
+                      {t('profil.engelKaldir')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* TEHLİKELİ BÖLGE — Y3 hesap silme (Apple 5.1.1) */}
           <section className="mt-16 border-t border-slate-100 pt-10 text-left">

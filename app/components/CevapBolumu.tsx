@@ -8,7 +8,7 @@ import { kufurVarMi } from '@/app/lib/kufur';
 import { adGetir } from '@/app/lib/kullaniciadi';
 
 // Yorum altı diyalog — tek seviye, puana etkisiz. Karneyi bozmadan tartışma buraya iner.
-export default function CevapBolumu({ yorumId, binaAdi }: { yorumId: string; binaAdi: string | null }) {
+export default function CevapBolumu({ yorumId, binaAdi, engellenenler = [] }: { yorumId: string; binaAdi: string | null; engellenenler?: string[] }) {
   const { user } = useAuth() as any;
   const { t } = useLang();
   const [acik, setAcik] = useState(false);
@@ -22,7 +22,9 @@ export default function CevapBolumu({ yorumId, binaAdi }: { yorumId: string; bin
   const yukle = async () => {
     try {
       const snap = await getDocs(query(collection(db, 'yorumlar', yorumId, 'cevaplar'), orderBy('created_at', 'asc')));
-      setCevaplar(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      // Engellediğim kullanıcıların cevapları bana gösterilmez
+      setCevaplar(snap.docs.map(d => ({ id: d.id, ...d.data() } as any))
+        .filter((c: any) => !engellenenler.includes(c.kullanici_id)));
     } catch {}
     setYuklendi(true);
   };
