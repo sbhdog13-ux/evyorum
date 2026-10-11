@@ -498,7 +498,8 @@ function YorumFormu() {
                   <input 
                     value={newCatName} 
                     onChange={(e) => setNewCatName(e.target.value)}
-                    placeholder="ÖRN: ASANSÖR..." 
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewCategory(); } }}
+                    placeholder="ÖRN: ASANSÖR..."
                     className="flex-1 bg-transparent font-bold text-sm outline-none uppercase placeholder:text-slate-300 text-left"
                   />
                   <button type="button" onClick={() => addNewCategory()} className="bg-blue-600 text-white p-2 rounded-xl hover:rotate-90 transition-all text-left">
