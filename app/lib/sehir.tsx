@@ -67,8 +67,10 @@ export function SehirSecici() {
   return (
     <div className="relative">
       <button onClick={() => setAcik(v => !v)} aria-haspopup="listbox" aria-expanded={acik}
-        className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-black uppercase text-slate-600 hover:border-blue-600">
-        📍 <span className="sm:hidden">{sehir.kisaAd}</span><span className="hidden sm:inline">{sehir.ad}</span> <span className="text-[8px]">▼</span>
+        className="flex items-center gap-0.5 sm:gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-[11px] font-black uppercase text-slate-600 hover:border-blue-600 shrink min-w-0 whitespace-nowrap">
+        {/* 📍 dar ekranda gizli: logo + şehir + dil + giriş yan yana sığmayınca kutular üst üste biniyordu */}
+        <span className="hidden sm:inline">📍</span>
+        <span className="sm:hidden">{sehir.kisaAd}</span><span className="hidden sm:inline">{sehir.ad}</span> <span className="text-[8px]">▼</span>
       </button>
       {acik && (
         <div role="listbox" className="absolute right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden z-[700] min-w-[170px]">

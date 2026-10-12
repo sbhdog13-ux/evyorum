@@ -162,16 +162,16 @@ export default function AcilisSayfasi() {
         <div className="absolute inset-0 z-[5] pointer-events-none bg-[linear-gradient(to_bottom,rgba(2,32,46,.93)_0%,rgba(2,32,46,.86)_45%,rgba(2,32,46,.96)_100%)] md:bg-[linear-gradient(100deg,rgba(2,32,46,.97)_0%,rgba(2,32,46,.88)_34%,rgba(2,32,46,.3)_64%,rgba(2,32,46,.6)_100%),linear-gradient(to_bottom,rgba(2,32,46,.55),transparent_24%,rgba(2,32,46,.92)_94%)]" />
 
         {/* z: alttaki bölümlerle aynı katta olursa şehir/dil menüsü onların ARKASINDA kalır ve tıklanamaz */}
-        <header className="relative z-[60] max-w-6xl w-full mx-auto flex items-center justify-between px-6 pt-6">
+        <header className="relative z-[60] max-w-6xl w-full mx-auto flex items-center justify-between gap-2 px-4 sm:px-6 pt-6">
           {/* Logo + şehir bir bütün: logo koyu renkli, afişteki gibi beyaz kutuda; şehir hemen yanında sabit.
               Giriş yapmamış kişinin menüsü olmadığı için şehir burada seçilebilir. */}
-          <div className="flex items-center gap-2">
-            <span className="bg-white rounded-xl px-3 py-2 inline-flex items-center shadow-lg shadow-black/20 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <span className="bg-white rounded-xl px-2 sm:px-3 py-2 inline-flex items-center shadow-lg shadow-black/20 shrink-0">
               <img src="/logo.png" alt="Bulevini" className="h-8 w-auto shrink-0" onError={(e: any) => { e.target.outerHTML = '<span class="text-lg font-black italic tracking-tighter uppercase text-[#011A25]">BULEVİNİ</span>'; }} />
             </span>
             <SehirSecici />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <LangSwitcher />
             <Link href="/gizlilik" className="hidden md:block text-[11px] font-black uppercase italic text-[#A1CDE9] hover:text-white tracking-wide">{t('acilis.gizlilik')}</Link>
             {/* Telefonda kısa etiket: dört öğe yan yana sığmayınca sıkışan logo oluyordu */}
@@ -186,7 +186,8 @@ export default function AcilisSayfasi() {
           <div className="max-w-6xl w-full mx-auto px-6 lg:grid lg:grid-cols-[1.15fr_.85fr] lg:gap-12 lg:items-center">
             <div className="max-w-2xl">
               <div className="text-[11px] font-black italic uppercase tracking-[.22em] text-[#A1CDE9]">{t('y.eyebrow')}</div>
-              <h1 className="mt-4 font-black italic uppercase tracking-tighter leading-[.92] text-[clamp(38px,6.4vw,80px)]">
+              {/* leading .92 idi: Ş/Ç kuyrukları ve Ö/Ğ şapkaları alt satıra giriyordu (Türkçe büyük harf) */}
+              <h1 className="mt-4 font-black italic uppercase tracking-tighter leading-[1.06] text-[clamp(38px,6.4vw,80px)]">
                 {t('y.h1a')}<br /><span className="text-[#4d86ff]">{t('y.h1b')}</span> {t('y.h1c')}
               </h1>
               <p className="mt-5 text-[17px] leading-relaxed text-[#A1CDE9] max-w-md">{t('y.alt')}</p>

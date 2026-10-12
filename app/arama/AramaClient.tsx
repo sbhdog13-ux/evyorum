@@ -236,7 +236,7 @@ function AramaIcerik({ initialBinalar = [] }: { initialBinalar?: any[] }) {
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
                     placeholder={t('arama.placeholder')}
-                    className="w-full min-w-0 p-3 md:p-6 bg-transparent font-black text-base md:text-2xl uppercase italic outline-none"
+                    className="w-full min-w-0 p-3 md:p-6 bg-transparent font-black text-sm md:text-2xl uppercase italic outline-none"
                   />
                 </div>
               </div>
